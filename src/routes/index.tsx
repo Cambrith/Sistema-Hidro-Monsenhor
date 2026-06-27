@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PublicLayout } from "@/components/public-layout";
 import { Button } from "@/components/ui/button";
+import { AvisoMensagemHtml, textoPlanoAviso } from "@/lib/sanitizar-aviso";
 import {
   Card,
   CardContent,
@@ -17,8 +18,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Baby,
+  PersonStanding,
   UserRound,
+  Phone,
   HeartPulse,
   MapPin,
   ArrowRight,
@@ -28,18 +30,17 @@ import {
   Instagram,
   Facebook,
   Megaphone,
+  X,
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
-import { horarioSegQua, horarioTerQui } from "@/lib/mock-data";
+import { horarioSegQua, horarioTerQui, type Modalidade } from "@/lib/mock-data";
 import { supabase } from "@/lib/supabase";
 import mapaImg from "@/assets/mapa-localizacao.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      {
-        title: "Hidro e Natação Monsenhor",
-      },
+      { title: "Hidro e Natação Monsenhor" },
       {
         name: "description",
         content:
@@ -60,37 +61,42 @@ type Aviso = {
   ativo?: boolean;
 };
 
+type FiltroDia = "todos" | "seg-qui" | "ter-qua";
+type FiltroTurno = "todos" | "Manhã" | "Tarde" | "Noite";
+type FiltroModalidade = "todos" | Modalidade;
+
 const instagramUrl =
   "https://www.instagram.com/hidro.monsenhor?igsh=MWZsOGhzYzMydmxnaA==";
-
 const facebookUrl =
   "https://www.facebook.com/hidrojoaodedeus/?locale=pt_BR";
-
 const whatsappUrl =
   "https://wa.me/552422232857?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20a%20Hidro%20e%20Nata%C3%A7%C3%A3o%20Monsenhor.";
 
 const modalidades = [
-  {
+ {
     nome: "Natação Infantil",
-    desc:
-      "Atividade voltada para crianças, com foco em adaptação ao meio líquido, segurança e desenvolvimento inicial na água.",
-    icon: Baby,
+    desc: "Para crianças e adolescentes de 7 a 17 anos. As aulas focam em adaptação ao meio líquido, desenvolvimento das técnicas de nado, segurança na água e evolução progressiva conforme a faixa etária.",
+    icon: PersonStanding,
   },
   {
     nome: "Natação Adulta",
-    desc:
-      "Aulas para adultos com foco em condicionamento, técnica, saúde, bem-estar e melhoria da relação com o meio aquático.",
+    desc: "Para maiores de 18 anos. As aulas trabalham técnica, condicionamento físico e bem-estar, atendendo desde quem está aprendendo a nadar até quem busca aprimorar a prática.",
     icon: UserRound,
   },
   {
     nome: "Hidroginástica",
-    desc:
-      "Exercício aquático de baixo impacto, voltado ao cuidado com a saúde, mobilidade, disposição e qualidade de vida.",
+    desc: "Exercício aquático de baixo impacto para maiores de 18 anos. Indicada para quem busca qualidade de vida, mobilidade e condicionamento com menor sobrecarga nas articulações.",
     icon: HeartPulse,
   },
 ];
 
 const redesSociais = [
+   {
+    label: "Telefone",
+    desc: "Ligue para confirmar vagas disponíveis ou tirar dúvidas com a secretaria.",
+    href: "tel:+552422452089",
+    icon: Phone,
+  },
   {
     label: "WhatsApp",
     desc: "Fale diretamente com a equipe responsável pelo atendimento.",
@@ -114,128 +120,195 @@ const redesSociais = [
 const enderecoBusca = encodeURIComponent(
   "Escola Municipal Monsenhor João de Deus Rodrigues, Pedro do Rio, Petrópolis - RJ",
 );
-
 const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${enderecoBusca}`;
+
+type HorarioItem = {
+  hora: string;
+  modalidade: Modalidade;
+  dia: "seg-qui" | "ter-qua";
+  turno: "Manhã" | "Tarde" | "Noite";
+};
+
+function calcularTurno(hora: string): "Manhã" | "Tarde" | "Noite" {
+  const h = parseInt(hora.slice(0, 2), 10);
+  if (h < 12) return "Manhã";
+  if (h < 18) return "Tarde";
+  return "Noite";
+}
+
+const todosHorarios: HorarioItem[] = [
+  ...horarioSegQua.map((h) => ({
+    hora: h.hora,
+    modalidade: h.modalidade,
+    dia: "seg-qui" as const,
+    turno: calcularTurno(h.hora),
+  })),
+  ...horarioTerQui.map((h) => ({
+    hora: h.hora,
+    modalidade: h.modalidade,
+    dia: "ter-qua" as const,
+    turno: calcularTurno(h.hora),
+  })),
+].sort((a, b) => a.hora.localeCompare(b.hora));
+
+const badgeModalidade: Record<Modalidade, string> = {
+  "Natação Infantil": "bg-blue-50 text-blue-700 border border-blue-200",
+  "Natação Adulta": "bg-indigo-50 text-indigo-700 border border-indigo-200",
+  "Hidroginástica": "bg-teal-50 text-teal-700 border border-teal-200",
+};
 
 function formatarData(data?: string | null) {
   if (!data) return "—";
-
   const d = new Date(data);
-
   if (Number.isNaN(d.getTime())) return "—";
-
   return d.toLocaleDateString("pt-BR");
 }
 
-function pareceHtml(valor: string) {
-  return /<\/?[a-z][\s\S]*>/i.test(valor);
-}
-
-function escaparHtml(valor: string) {
-  return valor
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function textoSimplesParaHtml(texto: string) {
-  return texto
-    .split(/\n{2,}/)
-    .map((paragrafo) => {
-      const conteudo = escaparHtml(paragrafo.trim()).replace(/\n/g, "<br />");
-      return conteudo ? `<p>${conteudo}</p>` : "";
-    })
-    .join("");
-}
-
-function sanitizarHtmlAviso(html?: string | null) {
-  if (!html) return "";
-
-  if (typeof window === "undefined") {
-    return html;
-  }
-
-  const entrada = pareceHtml(html) ? html : textoSimplesParaHtml(html);
-
-  const template = document.createElement("template");
-  template.innerHTML = entrada;
-
-  const tagsPermitidas = new Set([
-    "P",
-    "DIV",
-    "BR",
-    "STRONG",
-    "B",
-    "EM",
-    "I",
-    "U",
-    "UL",
-    "OL",
-    "LI",
-  ]);
-
-  const elementos = Array.from(template.content.querySelectorAll("*"));
-
-  elementos.forEach((elemento) => {
-    Array.from(elemento.attributes).forEach((attr) => {
-      elemento.removeAttribute(attr.name);
-    });
-
-    if (elemento.tagName === "B") {
-      const strong = document.createElement("strong");
-      strong.innerHTML = elemento.innerHTML;
-      elemento.replaceWith(strong);
-      return;
-    }
-
-    if (elemento.tagName === "I") {
-      const em = document.createElement("em");
-      em.innerHTML = elemento.innerHTML;
-      elemento.replaceWith(em);
-      return;
-    }
-
-    if (!tagsPermitidas.has(elemento.tagName)) {
-      elemento.replaceWith(...Array.from(elemento.childNodes));
-    }
-  });
-
-  return template.innerHTML;
-}
-
-function textoPlanoAviso(html?: string | null) {
-  if (!html) return "";
-
-  if (typeof window === "undefined") {
-    return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-  }
-
-  const div = document.createElement("div");
-  div.innerHTML = sanitizarHtmlAviso(html);
-
-  div.querySelectorAll("p, div, li").forEach((elemento) => {
-    elemento.append(" ");
-  });
-
-  return (div.textContent ?? "").replace(/\s+/g, " ").trim();
-}
-
-function AvisoMensagemHtml({
-  mensagem,
-  className = "",
+function Chip({
+  ativo,
+  onClick,
+  children,
 }: {
-  mensagem: string;
-  className?: string;
+  ativo: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
 }) {
   return (
-    <div
-      className={`space-y-2 whitespace-normal text-sm leading-relaxed [&_div]:mb-2 [&_em]:italic [&_li]:ml-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:mb-2 [&_strong]:font-semibold [&_u]:underline [&_ul]:list-disc [&_ul]:pl-4 ${className}`}
-      dangerouslySetInnerHTML={{
-        __html: sanitizarHtmlAviso(mensagem),
-      }}
-    />
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+        ativo
+          ? "border-[#1D4ED8] bg-[#1D4ED8] text-white"
+          : "border-border bg-background text-muted-foreground hover:border-[#1D4ED8]/50 hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function TabelaHorarios() {
+  const [filtroDia, setFiltroDia] = useState<FiltroDia>("todos");
+  const [filtroModalidade, setFiltroModalidade] = useState<FiltroModalidade>("todos");
+  const [filtroTurno, setFiltroTurno] = useState<FiltroTurno>("todos");
+
+  const filtrado = todosHorarios.filter((h) => {
+    if (filtroDia !== "todos" && h.dia !== filtroDia) return false;
+    if (filtroModalidade !== "todos" && h.modalidade !== filtroModalidade) return false;
+    if (filtroTurno !== "todos" && h.turno !== filtroTurno) return false;
+    return true;
+  });
+
+  const filtrosAtivos =
+    filtroDia !== "todos" || filtroModalidade !== "todos" || filtroTurno !== "todos";
+
+  function limparFiltros() {
+    setFiltroDia("todos");
+    setFiltroModalidade("todos");
+    setFiltroTurno("todos");
+  }
+
+  return (
+    <div className="mt-6 space-y-4">
+      <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-4">
+
+        <div className="space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dia</span>
+          <div className="flex flex-wrap gap-1.5">
+            <Chip ativo={filtroDia === "todos"} onClick={() => setFiltroDia("todos")}>Todos</Chip>
+            <Chip ativo={filtroDia === "seg-qui"} onClick={() => setFiltroDia("seg-qui")}>Seg. e Qui.</Chip>
+            <Chip ativo={filtroDia === "ter-qua"} onClick={() => setFiltroDia("ter-qua")}>Ter. e Qua.</Chip>
+          </div>
+        </div>
+
+        <div className="h-px bg-border/50" />
+
+        <div className="space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Turno</span>
+          <div className="flex flex-wrap gap-1.5">
+            <Chip ativo={filtroTurno === "todos"} onClick={() => setFiltroTurno("todos")}>Todos</Chip>
+            <Chip ativo={filtroTurno === "Manhã"} onClick={() => setFiltroTurno("Manhã")}>Manhã</Chip>
+            <Chip ativo={filtroTurno === "Tarde"} onClick={() => setFiltroTurno("Tarde")}>Tarde</Chip>
+            <Chip ativo={filtroTurno === "Noite"} onClick={() => setFiltroTurno("Noite")}>Noite</Chip>
+          </div>
+        </div>
+
+        <div className="h-px bg-border/50" />
+
+        <div className="space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Modalidade</span>
+          <div className="flex flex-wrap gap-1.5">
+            <Chip ativo={filtroModalidade === "todos"} onClick={() => setFiltroModalidade("todos")}>Todas</Chip>
+            <Chip ativo={filtroModalidade === "Natação Infantil"} onClick={() => setFiltroModalidade("Natação Infantil")}>Natação Infantil</Chip>
+            <Chip ativo={filtroModalidade === "Natação Adulta"} onClick={() => setFiltroModalidade("Natação Adulta")}>Natação Adulta</Chip>
+            <Chip ativo={filtroModalidade === "Hidroginástica"} onClick={() => setFiltroModalidade("Hidroginástica")}>Hidroginástica</Chip>
+          </div>
+        </div>
+
+        {filtrosAtivos && (
+          <>
+            <div className="h-px bg-border/50" />
+            <button
+              type="button"
+              onClick={limparFiltros}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+            >
+              <X className="h-3 w-3" />
+              Limpar filtros
+            </button>
+          </>
+        )}
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          {filtrado.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              Nenhum horário encontrado para os filtros selecionados.
+            </div>
+          ) : (
+            <div className="max-h-[480px] overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 z-10 bg-background">
+                  <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="px-4 py-3">Horário</th>
+                    <th className="px-4 py-3">Dias</th>
+                    <th className="px-4 py-3">Turno</th>
+                    <th className="px-4 py-3">Modalidade</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/50">
+                  {filtrado.map((item, i) => (
+                    <tr
+                      key={`${item.dia}-${item.hora}-${item.modalidade}-${i}`}
+                      className="transition-colors hover:bg-muted/30"
+                    >
+                      <td className="px-4 py-2.5 font-mono text-foreground">{item.hora}</td>
+                      <td className="px-4 py-2.5 text-foreground/70">
+                        {item.dia === "seg-qui" ? "Seg. e Qui." : "Ter. e Qua."}
+                      </td>
+                      <td className="px-4 py-2.5 text-foreground/70">{item.turno}</td>
+                      <td className="px-4 py-2.5">
+                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeModalidade[item.modalidade]}`}>
+                          {item.modalidade}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+        <div className="border-t border-border/50 px-4 py-2.5">
+          <p className="text-xs text-muted-foreground">
+            {filtrado.length} {filtrado.length === 1 ? "horário exibido" : "horários exibidos"}
+            {filtrosAtivos && ` · ${todosHorarios.length} no total`}
+          </p>
+        </div>
+      </Card>
+    </div>
   );
 }
 
@@ -249,12 +322,9 @@ function Home() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-
     const scrollFromQuery = params.get("scroll");
     const scrollFromHash = window.location.hash.replace("#", "");
-
     const scroll = scrollFromHash || scrollFromQuery;
-
     if (!scroll) return;
 
     const ajustePorSecao: Record<string, number> = {
@@ -267,22 +337,15 @@ function Home() {
 
     setTimeout(() => {
       const element = document.getElementById(scroll);
-
       if (!element) return;
-
       const headerOffset = 104;
       const ajusteVisual = ajustePorSecao[scroll] ?? 48;
-
       const top =
         element.getBoundingClientRect().top +
         window.scrollY -
         headerOffset +
         ajusteVisual;
-
-      window.scrollTo({
-        top: Math.max(0, top),
-        behavior: "smooth",
-      });
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
     }, 200);
   }, []);
 
@@ -308,16 +371,12 @@ function Home() {
     <PublicLayout>
       <section
         className="relative overflow-hidden border-b border-border"
-        style={{
-          background: "linear-gradient(180deg, #EFF6FF 0%, #FFFFFF 100%)",
-        }}
+        style={{ background: "linear-gradient(180deg, #EFF6FF 0%, #FFFFFF 100%)" }}
       >
         <div
           aria-hidden
           className="pointer-events-none absolute -top-24 right-[-10%] h-[420px] w-[420px] rounded-full opacity-40"
-          style={{
-            background: "radial-gradient(closest-side, #DBEAFE, transparent)",
-          }}
+          style={{ background: "radial-gradient(closest-side, #DBEAFE, transparent)" }}
         />
 
         <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 md:grid-cols-2 md:py-24">
@@ -330,32 +389,20 @@ function Home() {
               <span style={{ color: "#1D4ED8" }}>Monsenhor</span>
             </h1>
 
-            <p
-              className="mt-4 max-w-xl text-base sm:text-lg"
-              style={{ color: "#334155" }}
-            >
+            <p className="mt-4 max-w-xl text-base sm:text-lg" style={{ color: "#334155" }}>
               Página de apoio à organização do Centro Esportivo e Cultural Profª
-              Marta Regina de Carvalho Ferreira, em Pedro do Rio — Petrópolis,
-              RJ.
+              Marta Regina de Carvalho Ferreira, em Pedro do Rio — Petrópolis, RJ.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/pre-cadastro">
-                <Button
-                  size="lg"
-                  className="bg-[#1D4ED8] text-white shadow-sm hover:bg-[#1E40AF]"
-                >
-                  Fazer pré-cadastro
+                <Button size="lg" className="bg-[#1D4ED8] text-white shadow-sm hover:bg-[#1E40AF]">
+                  Como se inscrever
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-
               <Link to="/acesso-rapido">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-[#1D4ED8] bg-white text-[#1D4ED8] hover:bg-[#EFF6FF]"
-                >
+                <Button size="lg" variant="outline" className="border-[#1D4ED8] bg-white text-[#1D4ED8] hover:bg-[#EFF6FF]">
                   Acesso rápido
                 </Button>
               </Link>
@@ -365,52 +412,17 @@ function Home() {
           <div className="hidden items-center justify-center md:flex">
             <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:grid-cols-2">
               {[
-                {
-                  icon: ShieldCheck,
-                  label: "Gestão",
-                  value: "Pública e comunitária",
-                },
-                {
-                  icon: CalendarClock,
-                  label: "Organização",
-                  value: "Turmas organizadas por horário",
-                },
-                {
-                  icon: HeartPulse,
-                  label: "Atendimento",
-                  value: "Cuidado com a comunidade",
-                },
-                {
-                  icon: MapPin,
-                  label: "Localização",
-                  value: "Pedro do Rio, Petrópolis",
-                },
+                { icon: ShieldCheck, label: "Gestão", value: "Pública e comunitária" },
+                { icon: CalendarClock, label: "Organização", value: "Turmas organizadas por horário" },
+                { icon: HeartPulse, label: "Atendimento", value: "Cuidado com a comunidade" },
+                { icon: MapPin, label: "Localização", value: "Pedro do Rio, Petrópolis" },
               ].map((card) => {
                 const Icon = card.icon;
-
                 return (
-                  <div
-                    key={card.label}
-                    className="rounded-xl border border-[#DBEAFE] bg-white p-5 shadow-sm"
-                  >
-                    <Icon
-                      className="h-5 w-5"
-                      style={{ color: "#1D4ED8" }}
-                    />
-
-                    <p
-                      className="mt-3 text-xs uppercase tracking-wide"
-                      style={{ color: "#64748B" }}
-                    >
-                      {card.label}
-                    </p>
-
-                    <p
-                      className="text-sm font-semibold"
-                      style={{ color: "#0B1F3A" }}
-                    >
-                      {card.value}
-                    </p>
+                  <div key={card.label} className="rounded-xl border border-[#DBEAFE] bg-white p-5 shadow-sm">
+                    <Icon className="h-5 w-5" style={{ color: "#1D4ED8" }} />
+                    <p className="mt-3 text-xs uppercase tracking-wide" style={{ color: "#64748B" }}>{card.label}</p>
+                    <p className="text-sm font-semibold" style={{ color: "#0B1F3A" }}>{card.value}</p>
                   </div>
                 );
               })}
@@ -420,21 +432,12 @@ function Home() {
       </section>
 
       {avisosImportantes.length > 0 && (
-        <section
-          id="avisos"
-          className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16"
-        >
+        <section id="avisos" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="font-display text-2xl font-semibold">
-                Avisos importantes
-              </h2>
-
-              <p className="text-sm text-muted-foreground">
-                Comunicados de destaque publicados pela equipe responsável.
-              </p>
+              <h2 className="font-display text-2xl font-semibold">Avisos importantes</h2>
+              <p className="text-sm text-muted-foreground">Comunicados de destaque publicados pela equipe responsável.</p>
             </div>
-
             <Link to="/avisos">
               <Button variant="outline" size="sm">
                 Ver todos os avisos
@@ -443,46 +446,24 @@ function Home() {
             </Link>
           </div>
 
-          <div
-            className={
-              avisosImportantes.length === 1
-                ? "mt-5 max-w-2xl"
-                : "mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3"
-            }
-          >
+          <div className={avisosImportantes.length === 1 ? "mt-5 max-w-2xl" : "mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3"}>
             {avisosImportantes.map((aviso) => (
-              <button
-                key={aviso.id}
-                type="button"
-                onClick={() => setAvisoAberto(aviso)}
-                className="group w-full text-left"
-              >
+              <button key={aviso.id} type="button" onClick={() => setAvisoAberto(aviso)} className="group w-full text-left">
                 <Card className="h-full border-border/80 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
                   <CardHeader className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
                       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
                         <Megaphone className="h-5 w-5" />
                       </span>
-
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                        Importante
-                      </span>
+                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Importante</span>
                     </div>
-
                     <div>
                       <CardTitle className="text-lg">{aviso.titulo}</CardTitle>
-
-                      <CardDescription className="mt-1">
-                        {formatarData(aviso.data)}
-                      </CardDescription>
+                      <CardDescription className="mt-1">{formatarData(aviso.data)}</CardDescription>
                     </div>
                   </CardHeader>
-
                   <CardContent>
-                    <p className="line-clamp-4 text-sm leading-relaxed text-muted-foreground">
-                      {textoPlanoAviso(aviso.mensagem)}
-                    </p>
-
+                    <p className="line-clamp-4 text-sm leading-relaxed text-muted-foreground">{textoPlanoAviso(aviso.mensagem)}</p>
                     <p className="mt-4 inline-flex items-center text-sm font-medium text-primary">
                       Ler aviso completo
                       <ArrowRight className="ml-1 h-3.5 w-3.5 opacity-70 transition-transform group-hover:translate-x-0.5" />
@@ -493,126 +474,82 @@ function Home() {
             ))}
           </div>
         </section>
-      )}       <section
-        id="modalidades"
-        className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16"
-      >
+      )}
+
+      <section id="modalidades" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
         <div>
-          <h2 className="font-display text-2xl font-semibold">
-            Modalidades oferecidas
-          </h2>
-
-          <p className="text-sm text-muted-foreground">
-            Atividades pensadas para diferentes idades e objetivos.
-          </p>
+          <h2 className="font-display text-2xl font-semibold">Modalidades oferecidas</h2>
+          <p className="text-sm text-muted-foreground">Atividades pensadas para diferentes idades e objetivos.</p>
         </div>
-
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {modalidades.map((modalidade) => {
             const Icon = modalidade.icon;
-
             return (
-              <Card
-                key={modalidade.nome}
-                className="border-border/70"
-                style={{
-                  background: "var(--gradient-card)",
-                  boxShadow: "var(--shadow-card)",
-                }}
-              >
+              <Card key={modalidade.nome} className="border-border/70" style={{ background: "var(--gradient-card)", boxShadow: "var(--shadow-card)" }}>
                 <CardHeader>
                   <span className="grid h-11 w-11 place-items-center rounded-lg bg-accent text-accent-foreground">
                     <Icon className="h-5 w-5" />
                   </span>
-
-                  <CardTitle className="mt-3 text-lg">
-                    {modalidade.nome}
-                  </CardTitle>
+                  <CardTitle className="mt-3 text-lg">{modalidade.nome}</CardTitle>
                 </CardHeader>
-
-                <CardContent className="text-sm text-foreground/80">
-                  {modalidade.desc}
-                </CardContent>
+                <CardContent className="text-sm text-foreground/80">{modalidade.desc}</CardContent>
               </Card>
             );
           })}
         </div>
       </section>
 
-      <section
-        id="horarios"
-        className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16"
-      >
+      <section id="horarios" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
         <div>
-          <h2 className="font-display text-2xl font-semibold">
-            Horários das atividades
-          </h2>
-
+          <h2 className="font-display text-2xl font-semibold">Horários das atividades</h2>
           <p className="text-sm text-muted-foreground">
-            Grade semanal das aulas oferecidas pelo centro.
+            Grade semanal das aulas oferecidas pelo centro. Use os filtros para encontrar o horário ideal.
           </p>
         </div>
-
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <HorariosCard titulo="Segundas e quartas" lista={horarioSegQua} />
-          <HorariosCard titulo="Terças e quintas" lista={horarioTerQui} />
-        </div>
+        <TabelaHorarios />
       </section>
 
-      <section
-        id="localizacao"
-        className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16"
-      >
+      <section id="localizacao" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
         <div className="grid items-stretch gap-6 md:grid-cols-2">
           <Card className="flex h-full flex-col">
             <CardHeader>
               <CardTitle>Sobre o centro</CardTitle>
-
-              <CardDescription>
-                Espaço público de esporte, cultura e convivência.
-              </CardDescription>
+              <CardDescription>Espaço público de esporte, cultura e convivência.</CardDescription>
             </CardHeader>
-
-            <CardContent className="flex-1 space-y-4 text-sm leading-relaxed text-foreground/80">
-              <p>
-                O Centro Esportivo e Cultural Profª Marta Regina de Carvalho
-                Ferreira é um espaço público voltado à prática de atividades
-                aquáticas, à promoção da saúde e à convivência comunitária em
-                Pedro do Rio.
-              </p>
-
-              <p>
-                Vinculado à Escola Municipal Monsenhor João de Deus Rodrigues, o
-                centro atende moradores da região com turmas de natação
-                infantil, natação adulta e hidroginástica, organizadas por
-                modalidade, horário e faixa etária.
-              </p>
-
-              <p>
-                Além de incentivar hábitos saudáveis, o espaço contribui para a
-                socialização dos participantes, o fortalecimento do vínculo com
-                a comunidade e o acesso a atividades esportivas em um ambiente
-                acolhedor e organizado.
-              </p>
-
-              <p>
-                Este sistema foi desenvolvido para apoiar essa rotina, reunindo
-                informações sobre horários, pré-cadastros, alunos, turmas,
-                presença e comunicados em uma plataforma simples e acessível.
-              </p>
-
-              <p>
-                Com isso, a equipe responsável consegue acompanhar melhor os
-                atendimentos, orientar alunos e responsáveis com mais clareza e
-                tornar a comunicação do centro mais prática, segura e eficiente.
-              </p>
-
-              <p>
-                A proposta é tornar o acesso às informações mais direto para a
-                comunidade e facilitar o trabalho diário da equipe que organiza
-                as atividades do centro.
-              </p>
-            </CardContent>
+           <CardContent className="flex-1 space-y-4 text-sm leading-relaxed text-foreground/80">
+  <p>
+    O Centro Esportivo e Cultural Profª Marta Regina de Carvalho
+    Ferreira é um espaço público voltado à prática de atividades
+    aquáticas, à promoção da saúde e à convivência comunitária em
+    Pedro do Rio.
+  </p>
+  <p>
+    Vinculado à Escola Municipal Monsenhor João de Deus Rodrigues, o
+    centro atende moradores da região com turmas de natação
+    infantil, natação adulta e hidroginástica, organizadas por
+    modalidade, horário e faixa etária.
+  </p>
+  <p>
+    Com histórico de atendimento que remonta ao início dos anos
+    2000, o centro acumula milhares de alunos atendidos ao longo
+    dos anos, consolidando-se como referência de acesso ao esporte
+    aquático na região de Pedro do Rio e distritos vizinhos.
+  </p>
+  <p>
+    A piscina é tratada por meio de geração eletrolítica de cloro a
+    partir de sal, um sistema mais moderno que reduz a necessidade
+    de produtos químicos tradicionais. O centro é hoje a única
+    opção gratuita de atividades aquáticas entre os distritos de
+    Pedro do Rio, Posse e Itaipava, tornando-se referência de
+    acesso ao esporte para a comunidade local.
+  </p>
+  <p>
+    As atividades são oferecidas gratuitamente à comunidade. As
+    inscrições são realizadas exclusivamente de forma presencial,
+    diretamente no local, nos canais de atendimento informados ao
+    final desta página.
+  </p>
+</CardContent>
           </Card>
 
           <Card className="flex h-full flex-col">
@@ -621,27 +558,13 @@ function Home() {
                 <MapPin className="h-5 w-5 text-primary" />
                 Localização
               </CardTitle>
-
-              <CardDescription>
-                Localização de referência para acesso ao centro.
-              </CardDescription>
+              <CardDescription>Localização de referência para acesso ao centro.</CardDescription>
             </CardHeader>
-
             <CardContent className="flex flex-1 flex-col gap-3 text-sm text-foreground/80">
               <div className="overflow-hidden rounded-lg border border-border/60">
-                <img
-                  src={mapaImg}
-                  alt="Mapa de localização do centro"
-                  className="h-auto w-full"
-                />
+                <img src={mapaImg} alt="Mapa de localização do centro" className="h-auto w-full" />
               </div>
-
-              <a
-                href={mapsUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-auto inline-block"
-              >
+              <a href={mapsUrl} target="_blank" rel="noreferrer" className="mt-auto inline-block">
                 <Button variant="outline" size="sm">
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Abrir no Google Maps
@@ -652,44 +575,21 @@ function Home() {
         </div>
       </section>
 
-      <section
-        id="canais-oficiais"
-        className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16"
-      >
+      <section id="canais-oficiais" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
         <div>
-          <h2 className="font-display text-2xl font-semibold">
-            Canais oficiais
-          </h2>
-
-          <p className="text-sm text-muted-foreground">
-            Acompanhe comunicados, novidades e formas de contato do centro.
-          </p>
+          <h2 className="font-display text-2xl font-semibold">Canais oficiais</h2>
+          <p className="text-sm text-muted-foreground">Acompanhe comunicados, novidades e formas de contato do centro.</p>
         </div>
-
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {redesSociais.map((rede) => {
             const Icon = rede.icon;
-
             return (
-              <a
-                key={rede.label}
-                href={rede.href}
-                target="_blank"
-                rel="noreferrer"
-                className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
-              >
+              <a key={rede.label} href={rede.href} target="_blank" rel="noreferrer" className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
                 <span className="grid h-11 w-11 place-items-center rounded-lg bg-accent text-accent-foreground">
                   <Icon className="h-5 w-5" />
                 </span>
-
-                <h3 className="mt-4 font-semibold text-foreground">
-                  {rede.label}
-                </h3>
-
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {rede.desc}
-                </p>
-
+                <h3 className="mt-4 font-semibold text-foreground">{rede.label}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{rede.desc}</p>
                 <p className="mt-3 inline-flex items-center text-sm font-medium text-primary">
                   Acessar canal
                   <ExternalLink className="ml-1 h-3.5 w-3.5 opacity-70" />
@@ -700,10 +600,7 @@ function Home() {
         </div>
       </section>
 
-      <Dialog
-        open={!!avisoAberto}
-        onOpenChange={(open) => !open && setAvisoAberto(null)}
-      >
+      <Dialog open={!!avisoAberto} onOpenChange={(open) => !open && setAvisoAberto(null)}>
         <DialogContent className="sm:max-w-lg">
           {avisoAberto && (
             <>
@@ -712,72 +609,18 @@ function Home() {
                   <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary">
                     <Megaphone className="h-5 w-5" />
                   </span>
-
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                    Importante
-                  </span>
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Importante</span>
                 </div>
-
                 <DialogTitle>{avisoAberto.titulo}</DialogTitle>
-
-                <DialogDescription>
-                  Publicado em {formatarData(avisoAberto.data)}
-                </DialogDescription>
+                <DialogDescription>Publicado em {formatarData(avisoAberto.data)}</DialogDescription>
               </DialogHeader>
-
               <div className="max-h-[55vh] overflow-y-auto rounded-lg border border-border/70 bg-muted/20 p-4">
-                <AvisoMensagemHtml
-                  mensagem={avisoAberto.mensagem}
-                  className="text-foreground/85"
-                />
+                <AvisoMensagemHtml mensagem={avisoAberto.mensagem} className="text-foreground/85" />
               </div>
             </>
           )}
         </DialogContent>
       </Dialog>
     </PublicLayout>
-  );
-}
-
-function HorariosCard({
-  titulo,
-  lista,
-}: {
-  titulo: string;
-  lista: { hora: string; modalidade: string }[];
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">{titulo}</CardTitle>
-
-        <CardDescription>{lista.length} horários disponíveis</CardDescription>
-      </CardHeader>
-
-      <CardContent className="max-h-[420px] overflow-y-auto">
-        <table className="w-full text-sm">
-          <thead className="sticky top-0 bg-background">
-            <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <th className="py-2 pr-3">Horário</th>
-              <th className="py-2">Modalidade</th>
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-border/60">
-            {lista.map((item) => (
-              <tr key={`${item.hora}-${item.modalidade}`}>
-                <td className="py-2 pr-3 font-mono text-foreground">
-                  {item.hora}
-                </td>
-
-                <td className="py-2 text-foreground/80">
-                  {item.modalidade}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </CardContent>
-    </Card>
   );
 }

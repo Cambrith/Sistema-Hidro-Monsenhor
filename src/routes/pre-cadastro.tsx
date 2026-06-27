@@ -4,10 +4,10 @@ import { PublicLayout } from "@/components/public-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
+  Bell,
   CalendarClock,
   ClipboardCheck,
-  FileText,
-  HelpCircle,
+  Home,
   IdCard,
   MapPin,
   Phone,
@@ -32,17 +32,20 @@ const documentos = [
   {
     icon: Stethoscope,
     titulo: "Atestado médico",
-    descricao: "Comprovando aptidão física para natação e/ou hidroginástica.",
+    descricao: "Comprovando aptidão física para a modalidade desejada.",
+    obrigatorio: true,
   },
   {
     icon: IdCard,
     titulo: "Documento de identificação",
-    descricao: "RG ou outro documento com foto do participante (ou do responsável, se menor de idade).",
+    descricao: "RG ou outro documento com foto do participante e do responsável, se menor de idade.",
+    obrigatorio: true,
   },
   {
-    icon: FileText,
+    icon: Home,
     titulo: "Comprovante de residência",
-    descricao: "Para confirmar os dados de cadastro.",
+    descricao: "Ajuda a confirmar os dados de endereço no cadastro.",
+    obrigatorio: false,
   },
 ];
 
@@ -57,25 +60,25 @@ const passos = [
     numero: "1",
     titulo: "Compareça à secretaria",
     descricao:
-      "A inscrição é feita presencialmente, durante o horário de atendimento. Não é possível reservar vaga por telefone, WhatsApp ou pela internet.",
+      "As inscrições são abertas no primeiro dia útil de cada mês e realizadas exclusivamente de forma presencial, durante o horário de atendimento.",
   },
   {
     numero: "2",
-    titulo: "Verifique se há vaga disponível",
+    titulo: "Confirme se há vaga para a modalidade desejada",
     descricao:
-      "As turmas têm número limitado de alunos e a procura é grande. Novas vagas surgem aos poucos, principalmente quando algum aluno deixa de frequentar as aulas.",
+      "As turmas têm número limitado de alunos. A disponibilidade varia de mês para mês.",
   },
   {
     numero: "3",
-    titulo: "Leve os documentos necessários",
+    titulo: "Apresente os documentos necessários",
     descricao:
-      "Apresente o atestado médico e os documentos pessoais listados abaixo. Sem o atestado, a matrícula não pode ser confirmada.",
+      "Apresente o atestado médico e o documento de identificação, ambos obrigatórios para iniciar o cadastro.",
   },
   {
     numero: "4",
-    titulo: "Confirme seus dados de contato",
+    titulo: "Confirme seus dados pessoais",
     descricao:
-      "Um telefone ou WhatsApp atualizado ajuda a equipe a avisar sobre faltas, trocas de horário e comunicados da turma.",
+      "Seus dados de endereço e contato serão registrados. Mantenha especialmente seu celular e WhatsApp atualizados para receber avisos sobre faltas, horários e comunicados da turma.",
   },
 ];
 
@@ -97,9 +100,9 @@ function ComoSeInscreverPage() {
           <CardContent className="flex items-start gap-3 pt-6 text-sm">
             <ClipboardCheck className="mt-0.5 h-4 w-4 shrink-0 text-warning-foreground" />
             <p className="leading-relaxed text-foreground/85">
-              <strong>As vagas são limitadas e a procura é alta.</strong> Não existe lista de
-              espera ou pré-cadastro online: a forma mais segura de saber se há vaga é
-              comparecer à secretaria durante o horário de atendimento.
+              <strong>As vagas são limitadas e a procura é alta.</strong> Novas vagas surgem
+              aos poucos. Para verificar a disponibilidade, entre em contato com a secretaria
+              pelos canais de atendimento informados ao final desta página.
             </p>
           </CardContent>
         </Card>
@@ -113,7 +116,6 @@ function ComoSeInscreverPage() {
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                   {p.numero}
                 </span>
-
                 <div>
                   <p className="font-medium text-foreground">{p.titulo}</p>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
@@ -133,11 +135,21 @@ function ComoSeInscreverPage() {
 
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             {documentos.map((d) => (
-              <Card key={d.titulo} className="h-full">
+              <Card
+                key={d.titulo}
+                className={`h-full ${!d.obrigatorio ? "border-dashed opacity-80" : ""}`}
+              >
                 <CardHeader className="space-y-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                    <d.icon className="h-5 w-5" />
-                  </span>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
+                      <d.icon className="h-5 w-5" />
+                    </span>
+                    {!d.obrigatorio && (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                        Opcional
+                      </span>
+                    )}
+                  </div>
                   <CardTitle className="text-base">{d.titulo}</CardTitle>
                   <CardDescription>{d.descricao}</CardDescription>
                 </CardHeader>
@@ -170,36 +182,49 @@ function ComoSeInscreverPage() {
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
                 <MapPin className="h-5 w-5" />
               </span>
-              <CardTitle className="text-base">Onde fica</CardTitle>
+              <CardTitle className="text-base">Localização</CardTitle>
             </CardHeader>
 
             <CardContent className="space-y-1 text-sm text-foreground/85">
               <p>R. Dr. Barros Franco, S/N</p>
-              <p>Pedro do Rio — Petrópolis, RJ</p>
+              <p>Pedro do Rio, Petrópolis, RJ</p>
               <p>CEP 25750-290</p>
             </CardContent>
           </Card>
         </div>
 
         <Card className="mb-10 bg-secondary/50">
-          <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <HelpCircle className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-              <div>
-                <p className="font-medium text-foreground">Ainda tem dúvidas?</p>
-                <p className="text-sm text-muted-foreground">
-                  As dúvidas mais comuns são sobre disponibilidade de vagas e sobre faltas —
-                  ambas são esclarecidas pessoalmente na secretaria.
-                </p>
+          <CardContent className="pt-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-start gap-3">
+                <Bell className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">Ainda tem dúvidas?</p>
+                  <p className="text-sm text-muted-foreground">
+                    Acompanhe os avisos da secretaria para se manter informado sobre
+                    cancelamentos, mudanças de horário e comunicados.
+                  </p>
+                  <Link to="/avisos">
+                    <Button variant="link" size="sm" className="h-auto p-0 text-sm">
+                      Ver avisos da secretaria →
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="flex shrink-0 flex-col justify-center gap-1.5 text-sm sm:pt-5">
+                <span className="flex items-center gap-2 font-medium text-foreground">
+                  <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                  (24) 2245-2089
+                  <span className="text-xs text-muted-foreground">(fixo)</span>
+                </span>
+                <span className="flex items-center gap-2 font-medium text-foreground">
+                  <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                  (24) 2223-2857
+                  <span className="text-xs text-muted-foreground">(celular)</span>
+                </span>
               </div>
             </div>
-
-            <Link to="/avisos" className="shrink-0">
-              <Button variant="outline">
-                <Phone className="mr-2 h-4 w-4" />
-                Ver avisos da secretaria
-              </Button>
-            </Link>
           </CardContent>
         </Card>
 

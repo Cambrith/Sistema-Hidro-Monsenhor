@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PublicLayout } from "@/components/public-layout";
+import { AvisoMensagemHtml } from "@/lib/sanitizar-aviso";
 import {
   Card,
   CardContent,
@@ -118,8 +119,8 @@ function AvisosPublicos() {
                   </CardDescription>
                 </CardHeader>
 
-                <CardContent className="whitespace-pre-line text-sm text-foreground/80">
-  {aviso.mensagem}
+                <CardContent>
+  <AvisoMensagemHtml mensagem={aviso.mensagem} className="text-foreground/80" />
 </CardContent>
               </Card>
             ))}

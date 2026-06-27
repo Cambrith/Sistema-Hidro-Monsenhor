@@ -8,7 +8,7 @@ const nav = [
   { to: "/", label: "Início" },
   { to: "/avisos", label: "Avisos" },
   { to: "/acesso-rapido", label: "Acesso Rápido" },
-  { to: "/pre-cadastro", label: "Pré-cadastro" },
+  { to: "/pre-cadastro", label: "Como se Inscrever" },
 ];
 
 export function PublicLayout({ children }: { children: ReactNode }) {
@@ -44,11 +44,11 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               <Link
                 key={n.to}
                 to={n.to}
-                className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-accent hover:text-foreground"
+                className="rounded-md px-2 py-2 text-sm font-medium text-foreground/80 hover:bg-accent hover:text-foreground"
                 activeProps={{
-                  className:
-                    "rounded-md px-3 py-2 text-sm font-semibold text-primary bg-accent",
-                }}
+  className:
+    "rounded-md px-2 py-2 text-sm font-semibold text-primary bg-accent",
+}}
                 activeOptions={{ exact: n.to === "/" }}
               >
                 {n.label}
@@ -56,10 +56,10 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             ))}
 
             <Link to="/login">
-              <Button size="sm" variant="outline" className="ml-2">
-                Painel administrativo
-              </Button>
-            </Link>
+  <Button size="sm" variant="outline" className="ml-2">
+    Painel administrativo
+  </Button>
+</Link>
           </nav>
 
           <button

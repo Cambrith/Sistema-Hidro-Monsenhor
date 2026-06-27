@@ -1,16 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PublicLayout } from "@/components/public-layout";
 import {
-  ClipboardList,
+  ClipboardCheck,
   MessageCircle,
   MapPin,
   Clock,
   Megaphone,
   ListChecks,
-  FileText,
+  Stethoscope,
   CalendarCheck,
-  Info,
-  ShieldCheck,
+  AlertTriangle,
+  Phone,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/acesso-rapido")({
       {
         name: "description",
         content:
-          "Atalhos e informações importantes sobre pré-cadastro, avisos, horários, modalidades, localização e canais oficiais.",
+          "Atalhos e informações importantes sobre como se inscrever, avisos, horários, modalidades, localização e canais oficiais.",
       },
     ],
   }),
@@ -39,10 +39,10 @@ type LinkItem = {
 
 const links: LinkItem[] = [
   {
-    label: "Pré-cadastro",
-    icon: ClipboardList,
+    label: "Como se inscrever",
+    icon: ClipboardCheck,
     href: "/pre-cadastro",
-    hint: "Solicitar interesse",
+    hint: "Passo a passo da matrícula",
   },
   {
     label: "Avisos",
@@ -81,14 +81,14 @@ const infos = [
     title: "Documentação obrigatória",
     text:
       "A matrícula só poderá ser confirmada mediante apresentação de atestado médico e documentos pessoais na secretaria.",
-    icon: FileText,
+    icon: Stethoscope,
   },
   {
-    title: "Pré-cadastro não garante vaga",
-    text:
-      "A equipe entrará em contato para orientar os próximos passos e confirmar disponibilidade de turma.",
-    icon: Info,
-  },
+  title: "Confirme as vagas",
+  text:
+    "Você pode ligar para a secretaria e perguntar se há vaga disponível antes de se deslocar. A inscrição em si, porém, só pode ser concluída presencialmente.",
+  icon: Phone,
+},
   {
     title: "Organização por horário",
     text:
@@ -96,10 +96,10 @@ const infos = [
     icon: CalendarCheck,
   },
   {
-    title: "Dados usados para atendimento",
+    title: "Dúvidas frequentes",
     text:
-      "As informações enviadas são utilizadas para organização do pré-cadastro e contato da equipe responsável.",
-    icon: ShieldCheck,
+      "As dúvidas mais comuns são sobre vagas disponíveis e faltas. Ambas são esclarecidas diretamente pela secretaria.",
+    icon: Phone,
   },
 ];
 
