@@ -224,8 +224,8 @@ function TabelaHorarios() {
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dia</span>
           <div className="flex flex-wrap gap-1.5">
             <Chip ativo={filtroDia === "todos"} onClick={() => setFiltroDia("todos")}>Todos</Chip>
-            <Chip ativo={filtroDia === "seg-qui"} onClick={() => setFiltroDia("seg-qui")}>Segundas e Quintas</Chip>
-<Chip ativo={filtroDia === "ter-qua"} onClick={() => setFiltroDia("ter-qua")}>Terças e Quartas</Chip>
+            <Chip ativo={filtroDia === "seg-qui"} onClick={() => setFiltroDia("seg-qui")}>Segundas e Quartas</Chip>
+<Chip ativo={filtroDia === "ter-qua"} onClick={() => setFiltroDia("ter-qua")}>Terças e Quintas</Chip>
           </div>
         </div>
 
@@ -293,7 +293,7 @@ function TabelaHorarios() {
                     >
                       <td className="px-4 py-2.5 font-mono text-foreground">{item.hora}</td>
                       <td className="px-4 py-2.5 text-foreground/70">
-                        {item.dia === "seg-qui" ? "Segundas e Quintas" : "Terças e Quartas"}
+                        {item.dia === "seg-qui" ? "Segundas e Quartas" : "Terças e Quintas"}
                       </td>
                       <td className="px-4 py-2.5 text-foreground/70">{item.turno}</td>
                       <td className="px-4 py-2.5">

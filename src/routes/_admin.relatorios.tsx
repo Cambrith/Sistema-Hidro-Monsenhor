@@ -16,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -26,17 +27,19 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
+  UserRound,
   Download,
   FileText,
   BarChart3,
   Users,
-  ClipboardList,
-  Hourglass,
   DoorOpen,
-  Baby,
+  PersonStanding,
   HeartPulse,
   RefreshCw,
   Loader2,
+  AlertTriangle,
+  Search,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -47,7 +50,6 @@ export const Route = createFileRoute("/_admin/relatorios")({
 });
 
 type Modalidade = "Natação Infantil" | "Natação Adulta" | "Hidroginástica";
-
 type StatusPresenca = "presente" | "falta" | "falta justificada";
 
 type Aluno = {
@@ -64,11 +66,6 @@ type Aluno = {
   observacoes: string | null;
   ativo: boolean;
   criado_em: string | null;
-};
-
-type PreCadastro = {
-  id: string;
-  status: string;
 };
 
 type Turma = {
@@ -116,6 +113,8 @@ const modalidades: Modalidade[] = [
   "Hidroginástica",
 ];
 
+const LINHAS_INICIAIS = 10;
+
 function nomeArquivo(base: string) {
   const hoje = new Date().toISOString().slice(0, 10);
   return `${base}-${hoje}.csv`;
@@ -139,44 +138,34 @@ function downloadCSV(
 
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-
   a.href = url;
   a.download = filename;
   a.click();
-
   URL.revokeObjectURL(url);
   toast.success(`Arquivo ${filename} exportado.`);
 }
 
 function exportarPDF() {
   toast.message("Abrindo impressão do relatório.", {
-    description: "Na janela de impressão, escolha “Salvar como PDF”.",
+    description: 'Na janela de impressão, escolha "Salvar como PDF".',
   });
-
   window.print();
 }
 
 function formatarData(iso?: string | null) {
   if (!iso) return "—";
-
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
-
   if (m) return `${m[3]}/${m[2]}/${m[1]}`;
-
   const d = new Date(iso);
-
   if (Number.isNaN(d.getTime())) return "—";
-
   return d.toLocaleDateString("pt-BR");
 }
 
 function formatarHorario(inicio?: string | null, fim?: string | null) {
   const i = inicio ? inicio.slice(0, 5) : null;
   const f = fim ? fim.slice(0, 5) : null;
-
   if (i && f) return `${i} às ${f}`;
   if (i) return i;
-
   return "Horário não informado";
 }
 
@@ -194,21 +183,31 @@ function valorDisponiveis(vagas: number, inscritos: number) {
   return Math.max(0, vagas - inscritos);
 }
 
+function mesAtualISO() {
+  const agora = new Date();
+  return `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}`;
+}
+
 function Relatorios() {
   const [alunos, setAlunos] = useState<Aluno[]>([]);
-  const [preCadastros, setPreCadastros] = useState<PreCadastro[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [alunosTurmas, setAlunosTurmas] = useState<AlunoTurma[]>([]);
   const [chamadas, setChamadas] = useState<Chamada[]>([]);
   const [presencas, setPresencas] = useState<Presenca[]>([]);
   const [carregando, setCarregando] = useState(true);
 
+  const [filtroPresencaTurma, setFiltroPresencaTurma] = useState("todos");
+  const [verMaisPresenca, setVerMaisPresenca] = useState(false);
+
+  const [filtroFaltasModalidade, setFiltroFaltasModalidade] = useState("todos");
+  const [buscaFaltas, setBuscaFaltas] = useState("");
+  const [verMaisFaltas, setVerMaisFaltas] = useState(false);
+
   async function carregarDados() {
     setCarregando(true);
 
     const [
       alunosRes,
-      preCadastrosRes,
       turmasRes,
       alunosTurmasRes,
       chamadasRes,
@@ -216,85 +215,32 @@ function Relatorios() {
     ] = await Promise.all([
       supabase
         .from("alunos")
-        .select(
-          "id, nome_completo, nascimento, idade, modalidade, turma, responsavel, telefone, whatsapp, email, observacoes, ativo, criado_em",
-        )
+        .select("id, nome_completo, nascimento, idade, modalidade, turma, responsavel, telefone, whatsapp, email, observacoes, ativo, criado_em")
         .order("nome_completo", { ascending: true }),
-
-      supabase.from("pre_cadastros").select("id, status"),
-
       supabase
         .from("turmas")
-        .select(
-          "id, nome, modalidade, dia_semana, horario_inicio, horario_fim, professor, vagas_total, ativa, criado_em",
-        )
+        .select("id, nome, modalidade, dia_semana, horario_inicio, horario_fim, professor, vagas_total, ativa, criado_em")
         .order("nome", { ascending: true }),
-
       supabase
         .from("alunos_turmas")
         .select("id, aluno_id, turma_id, ativo")
         .eq("ativo", true),
-
       supabase
         .from("chamadas")
         .select("id, turma_id, data, observacoes, criado_em")
         .order("data", { ascending: false }),
-
       supabase
         .from("presencas")
-        .select(
-          "id, chamada_id, aluno_id, turma_id, data, status, observacao, criado_em",
-        ),
+        .select("id, chamada_id, aluno_id, turma_id, data, status, observacao, criado_em"),
     ]);
 
-    if (alunosRes.error) {
-      console.error(alunosRes.error);
-      toast.error(`Erro ao carregar alunos: ${alunosRes.error.message}`);
-      setCarregando(false);
-      return;
-    }
-
-    if (preCadastrosRes.error) {
-      console.error(preCadastrosRes.error);
-      toast.error(
-        `Erro ao carregar pré-cadastros: ${preCadastrosRes.error.message}`,
-      );
-      setCarregando(false);
-      return;
-    }
-
-    if (turmasRes.error) {
-      console.error(turmasRes.error);
-      toast.error(`Erro ao carregar turmas: ${turmasRes.error.message}`);
-      setCarregando(false);
-      return;
-    }
-
-    if (alunosTurmasRes.error) {
-      console.error(alunosTurmasRes.error);
-      toast.error(
-        `Erro ao carregar vínculos aluno/turma: ${alunosTurmasRes.error.message}`,
-      );
-      setCarregando(false);
-      return;
-    }
-
-    if (chamadasRes.error) {
-      console.error(chamadasRes.error);
-      toast.error(`Erro ao carregar chamadas: ${chamadasRes.error.message}`);
-      setCarregando(false);
-      return;
-    }
-
-    if (presencasRes.error) {
-      console.error(presencasRes.error);
-      toast.error(`Erro ao carregar presenças: ${presencasRes.error.message}`);
-      setCarregando(false);
-      return;
-    }
+    if (alunosRes.error) { toast.error(`Erro ao carregar alunos: ${alunosRes.error.message}`); setCarregando(false); return; }
+    if (turmasRes.error) { toast.error(`Erro ao carregar turmas: ${turmasRes.error.message}`); setCarregando(false); return; }
+    if (alunosTurmasRes.error) { toast.error(`Erro ao carregar vínculos: ${alunosTurmasRes.error.message}`); setCarregando(false); return; }
+    if (chamadasRes.error) { toast.error(`Erro ao carregar chamadas: ${chamadasRes.error.message}`); setCarregando(false); return; }
+    if (presencasRes.error) { toast.error(`Erro ao carregar presenças: ${presencasRes.error.message}`); setCarregando(false); return; }
 
     setAlunos((alunosRes.data ?? []) as Aluno[]);
-    setPreCadastros((preCadastrosRes.data ?? []) as PreCadastro[]);
     setTurmas((turmasRes.data ?? []) as Turma[]);
     setAlunosTurmas((alunosTurmasRes.data ?? []) as AlunoTurma[]);
     setChamadas((chamadasRes.data ?? []) as Chamada[]);
@@ -302,57 +248,38 @@ function Relatorios() {
     setCarregando(false);
   }
 
-  useEffect(() => {
-    carregarDados();
-  }, []);
+  useEffect(() => { carregarDados(); }, []);
 
   const relatorio = useMemo(() => {
-    const alunosAtivos = alunos.filter((aluno) => aluno.ativo);
-    const alunosAtivosIds = new Set(alunosAtivos.map((aluno) => aluno.id));
-
-    const turmasAtivas = turmas.filter((turma) => turma.ativa);
-
+    const alunosAtivos = alunos.filter((a) => a.ativo);
+    const alunosAtivosIds = new Set(alunosAtivos.map((a) => a.id));
+    const turmasAtivas = turmas.filter((t) => t.ativa);
     const vinculosAtivos = alunosTurmas.filter(
-      (vinculo) => vinculo.ativo && alunosAtivosIds.has(vinculo.aluno_id),
+      (v) => v.ativo && alunosAtivosIds.has(v.aluno_id),
     );
 
-    const pendentes = preCadastros.filter(
-      (pre) => pre.status === "pendente",
-    ).length;
-
-    const fila = preCadastros.filter(
-      (pre) => pre.status === "fila de espera",
-    ).length;
-
-    const vagasConfiguradasTotal = turmasAtivas.reduce((acc, turma) => {
-      const vagas = Number(turma.vagas_total ?? 0);
-      return acc + Math.max(0, vagas);
+    const vagasConfiguradasTotal = turmasAtivas.reduce((acc, t) => {
+      return acc + Math.max(0, Number(t.vagas_total ?? 0));
     }, 0);
 
     const turmasComCapacidade = turmasAtivas.filter(
-      (turma) => Number(turma.vagas_total ?? 0) > 0,
+      (t) => Number(t.vagas_total ?? 0) > 0,
     ).length;
 
     const porMod = modalidades.map((modalidade) => ({
       modalidade,
-      total: alunosAtivos.filter((aluno) => aluno.modalidade === modalidade)
-        .length,
+      total: alunosAtivos.filter((a) => a.modalidade === modalidade).length,
     }));
 
     const outrasModalidades = alunosAtivos.filter(
-      (aluno) => !isModalidade(aluno.modalidade),
+      (a) => !isModalidade(a.modalidade),
     ).length;
 
     const porTurma = turmasAtivas.map((turma) => {
-      const inscritos = vinculosAtivos.filter(
-        (vinculo) => vinculo.turma_id === turma.id,
-      ).length;
-
+      const inscritos = vinculosAtivos.filter((v) => v.turma_id === turma.id).length;
       const vagas = Number(turma.vagas_total ?? 0);
       const capacidadeConfigurada = vagas > 0;
-      const disponiveis = capacidadeConfigurada
-        ? Math.max(0, vagas - inscritos)
-        : null;
+      const disponiveis = capacidadeConfigurada ? Math.max(0, vagas - inscritos) : null;
 
       return {
         id: turma.id,
@@ -369,36 +296,27 @@ function Relatorios() {
       };
     });
 
-    const turmasLotadas = porTurma.filter((turma) => turma.lotada).length;
-
-    const turmasMap = new Map(turmas.map((turma) => [turma.id, turma]));
+    const turmasLotadas = porTurma.filter((t) => t.lotada).length;
+    const turmasMap = new Map(turmas.map((t) => [t.id, t]));
 
     const presencasPorChamada = new Map<string, Presenca[]>();
-
-    presencas.forEach((presenca) => {
-      const lista = presencasPorChamada.get(presenca.chamada_id) ?? [];
-      lista.push(presenca);
-      presencasPorChamada.set(presenca.chamada_id, lista);
+    presencas.forEach((p) => {
+      const lista = presencasPorChamada.get(p.chamada_id) ?? [];
+      lista.push(p);
+      presencasPorChamada.set(p.chamada_id, lista);
     });
 
     const presPorPeriodo = chamadas.map((chamada) => {
       const turma = turmasMap.get(chamada.turma_id);
       const registros = presencasPorChamada.get(chamada.id) ?? [];
-
       const counts = registros.reduce(
-        (acc, registro) => {
-          acc[registro.status] = (acc[registro.status] ?? 0) + 1;
-          return acc;
-        },
-        {
-          presente: 0,
-          falta: 0,
-          "falta justificada": 0,
-        } as Record<StatusPresenca, number>,
+        (acc, r) => { acc[r.status] = (acc[r.status] ?? 0) + 1; return acc; },
+        { presente: 0, falta: 0, "falta justificada": 0 } as Record<StatusPresenca, number>,
       );
 
       return {
         chamadaId: chamada.id,
+        turmaId: chamada.turma_id,
         turma: turma?.nome ?? "Turma removida",
         modalidade: turma?.modalidade ?? "—",
         data: chamada.data,
@@ -410,29 +328,18 @@ function Relatorios() {
     });
 
     const presencasPorAluno = new Map<string, Presenca[]>();
-
-    presencas.forEach((presenca) => {
-      const lista = presencasPorAluno.get(presenca.aluno_id) ?? [];
-      lista.push(presenca);
-      presencasPorAluno.set(presenca.aluno_id, lista);
+    presencas.forEach((p) => {
+      const lista = presencasPorAluno.get(p.aluno_id) ?? [];
+      lista.push(p);
+      presencasPorAluno.set(p.aluno_id, lista);
     });
 
     const faltasPorAluno = alunosAtivos
       .map((aluno) => {
         const registros = presencasPorAluno.get(aluno.id) ?? [];
-
-        const faltas = registros.filter(
-          (registro) => registro.status === "falta",
-        ).length;
-
-        const justificadas = registros.filter(
-          (registro) => registro.status === "falta justificada",
-        ).length;
-
-        const presentes = registros.filter(
-          (registro) => registro.status === "presente",
-        ).length;
-
+        const faltas = registros.filter((r) => r.status === "falta").length;
+        const justificadas = registros.filter((r) => r.status === "falta justificada").length;
+        const presentes = registros.filter((r) => r.status === "presente").length;
         return {
           aluno: aluno.nome_completo,
           modalidade: aluno.modalidade || "—",
@@ -446,14 +353,32 @@ function Relatorios() {
       .filter((item) => item.faltas > 0 || item.justificadas > 0)
       .sort((a, b) => b.faltas - a.faltas);
 
+    const mesAtual = mesAtualISO();
+    const faltasNoMesPorAluno = new Map<string, number>();
+    presencas.forEach((p) => {
+      if (p.status === "falta" && p.data?.startsWith(mesAtual)) {
+        faltasNoMesPorAluno.set(p.aluno_id, (faltasNoMesPorAluno.get(p.aluno_id) ?? 0) + 1);
+      }
+    });
+
+    const alunosEmRisco = alunosAtivos
+  .filter((a) => (faltasNoMesPorAluno.get(a.id) ?? 0) >= 3)
+  .map((a) => ({
+    id: a.id,
+    nome: a.nome_completo,
+    modalidade: a.modalidade || "—",
+    turma: a.turma || "—",
+    faltas: faltasNoMesPorAluno.get(a.id) ?? 0,
+    critico: (faltasNoMesPorAluno.get(a.id) ?? 0) >= 4,
+  }))
+  .sort((a, b) => b.faltas - a.faltas);
+
     return {
       alunosAtivos,
       turmasAtivas,
       totalAlunos: alunos.length,
       totalAlunosAtivos: alunosAtivos.length,
       totalAlunosInativos: alunos.length - alunosAtivos.length,
-      pendentes,
-      fila,
       vagasConfiguradasTotal,
       turmasComCapacidade,
       turmasLotadas,
@@ -462,8 +387,37 @@ function Relatorios() {
       porTurma,
       presPorPeriodo,
       faltasPorAluno,
+      alunosEmRisco,
     };
-  }, [alunos, preCadastros, turmas, alunosTurmas, chamadas, presencas]);
+  }, [alunos, turmas, alunosTurmas, chamadas, presencas]);
+
+  const turmasUnicas = useMemo(() => {
+    const nomes = [...new Set(relatorio.presPorPeriodo.map((p) => p.turma))].sort();
+    return nomes;
+  }, [relatorio.presPorPeriodo]);
+
+  const presencaFiltrada = useMemo(() => {
+    return relatorio.presPorPeriodo.filter((p) => {
+      if (filtroPresencaTurma !== "todos" && p.turma !== filtroPresencaTurma) return false;
+      return true;
+    });
+  }, [relatorio.presPorPeriodo, filtroPresencaTurma]);
+
+  const presencaExibida = verMaisPresenca
+    ? presencaFiltrada
+    : presencaFiltrada.slice(0, LINHAS_INICIAIS);
+
+  const faltasFiltradas = useMemo(() => {
+    return relatorio.faltasPorAluno.filter((item) => {
+      if (filtroFaltasModalidade !== "todos" && item.modalidade !== filtroFaltasModalidade) return false;
+      if (buscaFaltas.trim() && !item.aluno.toLowerCase().includes(buscaFaltas.toLowerCase())) return false;
+      return true;
+    });
+  }, [relatorio.faltasPorAluno, filtroFaltasModalidade, buscaFaltas]);
+
+  const faltasExibidas = verMaisFaltas
+    ? faltasFiltradas
+    : faltasFiltradas.slice(0, LINHAS_INICIAIS);
 
   return (
     <div className="print-report-root space-y-6">
@@ -473,10 +427,9 @@ function Relatorios() {
         <div>
           <h2 className="font-display text-xl font-semibold">Relatórios</h2>
           <p className="text-sm text-muted-foreground">
-           Acompanhe alunos, turmas, presença e dados administrativos do centro.
+            Acompanhe alunos, turmas, presença e dados administrativos do centro.
           </p>
         </div>
-
         <Button
           type="button"
           variant="outline"
@@ -495,68 +448,79 @@ function Relatorios() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <ResumoCard
-          title="Alunos ativos"
-          value={relatorio.totalAlunosAtivos}
-          description={`${relatorio.totalAlunos} cadastrados no total`}
-          icon={Users}
-        />
-
-        <ResumoCard
-          title="Pré-cadastros pendentes"
-          value={relatorio.pendentes}
-          description="Solicitações aguardando análise"
-          icon={ClipboardList}
-        />
-
-        <ResumoCard
-          title="Fila de espera"
-          value={relatorio.fila}
-          description="Pré-cadastros aguardando vaga"
-          icon={Hourglass}
-        />
-
-        <ResumoCard
-          title="Turmas ativas"
-          value={relatorio.turmasAtivas.length}
-          description="Turmas disponíveis no sistema"
-          icon={BarChart3}
-        />
+        <ResumoCard title="Alunos ativos" value={relatorio.totalAlunosAtivos} description={`${relatorio.totalAlunos} cadastrados no total`} icon={Users} />
+        <ResumoCard title="Alunos inativos" value={relatorio.totalAlunosInativos} description="Registros mantidos no sistema" icon={Users} />
+        <ResumoCard title="Turmas ativas" value={relatorio.turmasAtivas.length} description="Turmas disponíveis no sistema" icon={BarChart3} />
+        <ResumoCard title="Turmas lotadas" value={relatorio.turmasLotadas} description={relatorio.turmasComCapacidade === 0 ? "Aguardando configuração de vagas" : "Turmas sem vagas restantes"} icon={DoorOpen} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <ResumoCard
-          title="Alunos inativos"
-          value={relatorio.totalAlunosInativos}
-          description="Registros mantidos no sistema"
-          icon={Users}
-        />
-
-        <ResumoCard
-          title="Capacidade definida"
-          value={relatorio.turmasComCapacidade}
-          description={`${relatorio.vagasConfiguradasTotal} vaga(s) configurada(s)`}
-          icon={DoorOpen}
-        />
-
-        <ResumoCard
-          title="Turmas lotadas"
-          value={relatorio.turmasLotadas}
-          description={
-            relatorio.turmasComCapacidade === 0
-              ? "Aguardando configuração de vagas"
-              : "Turmas sem vagas restantes"
-          }
-          icon={DoorOpen}
-        />
-
-        <ResumoCard
-          title="Chamadas salvas"
-          value={chamadas.length}
-          description="Registros de presença lançados"
-          icon={ClipboardList}
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ResumoCard title="Capacidade definida" value={relatorio.turmasComCapacidade} description={`${relatorio.vagasConfiguradasTotal} vaga(s) configurada(s)`} icon={DoorOpen} />
+        <ResumoCard title="Chamadas salvas" value={chamadas.length} description="Registros de presença lançados" icon={BarChart3} />
       </div>
+
+      {(relatorio.alunosEmRisco.length > 0 || carregando) && (
+        <Card className="print-card border-destructive/40 bg-destructive/5">
+          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+              <div>
+                <CardTitle className="text-base text-destructive">Alunos em risco de cancelamento</CardTitle>
+                <CardDescription>
+  Alunos com 3 ou mais faltas sem justificativa no mês atual. A partir de 4 faltas, a vaga é cancelada automaticamente.
+</CardDescription>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="no-print shrink-0"
+              onClick={() =>
+                downloadCSV(nomeArquivo("alunos-em-risco"), [
+                  ["Aluno", "Modalidade", "Turma", "Faltas no mês"],
+                  ...relatorio.alunosEmRisco.map((item) => [item.nome, item.modalidade, item.turma, item.faltas]),
+                ])
+              }
+            >
+              <Download className="mr-2 h-4 w-4" />
+              CSV
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {carregando ? (
+              <LoadingLine />
+            ) : relatorio.alunosEmRisco.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nenhum aluno em risco no mês atual.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Aluno</TableHead>
+                    <TableHead>Turma</TableHead>
+                    <TableHead className="text-right">Faltas no mês</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {relatorio.alunosEmRisco.map((item) => (
+  <TableRow key={item.id}>
+    <TableCell>
+      <p className="font-medium">{item.nome}</p>
+      <p className="text-xs text-muted-foreground">{item.modalidade}</p>
+    </TableCell>
+    <TableCell>{item.turma}</TableCell>
+    <TableCell className="text-right">
+      <Badge variant={item.critico ? "destructive" : "outline"}>
+        {item.faltas} {item.critico ? "(desligado)" : "(alerta)"}
+      </Badge>
+    </TableCell>
+  </TableRow>
+))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <ReportCard
         title="Distribuição por modalidade"
@@ -574,11 +538,7 @@ function Relatorios() {
         ) : (
           <div className="grid gap-3 md:grid-cols-3">
             {relatorio.porMod.map((item) => (
-              <ModalidadeResumo
-                key={item.modalidade}
-                modalidade={item.modalidade}
-                total={item.total}
-              />
+              <ModalidadeResumo key={item.modalidade} modalidade={item.modalidade} total={item.total} />
             ))}
           </div>
         )}
@@ -589,29 +549,12 @@ function Relatorios() {
         description="Relação das turmas ativas, alunos vinculados e capacidade configurada."
         onCSV={() =>
           downloadCSV(nomeArquivo("alunos-por-turma"), [
-            [
-              "Turma",
-              "Modalidade",
-              "Horário",
-              "Professor",
-              "Inscritos",
-              "Capacidade",
-              "Disponíveis",
-              "Situação",
-            ],
+            ["Turma", "Modalidade", "Horário", "Professor", "Inscritos", "Capacidade", "Disponíveis", "Situação"],
             ...relatorio.porTurma.map((item) => [
-              item.turma,
-              item.modalidade,
-              item.horario,
-              item.professor,
-              item.inscritos,
+              item.turma, item.modalidade, item.horario, item.professor, item.inscritos,
               item.capacidadeConfigurada ? item.vagas : "Não configurada",
               item.capacidadeConfigurada ? item.disponiveis ?? 0 : "—",
-              item.capacidadeConfigurada
-                ? item.lotada
-                  ? "Lotada"
-                  : "Com vagas"
-                : "Capacidade não configurada",
+              item.capacidadeConfigurada ? (item.lotada ? "Lotada" : "Com vagas") : "Capacidade não configurada",
             ]),
           ])
         }
@@ -629,65 +572,41 @@ function Relatorios() {
               <TableHead>Situação</TableHead>
             </TableRow>
           </TableHeader>
-
           <TableBody>
             {carregando && (
               <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="py-8 text-center text-sm text-muted-foreground"
-                >
-                  Carregando relatório...
-                </TableCell>
+                <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">Carregando relatório...</TableCell>
               </TableRow>
             )}
-
             {!carregando && relatorio.porTurma.length === 0 && (
               <TableRow>
-                <TableCell
-                  colSpan={8}
-                  className="py-8 text-center text-sm text-muted-foreground"
-                >
-                  Nenhuma turma ativa encontrada.
-                </TableCell>
+                <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">Nenhuma turma ativa encontrada.</TableCell>
               </TableRow>
             )}
-
-            {!carregando &&
-              relatorio.porTurma.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.turma}</TableCell>
-                  <TableCell>{item.modalidade}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {item.horario}
-                  </TableCell>
-                  <TableCell>{item.professor}</TableCell>
-                  <TableCell className="text-right">{item.inscritos}</TableCell>
-                  <TableCell className="text-right">
-                    {item.capacidadeConfigurada ? (
-                      item.vagas
-                    ) : (
-                      <span className="text-muted-foreground">
-                        Não configurada
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="outline">
-                      {item.capacidadeConfigurada ? item.disponiveis : "—"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {!item.capacidadeConfigurada ? (
-                      <Badge variant="outline">A configurar</Badge>
-                    ) : item.lotada ? (
-                      <Badge variant="destructive">Lotada</Badge>
-                    ) : (
-                      <Badge variant="outline">Com vagas</Badge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+            {!carregando && relatorio.porTurma.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell className="font-medium">{item.turma}</TableCell>
+                <TableCell>{item.modalidade}</TableCell>
+                <TableCell className="text-muted-foreground">{item.horario}</TableCell>
+                <TableCell>{item.professor}</TableCell>
+                <TableCell className="text-right">{item.inscritos}</TableCell>
+                <TableCell className="text-right">
+                  {item.capacidadeConfigurada ? item.vagas : <span className="text-muted-foreground">Não configurada</span>}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Badge variant="outline">{item.capacidadeConfigurada ? item.disponiveis : "—"}</Badge>
+                </TableCell>
+                <TableCell>
+                  {!item.capacidadeConfigurada ? (
+                    <Badge variant="outline">A configurar</Badge>
+                  ) : item.lotada ? (
+                    <Badge variant="destructive">Lotada</Badge>
+                  ) : (
+                    <Badge variant="outline">Com vagas</Badge>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </ReportCard>
@@ -698,27 +617,23 @@ function Relatorios() {
           description="Chamadas registradas por turma e data."
           onCSV={() =>
             downloadCSV(nomeArquivo("presencas-por-periodo"), [
-              [
-                "Turma",
-                "Modalidade",
-                "Data",
-                "Total",
-                "Presentes",
-                "Faltas",
-                "Justificadas",
-              ],
-              ...relatorio.presPorPeriodo.map((item) => [
-                item.turma,
-                item.modalidade,
-                formatarData(item.data),
-                item.total,
-                item.presentes,
-                item.faltas,
-                item.justificadas,
-              ]),
+              ["Turma", "Modalidade", "Data", "Total", "Presentes", "Faltas", "Justificadas"],
+              ...presencaFiltrada.map((item) => [item.turma, item.modalidade, formatarData(item.data), item.total, item.presentes, item.faltas, item.justificadas]),
             ])
           }
         >
+          <div className="mb-3 no-print">
+            <select
+              value={filtroPresencaTurma}
+              onChange={(e) => { setFiltroPresencaTurma(e.target.value); setVerMaisPresenca(false); }}
+              className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="todos">Todas as turmas</option>
+              {turmasUnicas.map((nome) => (
+                <option key={nome} value={nome}>{nome}</option>
+              ))}
+            </select>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -730,52 +645,51 @@ function Relatorios() {
                 <TableHead className="text-right">Justif.</TableHead>
               </TableRow>
             </TableHeader>
-
             <TableBody>
               {carregando && (
                 <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="py-8 text-center text-sm text-muted-foreground"
-                  >
-                    Carregando presenças...
-                  </TableCell>
+                  <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">Carregando presenças...</TableCell>
                 </TableRow>
               )}
-
-              {!carregando && relatorio.presPorPeriodo.length === 0 && (
+              {!carregando && presencaFiltrada.length === 0 && (
                 <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="py-8 text-center text-sm text-muted-foreground"
-                  >
-                    Nenhuma presença registrada ainda.
-                  </TableCell>
+                  <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">Nenhuma presença registrada ainda.</TableCell>
                 </TableRow>
               )}
-
-              {!carregando &&
-                relatorio.presPorPeriodo.map((item) => (
-                  <TableRow key={item.chamadaId}>
-                    <TableCell className="text-sm">
-                      <p className="font-medium">{item.turma}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.modalidade}
-                      </p>
-                    </TableCell>
-                    <TableCell>{formatarData(item.data)}</TableCell>
-                    <TableCell className="text-right">{item.total}</TableCell>
-                    <TableCell className="text-right">
-                      {item.presentes}
-                    </TableCell>
-                    <TableCell className="text-right">{item.faltas}</TableCell>
-                    <TableCell className="text-right">
-                      {item.justificadas}
-                    </TableCell>
-                  </TableRow>
-                ))}
+              {!carregando && presencaExibida.map((item) => (
+                <TableRow key={item.chamadaId}>
+                  <TableCell className="text-sm">
+                    <p className="font-medium">{item.turma}</p>
+                    <p className="text-xs text-muted-foreground">{item.modalidade}</p>
+                  </TableCell>
+                  <TableCell>{formatarData(item.data)}</TableCell>
+                  <TableCell className="text-right">{item.total}</TableCell>
+                  <TableCell className="text-right">{item.presentes}</TableCell>
+                  <TableCell className="text-right">{item.faltas}</TableCell>
+                  <TableCell className="text-right">{item.justificadas}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
+          {!carregando && presencaFiltrada.length > LINHAS_INICIAIS && (
+            <div className="mt-2 border-t border-border/50 pt-2 no-print">
+              <button
+                type="button"
+                onClick={() => setVerMaisPresenca((v) => !v)}
+                className="flex w-full items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${verMaisPresenca ? "rotate-180" : ""}`} />
+                {verMaisPresenca
+                  ? "Ver menos"
+                  : `Ver mais ${presencaFiltrada.length - LINHAS_INICIAIS} registros`}
+              </button>
+            </div>
+          )}
+          {!carregando && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {presencaExibida.length} de {presencaFiltrada.length} registros exibidos
+            </p>
+          )}
         </ReportCard>
 
         <ReportCard
@@ -783,27 +697,32 @@ function Relatorios() {
           description="Alunos com faltas ou faltas justificadas registradas."
           onCSV={() =>
             downloadCSV(nomeArquivo("faltas-por-aluno"), [
-              [
-                "Aluno",
-                "Modalidade",
-                "Turma",
-                "Presentes",
-                "Faltas",
-                "Justificadas",
-                "Total de registros",
-              ],
-              ...relatorio.faltasPorAluno.map((item) => [
-                item.aluno,
-                item.modalidade,
-                item.turma,
-                item.presentes,
-                item.faltas,
-                item.justificadas,
-                item.total,
-              ]),
+              ["Aluno", "Modalidade", "Turma", "Presentes", "Faltas", "Justificadas", "Total de registros"],
+              ...faltasFiltradas.map((item) => [item.aluno, item.modalidade, item.turma, item.presentes, item.faltas, item.justificadas, item.total]),
             ])
           }
         >
+          <div className="mb-3 flex flex-col gap-2 no-print sm:flex-row">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={buscaFaltas}
+                onChange={(e) => { setBuscaFaltas(e.target.value); setVerMaisFaltas(false); }}
+                placeholder="Buscar aluno..."
+                className="pl-8 text-sm h-9"
+              />
+            </div>
+            <select
+              value={filtroFaltasModalidade}
+              onChange={(e) => { setFiltroFaltasModalidade(e.target.value); setVerMaisFaltas(false); }}
+              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            >
+              <option value="todos">Todas as modalidades</option>
+              {modalidades.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -814,57 +733,58 @@ function Relatorios() {
                 <TableHead className="text-right">Justif.</TableHead>
               </TableRow>
             </TableHeader>
-
             <TableBody>
               {carregando && (
                 <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="py-8 text-center text-sm text-muted-foreground"
-                  >
-                    Carregando faltas...
-                  </TableCell>
+                  <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">Carregando faltas...</TableCell>
                 </TableRow>
               )}
-
-              {!carregando && relatorio.faltasPorAluno.length === 0 && (
+              {!carregando && faltasFiltradas.length === 0 && (
                 <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="py-8 text-center text-sm text-muted-foreground"
-                  >
-                    Nenhuma falta registrada ainda.
+                  <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                    {buscaFaltas || filtroFaltasModalidade !== "todos"
+                      ? "Nenhum resultado para os filtros aplicados."
+                      : "Nenhuma falta registrada ainda."}
                   </TableCell>
                 </TableRow>
               )}
-
-              {!carregando &&
-                relatorio.faltasPorAluno.map((item) => (
-                  <TableRow key={`${item.aluno}-${item.turma}`}>
-                    <TableCell>
-                      <p className="font-medium">{item.aluno}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.modalidade}
-                      </p>
-                    </TableCell>
-                    <TableCell>{item.turma}</TableCell>
-                    <TableCell className="text-right">
-                      {item.presentes}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge
-                        variant={item.faltas > 0 ? "destructive" : "outline"}
-                      >
-                        {item.faltas}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="outline">{item.justificadas}</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
+              {!carregando && faltasExibidas.map((item) => (
+                <TableRow key={`${item.aluno}-${item.turma}`}>
+                  <TableCell>
+                    <p className="font-medium">{item.aluno}</p>
+                    <p className="text-xs text-muted-foreground">{item.modalidade}</p>
+                  </TableCell>
+                  <TableCell>{item.turma}</TableCell>
+                  <TableCell className="text-right">{item.presentes}</TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant={item.faltas > 0 ? "destructive" : "outline"}>{item.faltas}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant="outline">{item.justificadas}</Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
+          {!carregando && faltasFiltradas.length > LINHAS_INICIAIS && (
+            <div className="mt-2 border-t border-border/50 pt-2 no-print">
+              <button
+                type="button"
+                onClick={() => setVerMaisFaltas((v) => !v)}
+                className="flex w-full items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${verMaisFaltas ? "rotate-180" : ""}`} />
+                {verMaisFaltas
+                  ? "Ver menos"
+                  : `Ver mais ${faltasFiltradas.length - LINHAS_INICIAIS} alunos`}
+              </button>
+            </div>
+          )}
+          {!carregando && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {faltasExibidas.length} de {faltasFiltradas.length} alunos exibidos
+            </p>
+          )}
         </ReportCard>
       </div>
     </div>
@@ -876,60 +796,16 @@ function PrintStyles() {
     <style>
       {`
         @media print {
-          @page {
-            margin: 12mm;
-          }
-
-          html,
-          body {
-            background: #ffffff !important;
-          }
-
-          .no-print {
-            display: none !important;
-          }
-
-          .print-report-root {
-            color: #111827 !important;
-            background: #ffffff !important;
-          }
-
-          .print-report-root .print-card {
-            break-inside: avoid;
-            page-break-inside: avoid;
-            box-shadow: none !important;
-            border: 1px solid #d1d5db !important;
-            background: #ffffff !important;
-          }
-
-          .print-report-root table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-          }
-
-          .print-report-root th,
-          .print-report-root td {
-            border-bottom: 1px solid #e5e7eb;
-            padding: 6px 8px;
-          }
-
-          .print-report-root h2 {
-            font-size: 20px;
-            margin-bottom: 4px;
-          }
-
-          .print-report-root p {
-            color: #374151 !important;
-          }
-
-          .print-report-root span,
-          .print-report-root div,
-          .print-report-root td,
-          .print-report-root th {
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
-          }
+          @page { margin: 12mm; }
+          html, body { background: #ffffff !important; }
+          .no-print { display: none !important; }
+          .print-report-root { color: #111827 !important; background: #ffffff !important; }
+          .print-report-root .print-card { break-inside: avoid; page-break-inside: avoid; box-shadow: none !important; border: 1px solid #d1d5db !important; background: #ffffff !important; }
+          .print-report-root table { width: 100%; border-collapse: collapse; font-size: 11px; }
+          .print-report-root th, .print-report-root td { border-bottom: 1px solid #e5e7eb; padding: 6px 8px; }
+          .print-report-root h2 { font-size: 20px; margin-bottom: 4px; }
+          .print-report-root p { color: #374151 !important; }
+          .print-report-root span, .print-report-root div, .print-report-root td, .print-report-root th { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
         }
       `}
     </style>
@@ -946,27 +822,18 @@ function LoadingLine() {
 }
 
 function ResumoCard({
-  title,
-  value,
-  description,
-  icon: Icon,
+  title, value, description, icon: Icon,
 }: {
-  title: string;
-  value: number;
-  description: string;
-  icon: LucideIcon;
+  title: string; value: number; description: string; icon: LucideIcon;
 }) {
   return (
     <Card className="print-card">
       <CardContent className="flex items-center justify-between gap-4 p-4">
         <div>
           <p className="text-sm text-muted-foreground">{title}</p>
-          <p className="mt-1 text-3xl font-semibold text-foreground">
-            {value}
-          </p>
+          <p className="mt-1 text-3xl font-semibold text-foreground">{value}</p>
           <p className="mt-1 text-xs text-muted-foreground">{description}</p>
         </div>
-
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground">
           <Icon className="h-5 w-5" />
         </span>
@@ -977,16 +844,7 @@ function ResumoCard({
 
 function AdultSwimmingIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      {...props}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
+    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="12" cy="6.5" r="2.2" />
       <path d="M8.3 14.4c.9-2.1 2.2-3.2 3.7-3.2s2.8 1.1 3.7 3.2" />
       <path d="M4 17.2c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1" />
@@ -995,36 +853,11 @@ function AdultSwimmingIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-function ModalidadeResumo({
-  modalidade,
-  total,
-}: {
-  modalidade: Modalidade;
-  total: number;
-}) {
-  const config: Record<
-    Modalidade,
-    {
-      icon: ComponentType<{ className?: string }>;
-      descricao: string;
-      className: string;
-    }
-  > = {
-    "Natação Infantil": {
-      icon: Baby,
-      descricao: "8 a 17 anos",
-      className: "bg-sky-50 text-sky-700",
-    },
-    "Natação Adulta": {
-      icon: AdultSwimmingIcon,
-      descricao: "18 anos ou mais",
-      className: "bg-blue-50 text-blue-700",
-    },
-    Hidroginástica: {
-      icon: HeartPulse,
-      descricao: "18 anos ou mais",
-      className: "bg-cyan-50 text-cyan-700",
-    },
+function ModalidadeResumo({ modalidade, total }: { modalidade: Modalidade; total: number }) {
+  const config: Record<Modalidade, { icon: ComponentType<{ className?: string }>; descricao: string; className: string }> = {
+    "Natação Infantil": { icon: PersonStanding, descricao: "7 a 17 anos", className: "bg-accent text-accent-foreground" },
+"Natação Adulta": { icon: UserRound, descricao: "18 anos ou mais", className: "bg-accent text-accent-foreground" },
+"Hidroginástica": { icon: HeartPulse, descricao: "18 anos ou mais", className: "bg-accent text-accent-foreground" },
   };
 
   const Icon = config[modalidade].icon;
@@ -1032,59 +865,42 @@ function ModalidadeResumo({
   return (
     <div className="flex items-center justify-between rounded-xl border border-border bg-background p-4">
       <div className="flex items-center gap-3">
-        <span
-          className={`grid h-10 w-10 place-items-center rounded-xl ${config[modalidade].className}`}
-        >
+        <span className={`grid h-10 w-10 place-items-center rounded-xl ${config[modalidade].className}`}>
           <Icon className="h-5 w-5" />
         </span>
-
         <div>
           <p className="font-medium text-foreground">{modalidade}</p>
-          <p className="text-xs text-muted-foreground">
-            {config[modalidade].descricao}
-          </p>
+          <p className="text-xs text-muted-foreground">{config[modalidade].descricao}</p>
         </div>
       </div>
-
       <p className="text-2xl font-semibold text-foreground">{total}</p>
     </div>
   );
 }
 
 function ReportCard({
-  title,
-  description,
-  children,
-  onCSV,
+  title, description, children, onCSV,
 }: {
-  title: string;
-  description?: string;
-  children: ReactNode;
-  onCSV: () => void;
+  title: string; description?: string; children: ReactNode; onCSV: () => void;
 }) {
   return (
     <Card className="print-card">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <CardTitle className="text-base">{title}</CardTitle>
-          {description && (
-            <CardDescription className="mt-1">{description}</CardDescription>
-          )}
+          {description && <CardDescription className="mt-1">{description}</CardDescription>}
         </div>
-
         <div className="no-print flex shrink-0 gap-2">
           <Button size="sm" variant="outline" onClick={onCSV}>
             <Download className="mr-2 h-4 w-4" />
             CSV
           </Button>
-
           <Button size="sm" variant="outline" onClick={exportarPDF}>
             <FileText className="mr-2 h-4 w-4" />
             Imprimir/PDF
           </Button>
         </div>
       </CardHeader>
-
       <CardContent className="overflow-x-auto">{children}</CardContent>
     </Card>
   );

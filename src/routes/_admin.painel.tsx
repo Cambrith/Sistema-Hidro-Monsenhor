@@ -706,7 +706,7 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
           {cardsEstatisticas.map((card) => {
             const Icon = card.icon;
 
@@ -753,7 +753,7 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
             {cardsAtalhos.map((card) => {
               const Icon = card.icon;
 

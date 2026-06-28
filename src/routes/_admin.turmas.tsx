@@ -729,7 +729,7 @@ function FormularioTurma({
           onChange={(e) =>
             setF((atual) => ({ ...atual, dia_semana: e.target.value }))
           }
-          placeholder="Ex.: Terça e quinta"
+          placeholder="Ex.: Terças e quintas"
         />
       </Fld>
 

@@ -81,8 +81,30 @@ const KEY = "hidro-monsenhor-db-v5";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
+// Duração padrão de cada aula, em minutos.
+// Observação: o quadro físico sugere algumas variações (45min/70min) em
+// horários específicos de terças e quintas, ainda não confirmadas oficialmente.
+// Usando 50min como padrão por ora — ajustar aqui se a duração real for diferente.
+const DURACAO_AULA_MINUTOS = 50;
+
+function horaFimDe(horaInicio: string): string {
+  const [h, m] = horaInicio.split(":").map(Number);
+  const totalMinutos = h * 60 + m + DURACAO_AULA_MINUTOS;
+  const horaFim = Math.floor(totalMinutos / 60) % 24;
+  const minutoFim = totalMinutos % 60;
+  return `${String(horaFim).padStart(2, "0")}:${String(minutoFim).padStart(2, "0")}`;
+}
+
+type ItemHorarioBase = { hora: string; modalidade: Modalidade };
+
+function comHoraFim(
+  lista: ItemHorarioBase[]
+): (ItemHorarioBase & { horaFim: string })[] {
+  return lista.map((item) => ({ ...item, horaFim: horaFimDe(item.hora) }));
+}
+
 // Grade real 2026 — Segundas e Quartas
-export const horarioSegQua: { hora: string; modalidade: Modalidade }[] = [
+export const horarioSegQua = comHoraFim([
   { hora: "07:10", modalidade: "Hidroginástica" },
   { hora: "08:00", modalidade: "Natação Infantil" },
   { hora: "08:50", modalidade: "Natação Infantil" },
@@ -99,10 +121,10 @@ export const horarioSegQua: { hora: string; modalidade: Modalidade }[] = [
   { hora: "18:50", modalidade: "Natação Adulta" },
   { hora: "19:40", modalidade: "Natação Adulta" },
   { hora: "20:20", modalidade: "Natação Adulta" },
-];
+]);
 
 // Grade real 2026 — Terças e Quintas
-export const horarioTerQui: { hora: string; modalidade: Modalidade }[] = [
+export const horarioTerQui = comHoraFim([
   { hora: "07:10", modalidade: "Hidroginástica" },
   { hora: "08:00", modalidade: "Hidroginástica" },
   { hora: "08:50", modalidade: "Natação Infantil" },
@@ -119,7 +141,7 @@ export const horarioTerQui: { hora: string; modalidade: Modalidade }[] = [
   { hora: "18:50", modalidade: "Hidroginástica" },
   { hora: "19:40", modalidade: "Natação Adulta" },
   { hora: "20:20", modalidade: "Hidroginástica" },
-];
+]);
 
 const turnoDe = (hora: string): Turno => {
   const h = parseInt(hora.slice(0, 2), 10);
@@ -134,7 +156,7 @@ const professorDe = (): string => {
 };
 
 const faixaDe = (modalidade: Modalidade): string => {
-  if (modalidade === "Natação Infantil") return "8 a 17 anos";
+  if (modalidade === "Natação Infantil") return "7 a 17 anos";
   return "18 anos ou mais";
 };
 
@@ -165,7 +187,7 @@ const criarTurmas = (): Turma[] => {
     id: next(),
     nome: gerarNomeTurma(s.modalidade, s.hora, contadores),
     modalidade: s.modalidade,
-    diasHorario: `Segunda e quarta, ${s.hora}`,
+    diasHorario: `Segundas e quartas, ${s.hora} às ${s.horaFim}`,
     professor: professorDe(),
     faixaEtaria: faixaDe(s.modalidade),
     vagas: vagasDe(s.modalidade),
@@ -177,7 +199,7 @@ const criarTurmas = (): Turma[] => {
     id: next(),
     nome: gerarNomeTurma(s.modalidade, s.hora, contadores),
     modalidade: s.modalidade,
-    diasHorario: `Terça e quinta, ${s.hora}`,
+    diasHorario: `Terças e quintas, ${s.hora} às ${s.horaFim}`,
     professor: professorDe(),
     faixaEtaria: faixaDe(s.modalidade),
     vagas: vagasDe(s.modalidade),

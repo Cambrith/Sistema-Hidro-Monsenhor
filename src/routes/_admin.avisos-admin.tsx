@@ -4,6 +4,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useCallback,
   type ReactNode,
 } from "react";
 import { supabase } from "@/lib/supabase";
@@ -100,28 +101,14 @@ function textoSimplesParaHtml(texto: string) {
 
 function sanitizarHtmlAviso(html?: string | null) {
   if (!html) return "";
-
-  if (typeof window === "undefined") {
-    return html;
-  }
+  if (typeof window === "undefined") return html;
 
   const entrada = pareceHtml(html) ? html : textoSimplesParaHtml(html);
-
   const template = document.createElement("template");
   template.innerHTML = entrada;
 
   const tagsPermitidas = new Set([
-    "P",
-    "DIV",
-    "BR",
-    "STRONG",
-    "B",
-    "EM",
-    "I",
-    "U",
-    "UL",
-    "OL",
-    "LI",
+    "P", "DIV", "BR", "STRONG", "B", "EM", "I", "U", "UL", "OL", "LI",
   ]);
 
   const elementos = Array.from(template.content.querySelectorAll("*"));
@@ -155,15 +142,14 @@ function sanitizarHtmlAviso(html?: string | null) {
 
 function textoPlanoAviso(html?: string | null) {
   if (!html) return "";
-
   if (typeof window === "undefined") {
-    return html.replace(/<[^>]*>/g, " ");
+    return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   }
 
   const div = document.createElement("div");
   div.innerHTML = sanitizarHtmlAviso(html);
-
-  return div.textContent ?? "";
+  div.querySelectorAll("p, div, li").forEach((el) => el.append(" "));
+  return (div.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 
 function AvisoMensagemHtml({
@@ -205,17 +191,19 @@ function avisoParaForm(aviso: Aviso): AvisoForm {
 
 function formatarData(data: string) {
   if (!data) return "";
-  return new Date(`${data}T00:00:00`).toLocaleDateString("pt-BR");
+  try {
+    return new Date(`${data}T00:00:00`).toLocaleDateString("pt-BR");
+  } catch {
+    return data;
+  }
 }
 
 function AvisosAdmin() {
   const sessao = getSessao();
   const perfil = sessao?.perfil;
 
-  const podeCriarEditar =
-    perfil === "Administrador" || perfil === "Recepção";
-  const podeInativarReativar =
-    perfil === "Administrador" || perfil === "Recepção";
+  const podeCriarEditar = perfil === "Administrador" || perfil === "Recepção";
+  const podeInativarReativar = perfil === "Administrador" || perfil === "Recepção";
   const podeExcluir = perfil === "Administrador";
 
   const [avisos, setAvisos] = useState<Aviso[]>([]);
@@ -224,16 +212,16 @@ function AvisosAdmin() {
   const [avisoEditando, setAvisoEditando] = useState<Aviso | null>(null);
 
   const avisosAtivos = useMemo(
-    () => avisos.filter((aviso) => aviso.ativo !== false),
+    () => avisos.filter((a) => a.ativo !== false),
     [avisos],
   );
 
   const avisosInativos = useMemo(
-    () => avisos.filter((aviso) => aviso.ativo === false),
+    () => avisos.filter((a) => a.ativo === false),
     [avisos],
   );
 
-  async function carregarAvisos() {
+  const carregarAvisos = useCallback(async () => {
     setCarregando(true);
 
     const { data, error } = await supabase
@@ -252,18 +240,17 @@ function AvisosAdmin() {
 
     setAvisos((data ?? []) as Aviso[]);
     setCarregando(false);
-  }
+  }, []);
 
   useEffect(() => {
     carregarAvisos();
-  }, []);
+  }, [carregarAvisos]);
 
   function abrirNovoAviso() {
     if (!podeCriarEditar) {
       toast.error("Seu perfil não tem permissão para criar avisos.");
       return;
     }
-
     setAvisoEditando(null);
     setDialogAberto(true);
   }
@@ -273,7 +260,6 @@ function AvisosAdmin() {
       toast.error("Seu perfil não tem permissão para editar avisos.");
       return;
     }
-
     setAvisoEditando(aviso);
     setDialogAberto(true);
   }
@@ -294,10 +280,7 @@ function AvisosAdmin() {
 
     const { error } = await supabase
       .from("avisos")
-      .update({
-        ativo,
-        publico: ativo ? aviso.publico : false,
-      })
+      .update({ ativo, publico: ativo ? aviso.publico : false })
       .eq("id", aviso.id);
 
     if (error) {
@@ -332,14 +315,15 @@ function AvisosAdmin() {
 
     toast.success("Aviso excluído permanentemente.");
     carregarAvisos();
-  }   return (
+  }
+
+  return (
     <div className="space-y-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="font-display text-lg font-semibold">
             Gestão de avisos
           </h2>
-
           <p className="text-sm text-muted-foreground">
             Crie comunicados públicos, internos e arquive avisos sem apagar o
             histórico.
@@ -531,11 +515,7 @@ function AvisoCard({
         {(podeCriarEditar || podeInativarReativar || podeExcluir) && (
           <div className="flex flex-wrap justify-end gap-2">
             {podeCriarEditar && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onEditar(aviso)}
-              >
+              <Button size="sm" variant="outline" onClick={() => onEditar(aviso)}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Editar
               </Button>
@@ -593,35 +573,43 @@ function AvisoDialog({
 
   useEffect(() => {
     if (!open) return;
-
-    if (aviso) {
-      setForm(avisoParaForm(aviso));
-    } else {
-      setForm(formVazio());
-    }
+    setForm(aviso ? avisoParaForm(aviso) : formVazio());
   }, [open, aviso?.id]);
 
   async function save() {
+    const titulo = form.titulo.trim();
     const mensagemSanitizada = sanitizarHtmlAviso(form.mensagem);
     const mensagemTexto = textoPlanoAviso(mensagemSanitizada).trim();
 
-    if (!form.titulo.trim() || !mensagemTexto) {
-      toast.error("Informe título e mensagem.");
+    if (!titulo) {
+      toast.error("Informe o título do aviso.");
+      return;
+    }
+
+    if (!mensagemTexto) {
+      toast.error("Informe a mensagem do aviso.");
+      return;
+    }
+
+    if (!form.data) {
+      toast.error("Informe a data do aviso.");
       return;
     }
 
     setSalvando(true);
 
+    const payload = {
+      titulo,
+      mensagem: mensagemSanitizada,
+      data: form.data,
+      importante: form.importante,
+      publico: form.publico,
+    };
+
     if (aviso) {
       const { error } = await supabase
         .from("avisos")
-        .update({
-          titulo: form.titulo.trim(),
-          mensagem: mensagemSanitizada,
-          data: form.data,
-          importante: form.importante,
-          publico: form.publico,
-        })
+        .update(payload)
         .eq("id", aviso.id);
 
       setSalvando(false);
@@ -633,37 +621,31 @@ function AvisoDialog({
       }
 
       toast.success("Aviso atualizado.");
-      onOpenChange(false);
-      onSaved();
-      return;
+    } else {
+      const { error } = await supabase
+        .from("avisos")
+        .insert({ ...payload, ativo: true });
+
+      setSalvando(false);
+
+      if (error) {
+        console.error("Erro ao publicar aviso:", error);
+        toast.error("Não foi possível publicar o aviso.");
+        return;
+      }
+
+      toast.success("Aviso publicado.");
     }
 
-    const { error } = await supabase.from("avisos").insert({
-      titulo: form.titulo.trim(),
-      mensagem: mensagemSanitizada,
-      data: form.data,
-      importante: form.importante,
-      publico: form.publico,
-      ativo: true,
-    });
-
-    setSalvando(false);
-
-    if (error) {
-      console.error("Erro ao publicar aviso:", error);
-      toast.error("Não foi possível publicar o aviso.");
-      return;
-    }
-
-    toast.success("Aviso publicado.");
     onOpenChange(false);
     onSaved();
-  }   return (
+  }
+
+  return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{aviso ? "Editar aviso" : "Novo aviso"}</DialogTitle>
-
           <DialogDescription>
             Defina se o comunicado será público no site ou interno para a
             equipe. Use a barra de formatação para destacar informações
@@ -676,23 +658,19 @@ function AvisoDialog({
             <Input
               value={form.titulo}
               onChange={(e) =>
-                setForm((atual) => ({
-                  ...atual,
-                  titulo: e.target.value,
-                }))
+                setForm((atual) => ({ ...atual, titulo: e.target.value }))
               }
               placeholder="Manutenção da piscina"
+              maxLength={200}
             />
           </Fld>
 
           <Fld label="Mensagem">
             <RichTextEditor
               value={form.mensagem}
+              open={open}
               onChange={(valor) =>
-                setForm((atual) => ({
-                  ...atual,
-                  mensagem: valor,
-                }))
+                setForm((atual) => ({ ...atual, mensagem: valor }))
               }
             />
           </Fld>
@@ -703,10 +681,7 @@ function AvisoDialog({
                 type="date"
                 value={form.data}
                 onChange={(e) =>
-                  setForm((atual) => ({
-                    ...atual,
-                    data: e.target.value,
-                  }))
+                  setForm((atual) => ({ ...atual, data: e.target.value }))
                 }
               />
             </Fld>
@@ -718,14 +693,10 @@ function AvisoDialog({
                   Destaca o aviso visualmente.
                 </p>
               </div>
-
               <Switch
                 checked={form.importante}
                 onCheckedChange={(valor) =>
-                  setForm((atual) => ({
-                    ...atual,
-                    importante: valor,
-                  }))
+                  setForm((atual) => ({ ...atual, importante: valor }))
                 }
               />
             </div>
@@ -737,14 +708,10 @@ function AvisoDialog({
                   Aparece na página pública.
                 </p>
               </div>
-
               <Switch
                 checked={form.publico}
                 onCheckedChange={(valor) =>
-                  setForm((atual) => ({
-                    ...atual,
-                    publico: valor,
-                  }))
+                  setForm((atual) => ({ ...atual, publico: valor }))
                 }
               />
             </div>
@@ -765,7 +732,6 @@ function AvisoDialog({
           >
             Cancelar
           </Button>
-
           <Button onClick={save} disabled={salvando}>
             {salvando ? "Salvando..." : "Salvar"}
           </Button>
@@ -777,22 +743,44 @@ function AvisoDialog({
 
 function RichTextEditor({
   value,
+  open,
   onChange,
 }: {
   value: string;
+  open: boolean;
   onChange: (value: string) => void;
 }) {
   const editorRef = useRef<HTMLDivElement | null>(null);
+  const inicializado = useRef(false);
+  const [formatosAtivos, setFormatosAtivos] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!editorRef.current) return;
+    if (inicializado.current) return;
 
-    const valorSeguro = sanitizarHtmlAviso(value);
+    editorRef.current.innerHTML = sanitizarHtmlAviso(value);
+    inicializado.current = true;
+  }, []);
 
-    if (editorRef.current.innerHTML !== valorSeguro) {
-      editorRef.current.innerHTML = valorSeguro;
+  useEffect(() => {
+    if (!open) {
+      inicializado.current = false;
     }
-  }, [value]);
+  }, [open]);
+
+  function atualizarFormatosAtivos() {
+    try {
+      setFormatosAtivos({
+        bold: document.queryCommandState("bold"),
+        italic: document.queryCommandState("italic"),
+        underline: document.queryCommandState("underline"),
+        insertUnorderedList: document.queryCommandState("insertUnorderedList"),
+        insertOrderedList: document.queryCommandState("insertOrderedList"),
+      });
+    } catch {
+      // queryCommandState pode falhar em alguns contextos — ignora silenciosamente
+    }
+  }
 
   function atualizarValor() {
     const html = editorRef.current?.innerHTML ?? "";
@@ -800,9 +788,23 @@ function RichTextEditor({
   }
 
   function executarComando(comando: string, valor?: string) {
-    editorRef.current?.focus();
-    document.execCommand(comando, false, valor);
+    if (!editorRef.current) return;
+    editorRef.current.focus();
+
+    try {
+      document.execCommand(comando, false, valor);
+    } catch (e) {
+      console.warn("execCommand falhou:", comando, e);
+    }
+
     atualizarValor();
+    atualizarFormatosAtivos();
+  }
+
+  function classesBotao(comando: string) {
+    return formatosAtivos[comando]
+      ? "bg-blue-100 text-blue-600 hover:bg-blue-100 hover:text-blue-600"
+      : "";
   }
 
   return (
@@ -812,8 +814,9 @@ function RichTextEditor({
           type="button"
           size="sm"
           variant="ghost"
+          className={classesBotao("bold")}
           onClick={() => executarComando("bold")}
-          title="Negrito"
+          title="Negrito (Ctrl+B)"
         >
           <Bold className="h-4 w-4" />
         </Button>
@@ -822,8 +825,9 @@ function RichTextEditor({
           type="button"
           size="sm"
           variant="ghost"
+          className={classesBotao("italic")}
           onClick={() => executarComando("italic")}
-          title="Itálico"
+          title="Itálico (Ctrl+I)"
         >
           <Italic className="h-4 w-4" />
         </Button>
@@ -832,8 +836,9 @@ function RichTextEditor({
           type="button"
           size="sm"
           variant="ghost"
+          className={classesBotao("underline")}
           onClick={() => executarComando("underline")}
-          title="Sublinhado"
+          title="Sublinhado (Ctrl+U)"
         >
           <Underline className="h-4 w-4" />
         </Button>
@@ -842,8 +847,9 @@ function RichTextEditor({
           type="button"
           size="sm"
           variant="ghost"
+          className={classesBotao("insertUnorderedList")}
           onClick={() => executarComando("insertUnorderedList")}
-          title="Lista"
+          title="Lista com marcadores"
         >
           <List className="h-4 w-4" />
         </Button>
@@ -852,6 +858,7 @@ function RichTextEditor({
           type="button"
           size="sm"
           variant="ghost"
+          className={classesBotao("insertOrderedList")}
           onClick={() => executarComando("insertOrderedList")}
           title="Lista numerada"
         >
@@ -862,14 +869,27 @@ function RichTextEditor({
       <div
         ref={editorRef}
         contentEditable
+        suppressContentEditableWarning
         onInput={atualizarValor}
         onBlur={atualizarValor}
+        onKeyUp={atualizarFormatosAtivos}
+        onMouseUp={atualizarFormatosAtivos}
+        onKeyDown={(e) => {
+          // Impede que atalhos do editor (Ctrl+B, Ctrl+I, Ctrl+U) propaguem
+          // para o roteador e ativem atalhos do painel
+          if (e.ctrlKey || e.metaKey) {
+            const teclas = ["b", "i", "u", "z", "y"];
+            if (teclas.includes(e.key.toLowerCase())) {
+              e.stopPropagation();
+            }
+          }
+        }}
         className="min-h-36 px-3 py-2 text-sm leading-relaxed outline-none [&_div]:mb-2 [&_em]:italic [&_li]:ml-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:mb-2 [&_strong]:font-semibold [&_u]:underline [&_ul]:list-disc [&_ul]:pl-4"
       />
 
       <div className="border-t border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-        Selecione um trecho do texto e clique nos botões para aplicar negrito,
-        itálico, sublinhado ou listas.
+        Selecione um trecho e clique nos botões para formatar. Atalhos: Ctrl+B
+        (negrito), Ctrl+I (itálico), Ctrl+U (sublinhado).
       </div>
     </div>
   );
