@@ -73,47 +73,54 @@ const whatsappUrl =
   "https://wa.me/552422232857?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20a%20Hidro%20e%20Nata%C3%A7%C3%A3o%20Monsenhor.";
 
 const modalidades = [
- {
+  {
     nome: "Natação Infantil",
-    desc: "Para crianças e adolescentes de 7 a 17 anos. As aulas focam em adaptação ao meio líquido, desenvolvimento das técnicas de nado, segurança na água e evolução progressiva conforme a faixa etária.",
+    faixa: "7 a 17 anos",
+   desc: "As aulas focam em adaptação ao meio líquido, desenvolvimento das técnicas de nado, segurança na água e evolução progressiva conforme a faixa etária.",
     icon: PersonStanding,
   },
   {
     nome: "Natação Adulta",
-    desc: "Para maiores de 18 anos. As aulas trabalham técnica, condicionamento físico e bem-estar, atendendo desde quem está aprendendo a nadar até quem busca aprimorar a prática.",
+    faixa: "A partir de 18 anos",
+   desc: "As aulas trabalham técnica, condicionamento físico e bem-estar, atendendo desde quem está aprendendo a nadar até quem busca aprimorar a prática.",
     icon: UserRound,
   },
   {
     nome: "Hidroginástica",
-    desc: "Exercício aquático de baixo impacto para maiores de 18 anos. Indicada para quem busca qualidade de vida, mobilidade e condicionamento com menor sobrecarga nas articulações.",
+    faixa: "A partir de 18 anos",
+    desc: "Exercício aquático de baixo impacto indicado para quem busca qualidade de vida, mobilidade e condicionamento com menor sobrecarga nas articulações.",
     icon: HeartPulse,
   },
 ];
 
 const redesSociais = [
-   {
-    label: "Telefone",
-    desc: "Ligue para confirmar vagas disponíveis ou tirar dúvidas com a secretaria.",
+  {
+    label: "Telefone Fixo",
+    desc: "Ligue para confirmar vagas ou tirar dúvidas com a secretaria.",
     href: "tel:+552422452089",
     icon: Phone,
+    detalhe: "(24) 2245-2089",
   },
   {
     label: "WhatsApp",
     desc: "Fale diretamente com a equipe responsável pelo atendimento.",
     href: whatsappUrl,
     icon: FaWhatsapp,
+    detalhe: "(24) 2223-2857",
   },
   {
     label: "Instagram",
     desc: "Acompanhe novidades, comunicados e registros das atividades.",
     href: instagramUrl,
     icon: Instagram,
+    detalhe: "@hidro.monsenhor",
   },
   {
     label: "Facebook",
     desc: "Acesse a página oficial do centro e veja atualizações.",
     href: facebookUrl,
     icon: Facebook,
+    detalhe: "@hidrojoaodedeus",
   },
 ];
 
@@ -131,8 +138,8 @@ type HorarioItem = {
 
 function calcularTurno(hora: string): "Manhã" | "Tarde" | "Noite" {
   const h = parseInt(hora.slice(0, 2), 10);
-  if (h < 12) return "Manhã";
-  if (h < 18) return "Tarde";
+  if (h >= 6 && h < 12) return "Manhã";
+  if (h >= 12 && h < 18) return "Tarde";
   return "Noite";
 }
 
@@ -217,8 +224,8 @@ function TabelaHorarios() {
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dia</span>
           <div className="flex flex-wrap gap-1.5">
             <Chip ativo={filtroDia === "todos"} onClick={() => setFiltroDia("todos")}>Todos</Chip>
-            <Chip ativo={filtroDia === "seg-qui"} onClick={() => setFiltroDia("seg-qui")}>Seg. e Qui.</Chip>
-            <Chip ativo={filtroDia === "ter-qua"} onClick={() => setFiltroDia("ter-qua")}>Ter. e Qua.</Chip>
+            <Chip ativo={filtroDia === "seg-qui"} onClick={() => setFiltroDia("seg-qui")}>Segundas e Quintas</Chip>
+<Chip ativo={filtroDia === "ter-qua"} onClick={() => setFiltroDia("ter-qua")}>Terças e Quartas</Chip>
           </div>
         </div>
 
@@ -268,14 +275,14 @@ function TabelaHorarios() {
               Nenhum horário encontrado para os filtros selecionados.
             </div>
           ) : (
-            <div className="max-h-[480px] overflow-y-auto">
+            <div className="max-h-[340px] overflow-y-auto">
               <table className="w-full text-sm">
                 <thead className="sticky top-0 z-10 bg-background">
                   <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
                     <th className="px-4 py-3">Horário</th>
                     <th className="px-4 py-3">Dias</th>
-                    <th className="px-4 py-3">Turno</th>
-                    <th className="px-4 py-3">Modalidade</th>
+                    <th className="px-3 py-3">Turno</th>
+                    <th className="px-3 py-3">Modalidade</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
@@ -286,7 +293,7 @@ function TabelaHorarios() {
                     >
                       <td className="px-4 py-2.5 font-mono text-foreground">{item.hora}</td>
                       <td className="px-4 py-2.5 text-foreground/70">
-                        {item.dia === "seg-qui" ? "Seg. e Qui." : "Ter. e Qua."}
+                        {item.dia === "seg-qui" ? "Segundas e Quintas" : "Terças e Quartas"}
                       </td>
                       <td className="px-4 py-2.5 text-foreground/70">{item.turno}</td>
                       <td className="px-4 py-2.5">
@@ -411,12 +418,12 @@ function Home() {
 
           <div className="hidden items-center justify-center md:flex">
             <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:grid-cols-2">
-              {[
-                { icon: ShieldCheck, label: "Gestão", value: "Pública e comunitária" },
-                { icon: CalendarClock, label: "Organização", value: "Turmas organizadas por horário" },
-                { icon: HeartPulse, label: "Atendimento", value: "Cuidado com a comunidade" },
-                { icon: MapPin, label: "Localização", value: "Pedro do Rio, Petrópolis" },
-              ].map((card) => {
+             {[
+  { icon: ShieldCheck, label: "Acesso", value: "Atividades 100% gratuitas" },
+  { icon: HeartPulse, label: "Alunos ativos", value: "Mais de 650 alunos matriculados" },
+  { icon: CalendarClock, label: "Funcionando desde", value: "2005" },
+  { icon: MapPin, label: "Localização", value: "Pedro do Rio, Petrópolis" },
+].map((card) => {
                 const Icon = card.icon;
                 return (
                   <div key={card.label} className="rounded-xl border border-[#DBEAFE] bg-white p-5 shadow-sm">
@@ -491,8 +498,11 @@ function Home() {
                     <Icon className="h-5 w-5" />
                   </span>
                   <CardTitle className="mt-3 text-lg">{modalidade.nome}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-foreground/80">{modalidade.desc}</CardContent>
+         <span className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeModalidade[modalidade.nome as Modalidade]}`}>
+            {modalidade.faixa}
+          </span>
+        </CardHeader>
+        <CardContent className="-mt-2 text-sm text-foreground/80">{modalidade.desc}</CardContent>
               </Card>
             );
           })}
@@ -580,17 +590,22 @@ function Home() {
           <h2 className="font-display text-2xl font-semibold">Canais oficiais</h2>
           <p className="text-sm text-muted-foreground">Acompanhe comunicados, novidades e formas de contato do centro.</p>
         </div>
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {redesSociais.map((rede) => {
             const Icon = rede.icon;
             return (
-              <a key={rede.label} href={rede.href} target="_blank" rel="noreferrer" className="group rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
+              <a key={rede.label} href={rede.href} target="_blank" rel="noreferrer" className="group flex flex-col rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
                 <span className="grid h-11 w-11 place-items-center rounded-lg bg-accent text-accent-foreground">
                   <Icon className="h-5 w-5" />
                 </span>
                 <h3 className="mt-4 font-semibold text-foreground">{rede.label}</h3>
+{"detalhe" in rede && rede.detalhe && (
+  <p className="mt-0.5 text-sm font-semibold text-foreground">
+    {rede.detalhe}
+  </p>
+)}
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{rede.desc}</p>
-                <p className="mt-3 inline-flex items-center text-sm font-medium text-primary">
+                <p className="mt-auto pt-3 inline-flex items-center text-sm font-medium text-primary">
                   Acessar canal
                   <ExternalLink className="ml-1 h-3.5 w-3.5 opacity-70" />
                 </p>

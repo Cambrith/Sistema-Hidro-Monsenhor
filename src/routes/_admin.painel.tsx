@@ -19,11 +19,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 import {
-  ClipboardList,
   CalendarDays,
   CheckSquare,
   Megaphone,
-  Hourglass,
   ArrowRight,
   BarChart3,
   RefreshCw,
@@ -473,17 +471,10 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
 
     const avisosPublicados = avisos.filter((aviso) => aviso.publico).length;
     const avisosRecentes = avisos.slice(0, 6);
-    const ultimosPre = preCadastros.slice(0, 8);
 
     const alunosPorModalidade = modalidades.map((modalidade) => ({
       modalidade: modalidade.replace("Natação ", "Nat. "),
       alunos: alunosAtivos.filter((aluno) => aluno.modalidade === modalidade)
-        .length,
-    }));
-
-    const solicitacoesPorModalidade = modalidades.map((modalidade) => ({
-      modalidade: modalidade.replace("Natação ", "Nat. "),
-      solicitacoes: preCadastros.filter((pre) => pre.modalidade === modalidade)
         .length,
     }));
 
@@ -572,9 +563,7 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
       fila,
       avisosPublicados,
       avisosRecentes,
-      ultimosPre,
       alunosPorModalidade,
-      solicitacoesPorModalidade,
       ocupacaoPorTurma,
       aniversariantes,
       proximasTurmas,
@@ -617,14 +606,6 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
         permissao: "turmas",
       },
       {
-        title: "Pré-cadastros pendentes",
-        value: dados.pendentes,
-        description: "Solicitações aguardando análise",
-        icon: ClipboardList,
-        to: "/pre-cadastros",
-        permissao: "pre-cadastros",
-      },
-      {
         title: "Avisos publicados",
         value: dados.avisosPublicados,
         description: "Comunicados visíveis no site",
@@ -639,14 +620,6 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
 
   const cardsAtalhos = useMemo<DashboardCard[]>(() => {
     const todos: DashboardCard[] = [
-      {
-        title: "Fila de espera",
-        value: dados.fila,
-        description: "Interessados aguardando vaga",
-        icon: Hourglass,
-        to: "/pre-cadastros",
-        permissao: "pre-cadastros",
-      },
       {
         title: "Chamada digital",
         value: "Abrir",
@@ -1156,166 +1129,6 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
           </CardContent>
         </Card>
       )}
-
-      {temPermissao("pre-cadastros") && (
-        <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pré-cadastros por modalidade</CardTitle>
-
-              <CardDescription>
-                Distribuição atual das solicitações recebidas.
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={dados.solicitacoesPorModalidade}
-                  margin={{
-                    top: 8,
-                    right: 8,
-                    bottom: 0,
-                    left: -16,
-                  }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="var(--color-border)"
-                  />
-
-                  <XAxis
-                    dataKey="modalidade"
-                    tick={{ fontSize: 12 }}
-                    stroke="var(--color-muted-foreground)"
-                  />
-
-                  <YAxis
-                    allowDecimals={false}
-                    tick={{ fontSize: 12 }}
-                    stroke="var(--color-muted-foreground)"
-                  />
-
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: 8,
-                      border: "1px solid var(--color-border)",
-                    }}
-                  />
-
-                  <Bar
-                    dataKey="solicitacoes"
-                    fill="var(--color-primary)"
-                    radius={[6, 6, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {temPermissao("avisos") && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Avisos recentes</CardTitle>
-
-                  <CardDescription>
-                    Últimos comunicados publicados.
-                  </CardDescription>
-                </div>
-
-                <Link to="/avisos-admin">
-                  <Button size="sm" variant="ghost">
-                    Ver todos
-                    <ArrowRight className="ml-1 h-3 w-3" />
-                  </Button>
-                </Link>
-              </CardHeader>
-
-              <CardContent className="max-h-[320px] space-y-3 overflow-y-auto pr-1">
-                {dados.avisosRecentes.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum aviso publicado ainda.
-                  </p>
-                )}
-
-                {dados.avisosRecentes.map((aviso) => (
-                  <div
-                    key={aviso.id}
-                    className="rounded-md border border-border p-3"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-semibold">{aviso.titulo}</p>
-
-                      {aviso.importante && (
-                        <Badge variant="destructive">Importante</Badge>
-                      )}
-                    </div>
-
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {formatarData(aviso.data)}
-                    </p>
-
-                    <p className="mt-1 line-clamp-2 text-sm text-foreground/80">
-                      {aviso.mensagem}
-                    </p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
-
-      {temPermissao("pre-cadastros") && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>Últimos pré-cadastros</CardTitle>
-
-              <CardDescription>
-                Solicitações recentes recebidas pelo sistema.
-              </CardDescription>
-            </div>
-
-            <Link to="/pre-cadastros">
-              <Button size="sm" variant="ghost">
-                Ver todos
-                <ArrowRight className="ml-1 h-3 w-3" />
-              </Button>
-            </Link>
-          </CardHeader>
-
-          <CardContent className="max-h-[360px] space-y-2 overflow-y-auto pr-1">
-            {dados.ultimosPre.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                Nenhum pré-cadastro registrado.
-              </p>
-            )}
-
-            {dados.ultimosPre.map((pre) => (
-              <div
-                key={pre.id}
-                className="flex items-center justify-between gap-2 rounded-md border border-border p-3 text-sm"
-              >
-                <div>
-                  <p className="font-medium">{pre.nome_aluno}</p>
-
-                  <p className="text-xs text-muted-foreground">
-                    {pre.modalidade} · {pre.horario_interesse || pre.turno} ·{" "}
-                    {formatarData(pre.criado_em || pre.created_at)}
-                  </p>
-                </div>
-
-                <Badge variant="outline" className="capitalize">
-                  {pre.status}
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
       <Card className="border-dashed">
         <CardContent className="flex flex-col gap-3 p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">

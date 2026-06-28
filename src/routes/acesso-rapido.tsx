@@ -9,7 +9,7 @@ import {
   ListChecks,
   Stethoscope,
   CalendarCheck,
-  AlertTriangle,
+  HelpCircle,
   Phone,
   type LucideIcon,
 } from "lucide-react";
@@ -78,28 +78,24 @@ const links: LinkItem[] = [
 
 const infos = [
   {
-    title: "Documentação obrigatória",
-    text:
-      "A matrícula só poderá ser confirmada mediante apresentação de atestado médico e documentos pessoais na secretaria.",
+    title: "Documentos obrigatórios",
+    text: "A matrícula só poderá ser confirmada mediante apresentação de atestado médico e documentos pessoais na secretaria.",
     icon: Stethoscope,
   },
   {
-  title: "Confirme as vagas",
-  text:
-    "Você pode ligar para a secretaria e perguntar se há vaga disponível antes de se deslocar. A inscrição em si, porém, só pode ser concluída presencialmente.",
-  icon: Phone,
-},
+    title: "Confirme as vagas",
+    text: "Você pode ligar para a secretaria e perguntar se há vaga disponível antes de se deslocar. A inscrição em si, porém, só pode ser concluída presencialmente.",
+    icon: Phone,
+  },
   {
     title: "Organização por horário",
-    text:
-      "As turmas são organizadas por modalidade, dias da semana e horários definidos, facilitando o acompanhamento das atividades.",
+    text: "As turmas são organizadas por modalidade, dias da semana e horários definidos, facilitando o acompanhamento das atividades.",
     icon: CalendarCheck,
   },
   {
     title: "Dúvidas frequentes",
-    text:
-      "As dúvidas mais comuns são sobre vagas disponíveis e faltas. Ambas são esclarecidas diretamente pela secretaria.",
-    icon: Phone,
+    text: "As perguntas mais comuns são sobre vagas disponíveis, regras de falta e troca de horário. A secretaria orienta sobre todos esses casos presencialmente ou por telefone.",
+    icon: HelpCircle,
   },
 ];
 

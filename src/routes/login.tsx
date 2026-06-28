@@ -92,15 +92,15 @@ function LoginPage() {
 
         <div className="relative flex h-full flex-col justify-between p-9 xl:p-10">
           <div className="flex items-center gap-5">
-          <span className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-3xl bg-white/95 p-1 shadow-sm">
+         <span className="grid h-24 w-24 shrink-0 place-items-center rounded-3xl bg-white/95 p-1 shadow-sm">
   <img
     src={logo}
     alt="Hidro e Natação Monsenhor"
     style={{
-      width: "62px",
-      height: "62px",
-      objectFit: "contain",
-    }}
+  width: "94px",
+  height: "94px",
+  objectFit: "contain",
+}}
   />
 </span>
 

@@ -1,7 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
-  ClipboardList,
   Users,
   CalendarDays,
   CheckSquare,
@@ -27,7 +26,7 @@ import {
 
 import { getSessao, podeAcessar, sair, type Permissao } from "@/lib/auth";
 
-import logo from "@/assets/Golfinho Solitário.png";
+import logo from "@/assets/Golfinho Solitario (2.0).png"; 
 
 type MenuItem = {
   to: string;
@@ -42,12 +41,6 @@ const operacao: MenuItem[] = [
     label: "Painel",
     icon: LayoutDashboard,
     permissao: "painel",
-  },
-  {
-    to: "/pre-cadastros",
-    label: "Pré-cadastros",
-    icon: ClipboardList,
-    permissao: "pre-cadastros",
   },
   {
     to: "/alunos",
@@ -160,7 +153,7 @@ export function AdminSidebar() {
             <img
               src={logo}
               alt="Hidro e Natação Monsenhor"
-              className="h-14 w-14 scale-[1.45] object-contain -translate-x-[2px]"
+              className="h-14 w-14 scale-[1.45] object-contain -translate-x-[0px]"
             />
           </span>
 

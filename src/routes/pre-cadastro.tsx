@@ -32,19 +32,19 @@ const documentos = [
   {
     icon: Stethoscope,
     titulo: "Atestado médico",
-    descricao: "Comprovando aptidão física para a modalidade desejada.",
+   descricao: "Deve estar atualizado e com data vigente, além de comprovar aptidão física para a modalidade desejada.",
     obrigatorio: true,
   },
   {
     icon: IdCard,
     titulo: "Documento de identificação",
-    descricao: "RG ou outro documento com foto do participante e do responsável, se menor de idade.",
+    descricao: "Registro Geral (RG) ou outro documento com foto. Para menores de idade, o responsável deve estar presente.",
     obrigatorio: true,
   },
   {
     icon: Home,
     titulo: "Comprovante de residência",
-    descricao: "Ajuda a confirmar os dados de endereço no cadastro.",
+    descricao: "Auxilia a confirmar os dados de endereço no cadastro.",
     obrigatorio: false,
   },
 ];
@@ -137,9 +137,9 @@ function ComoSeInscreverPage() {
             {documentos.map((d) => (
               <Card
                 key={d.titulo}
-                className={`h-full ${!d.obrigatorio ? "border-dashed opacity-80" : ""}`}
+                className="h-full"
               >
-                <CardHeader className="space-y-3">
+                <CardHeader className="space-y-3 h-full flex flex-col">
                   <div className="flex items-start justify-between gap-2">
                     <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
                       <d.icon className="h-5 w-5" />
