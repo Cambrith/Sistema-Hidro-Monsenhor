@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PreCadastroRouteImport } from './routes/pre-cadastro'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AvisosRouteImport } from './routes/avisos'
 import { Route as AcessoRapidoRouteImport } from './routes/acesso-rapido'
+import { Route as AcessoRouteImport } from './routes/acesso'
 import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PortalPresencasRouteImport } from './routes/portal.presencas'
+import { Route as PortalInicioRouteImport } from './routes/portal.inicio'
+import { Route as PortalDadosRouteImport } from './routes/portal.dados'
+import { Route as PortalAtestadoRouteImport } from './routes/portal.atestado'
 import { Route as AdminUsuariosRouteImport } from './routes/_admin.usuarios'
 import { Route as AdminTurmasRouteImport } from './routes/_admin.turmas'
 import { Route as AdminSegurancaRouteImport } from './routes/_admin.seguranca'
@@ -28,6 +34,11 @@ import { Route as AdminAlunosRouteImport } from './routes/_admin.alunos'
 const PreCadastroRoute = PreCadastroRouteImport.update({
   id: '/pre-cadastro',
   path: '/pre-cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -45,6 +56,11 @@ const AcessoRapidoRoute = AcessoRapidoRouteImport.update({
   path: '/acesso-rapido',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AcessoRoute = AcessoRouteImport.update({
+  id: '/acesso',
+  path: '/acesso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/_admin',
   getParentRoute: () => rootRouteImport,
@@ -53,6 +69,26 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PortalPresencasRoute = PortalPresencasRouteImport.update({
+  id: '/presencas',
+  path: '/presencas',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalInicioRoute = PortalInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalDadosRoute = PortalDadosRouteImport.update({
+  id: '/dados',
+  path: '/dados',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalAtestadoRoute = PortalAtestadoRouteImport.update({
+  id: '/atestado',
+  path: '/atestado',
+  getParentRoute: () => PortalRoute,
 } as any)
 const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
   id: '/usuarios',
@@ -102,9 +138,11 @@ const AdminAlunosRoute = AdminAlunosRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/acesso': typeof AcessoRoute
   '/acesso-rapido': typeof AcessoRapidoRoute
   '/avisos': typeof AvisosRoute
   '/login': typeof LoginRoute
+  '/portal': typeof PortalRouteWithChildren
   '/pre-cadastro': typeof PreCadastroRoute
   '/alunos': typeof AdminAlunosRoute
   '/avisos-admin': typeof AdminAvisosAdminRoute
@@ -115,12 +153,18 @@ export interface FileRoutesByFullPath {
   '/seguranca': typeof AdminSegurancaRoute
   '/turmas': typeof AdminTurmasRoute
   '/usuarios': typeof AdminUsuariosRoute
+  '/portal/atestado': typeof PortalAtestadoRoute
+  '/portal/dados': typeof PortalDadosRoute
+  '/portal/inicio': typeof PortalInicioRoute
+  '/portal/presencas': typeof PortalPresencasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/acesso': typeof AcessoRoute
   '/acesso-rapido': typeof AcessoRapidoRoute
   '/avisos': typeof AvisosRoute
   '/login': typeof LoginRoute
+  '/portal': typeof PortalRouteWithChildren
   '/pre-cadastro': typeof PreCadastroRoute
   '/alunos': typeof AdminAlunosRoute
   '/avisos-admin': typeof AdminAvisosAdminRoute
@@ -131,14 +175,20 @@ export interface FileRoutesByTo {
   '/seguranca': typeof AdminSegurancaRoute
   '/turmas': typeof AdminTurmasRoute
   '/usuarios': typeof AdminUsuariosRoute
+  '/portal/atestado': typeof PortalAtestadoRoute
+  '/portal/dados': typeof PortalDadosRoute
+  '/portal/inicio': typeof PortalInicioRoute
+  '/portal/presencas': typeof PortalPresencasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_admin': typeof AdminRouteWithChildren
+  '/acesso': typeof AcessoRoute
   '/acesso-rapido': typeof AcessoRapidoRoute
   '/avisos': typeof AvisosRoute
   '/login': typeof LoginRoute
+  '/portal': typeof PortalRouteWithChildren
   '/pre-cadastro': typeof PreCadastroRoute
   '/_admin/alunos': typeof AdminAlunosRoute
   '/_admin/avisos-admin': typeof AdminAvisosAdminRoute
@@ -149,14 +199,20 @@ export interface FileRoutesById {
   '/_admin/seguranca': typeof AdminSegurancaRoute
   '/_admin/turmas': typeof AdminTurmasRoute
   '/_admin/usuarios': typeof AdminUsuariosRoute
+  '/portal/atestado': typeof PortalAtestadoRoute
+  '/portal/dados': typeof PortalDadosRoute
+  '/portal/inicio': typeof PortalInicioRoute
+  '/portal/presencas': typeof PortalPresencasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/acesso'
     | '/acesso-rapido'
     | '/avisos'
     | '/login'
+    | '/portal'
     | '/pre-cadastro'
     | '/alunos'
     | '/avisos-admin'
@@ -167,12 +223,18 @@ export interface FileRouteTypes {
     | '/seguranca'
     | '/turmas'
     | '/usuarios'
+    | '/portal/atestado'
+    | '/portal/dados'
+    | '/portal/inicio'
+    | '/portal/presencas'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/acesso'
     | '/acesso-rapido'
     | '/avisos'
     | '/login'
+    | '/portal'
     | '/pre-cadastro'
     | '/alunos'
     | '/avisos-admin'
@@ -183,13 +245,19 @@ export interface FileRouteTypes {
     | '/seguranca'
     | '/turmas'
     | '/usuarios'
+    | '/portal/atestado'
+    | '/portal/dados'
+    | '/portal/inicio'
+    | '/portal/presencas'
   id:
     | '__root__'
     | '/'
     | '/_admin'
+    | '/acesso'
     | '/acesso-rapido'
     | '/avisos'
     | '/login'
+    | '/portal'
     | '/pre-cadastro'
     | '/_admin/alunos'
     | '/_admin/avisos-admin'
@@ -200,14 +268,20 @@ export interface FileRouteTypes {
     | '/_admin/seguranca'
     | '/_admin/turmas'
     | '/_admin/usuarios'
+    | '/portal/atestado'
+    | '/portal/dados'
+    | '/portal/inicio'
+    | '/portal/presencas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  AcessoRoute: typeof AcessoRoute
   AcessoRapidoRoute: typeof AcessoRapidoRoute
   AvisosRoute: typeof AvisosRoute
   LoginRoute: typeof LoginRoute
+  PortalRoute: typeof PortalRouteWithChildren
   PreCadastroRoute: typeof PreCadastroRoute
 }
 
@@ -218,6 +292,13 @@ declare module '@tanstack/react-router' {
       path: '/pre-cadastro'
       fullPath: '/pre-cadastro'
       preLoaderRoute: typeof PreCadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -241,6 +322,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcessoRapidoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/acesso': {
+      id: '/acesso'
+      path: '/acesso'
+      fullPath: '/acesso'
+      preLoaderRoute: typeof AcessoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_admin': {
       id: '/_admin'
       path: ''
@@ -254,6 +342,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/portal/presencas': {
+      id: '/portal/presencas'
+      path: '/presencas'
+      fullPath: '/portal/presencas'
+      preLoaderRoute: typeof PortalPresencasRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/inicio': {
+      id: '/portal/inicio'
+      path: '/inicio'
+      fullPath: '/portal/inicio'
+      preLoaderRoute: typeof PortalInicioRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/dados': {
+      id: '/portal/dados'
+      path: '/dados'
+      fullPath: '/portal/dados'
+      preLoaderRoute: typeof PortalDadosRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/atestado': {
+      id: '/portal/atestado'
+      path: '/atestado'
+      fullPath: '/portal/atestado'
+      preLoaderRoute: typeof PortalAtestadoRouteImport
+      parentRoute: typeof PortalRoute
     }
     '/_admin/usuarios': {
       id: '/_admin/usuarios'
@@ -347,12 +463,31 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
+interface PortalRouteChildren {
+  PortalAtestadoRoute: typeof PortalAtestadoRoute
+  PortalDadosRoute: typeof PortalDadosRoute
+  PortalInicioRoute: typeof PortalInicioRoute
+  PortalPresencasRoute: typeof PortalPresencasRoute
+}
+
+const PortalRouteChildren: PortalRouteChildren = {
+  PortalAtestadoRoute: PortalAtestadoRoute,
+  PortalDadosRoute: PortalDadosRoute,
+  PortalInicioRoute: PortalInicioRoute,
+  PortalPresencasRoute: PortalPresencasRoute,
+}
+
+const PortalRouteWithChildren =
+  PortalRoute._addFileChildren(PortalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  AcessoRoute: AcessoRoute,
   AcessoRapidoRoute: AcessoRapidoRoute,
   AvisosRoute: AvisosRoute,
   LoginRoute: LoginRoute,
+  PortalRoute: PortalRouteWithChildren,
   PreCadastroRoute: PreCadastroRoute,
 }
 export const routeTree = rootRouteImport

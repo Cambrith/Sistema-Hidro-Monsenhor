@@ -402,18 +402,18 @@ function Home() {
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/pre-cadastro">
-                <Button size="lg" className="bg-[#1D4ED8] text-white shadow-sm hover:bg-[#1E40AF]">
-                  Como se inscrever
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="/acesso-rapido">
-                <Button size="lg" variant="outline" className="border-[#1D4ED8] bg-white text-[#1D4ED8] hover:bg-[#EFF6FF]">
-                  Acesso rápido
-                </Button>
-              </Link>
-            </div>
+  <Link to="/pre-cadastro">
+    <Button size="lg" className="bg-[#1D4ED8] text-white shadow-sm hover:bg-[#1E40AF]">
+      Como se inscrever
+      <ArrowRight className="ml-2 h-4 w-4" />
+    </Button>
+  </Link>
+  <Link to="/acesso-rapido">
+    <Button size="lg" variant="outline" className="border-[#1D4ED8] bg-white text-[#1D4ED8] hover:bg-[#EFF6FF]">
+      Acesso rápido
+    </Button>
+  </Link>
+</div>
           </div>
 
           <div className="hidden items-center justify-center md:flex">
