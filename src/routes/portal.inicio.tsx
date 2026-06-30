@@ -5,7 +5,7 @@ import { getSessaoAluno } from "@/lib/auth-aluno";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, CalendarDays, CheckCircle2, FileText, MapPin, XCircle } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, FileText, Phone, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal/inicio")({
@@ -45,12 +45,26 @@ function mesAtual() {
 
 function atestadoStatus(validade?: string | null) {
   if (!validade) return "ausente";
-  const hoje = new Date();
-  const venc = new Date(validade);
-  const diff = (venc.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24);
+  const diff = (new Date(validade).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
   if (diff < 0) return "vencido";
   if (diff <= 30) return "vencendo";
   return "ok";
+}
+
+function InfoSecretaria() {
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-border bg-accent/20 px-4 py-3 text-xs text-muted-foreground">
+      <Phone className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      <span>
+        Dúvidas? Ligue para a secretaria:{" "}
+        <a href="tel:+552422452089" className="font-medium text-foreground hover:underline">
+          (24) 2245-2089
+        </a>
+        {" "}· Seg 08h–16h · Ter e Qua 13h–21h · Qui 08h–16h · Sex 07h–15h.
+        Se preferir, compareça presencialmente.
+      </span>
+    </div>
+  );
 }
 
 function PortalInicio() {
@@ -104,6 +118,8 @@ function PortalInicio() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 py-6 md:px-6">
+
+      {/* Saudação */}
       <div className="flex items-center justify-between rounded-xl border border-border bg-accent/20 px-4 py-3">
         <div>
           <p className="font-semibold">Olá, {primeiroNome}!</p>
@@ -111,29 +127,52 @@ function PortalInicio() {
             {aluno.modalidade}{aluno.turma ? ` · ${aluno.turma}` : ""}
           </p>
         </div>
-        <Badge className={aluno.ativo ? "border border-green-300 bg-green-50 text-green-700" : "border border-muted bg-muted text-muted-foreground"}>
+        <Badge className={aluno.ativo
+          ? "border border-green-300 bg-green-50 text-green-700"
+          : "border border-muted bg-muted text-muted-foreground"}>
           {aluno.ativo ? "Ativo" : "Inativo"}
         </Badge>
       </div>
 
-      {(statusAtestado !== "ok") && (
-        <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${statusAtestado === "vencendo" ? "border-yellow-300 bg-yellow-50 text-yellow-700" : "border-red-300 bg-red-50 text-red-700"}`}>
+      {/* Alerta atestado */}
+      {statusAtestado !== "ok" && (
+        <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${
+          statusAtestado === "vencendo"
+            ? "border-yellow-300 bg-yellow-50 text-yellow-700"
+            : "border-red-300 bg-red-50 text-red-700"
+        }`}>
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>
-            {statusAtestado === "ausente" && "Seu atestado médico não está cadastrado. Procure a secretaria."}
-            {statusAtestado === "vencido" && `Atestado venceu em ${formatarData(aluno.atestado_validade)}. Renove na secretaria.`}
-            {statusAtestado === "vencendo" && `Atestado vence em ${formatarData(aluno.atestado_validade)}. Providencie a renovação.`}
-          </span>
+          <div className="space-y-1">
+            <p>
+              {statusAtestado === "ausente" && "Seu atestado médico não está cadastrado."}
+              {statusAtestado === "vencido" && `Seu atestado venceu em ${formatarData(aluno.atestado_validade)}.`}
+              {statusAtestado === "vencendo" && `Seu atestado vence em ${formatarData(aluno.atestado_validade)}.`}
+            </p>
+            <p>
+              Envie pelo portal na aba{" "}
+              <Link to="/portal/documentos" className="font-medium underline underline-offset-2">
+                Documentos
+              </Link>
+              {" "}ou ligue para a secretaria:{" "}
+              <a href="tel:+552422452089" className="font-medium underline underline-offset-2">
+                (24) 2245-2089
+              </a>
+              .
+            </p>
+          </div>
         </div>
       )}
 
+      {/* Frequência */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <CalendarDays className="h-4 w-4 text-primary" />
             Frequência — {mesLabel}
           </CardTitle>
-          <CardDescription>Regra: 4 ou mais faltas sem justificativa anulam a vaga.</CardDescription>
+          <CardDescription>
+            Regra: 4 ou mais faltas sem justificativa anulam a vaga.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-3">
@@ -141,25 +180,57 @@ function PortalInicio() {
               <p className="text-2xl font-bold">{totalPresentes}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">Presenças</p>
             </div>
-            <div className={`rounded-lg border p-3 text-center ${totalFaltas >= 4 ? "border-red-300 bg-red-50" : totalFaltas >= 2 ? "border-yellow-200 bg-yellow-50" : "border-border bg-accent/20"}`}>
-              <p className={`text-2xl font-bold ${totalFaltas >= 4 ? "text-red-700" : totalFaltas >= 2 ? "text-yellow-700" : "text-foreground"}`}>{totalFaltas}</p>
-              <p className={`mt-0.5 text-xs ${totalFaltas >= 4 ? "text-red-600" : totalFaltas >= 2 ? "text-yellow-600" : "text-muted-foreground"}`}>Faltas</p>
+            <div className={`rounded-lg border p-3 text-center ${
+              totalFaltas >= 4 ? "border-red-300 bg-red-50"
+              : totalFaltas >= 2 ? "border-yellow-200 bg-yellow-50"
+              : "border-border bg-accent/20"
+            }`}>
+              <p className={`text-2xl font-bold ${
+                totalFaltas >= 4 ? "text-red-700"
+                : totalFaltas >= 2 ? "text-yellow-700"
+                : "text-foreground"
+              }`}>{totalFaltas}</p>
+              <p className={`mt-0.5 text-xs ${
+                totalFaltas >= 4 ? "text-red-600"
+                : totalFaltas >= 2 ? "text-yellow-600"
+                : "text-muted-foreground"
+              }`}>Faltas</p>
             </div>
             <div className="rounded-lg border border-border bg-accent/20 p-3 text-center">
               <p className="text-2xl font-bold">{faltasJustificadas}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">Justificadas</p>
             </div>
           </div>
-          {totalFaltas >= 4 && <p className="mt-3 text-xs font-medium text-red-600">⚠ Você atingiu o limite de faltas. Procure a secretaria o quanto antes.</p>}
-          {presencas.length === 0 && <p className="mt-4 text-center text-sm text-muted-foreground">Nenhuma aula registrada neste mês ainda.</p>}
+
+          {totalFaltas >= 4 && (
+            <p className="mt-3 text-xs font-medium text-red-600">
+              ⚠ Você atingiu o limite de faltas. Ligue para a secretaria:{" "}
+              <a href="tel:+552422452089" className="underline">(24) 2245-2089</a>.
+            </p>
+          )}
+
+          {presencas.length === 0 && (
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              Nenhuma aula registrada neste mês ainda.
+            </p>
+          )}
+
           {presencas.length > 0 && (
             <div className="mt-4 space-y-2">
               {presencas.slice(0, 5).map((p) => (
                 <div key={p.id} className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm">
                   <span className="text-muted-foreground">{formatarData(p.data)}</span>
-                  <span className={`flex items-center gap-1.5 font-medium ${p.status === "presente" ? "text-green-700" : p.status === "falta justificada" ? "text-yellow-700" : "text-red-700"}`}>
-                    {p.status === "presente" ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
-                    {p.status === "presente" ? "Presente" : p.status === "falta justificada" ? "Justificada" : "Falta"}
+                  <span className={`flex items-center gap-1.5 font-medium ${
+                    p.status === "presente" ? "text-green-700"
+                    : p.status === "falta justificada" ? "text-yellow-700"
+                    : "text-red-700"
+                  }`}>
+                    {p.status === "presente"
+                      ? <CheckCircle2 className="h-3.5 w-3.5" />
+                      : <XCircle className="h-3.5 w-3.5" />}
+                    {p.status === "presente" ? "Presente"
+                      : p.status === "falta justificada" ? "Justificada"
+                      : "Falta"}
                   </span>
                 </div>
               ))}
@@ -173,6 +244,7 @@ function PortalInicio() {
         </CardContent>
       </Card>
 
+      {/* Atestado resumido */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -183,20 +255,22 @@ function PortalInicio() {
         <CardContent className="text-sm">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Validade</span>
-            <span className={`font-medium ${statusAtestado === "ok" ? "text-green-700" : statusAtestado === "vencendo" ? "text-yellow-700" : "text-red-700"}`}>
+            <span className={`font-medium ${
+              statusAtestado === "ok" ? "text-green-700"
+              : statusAtestado === "vencendo" ? "text-yellow-700"
+              : "text-red-700"
+            }`}>
               {aluno.atestado_validade ? formatarData(aluno.atestado_validade) : "Não cadastrado"}
             </span>
           </div>
-          <Link to="/portal/atestado" className="mt-3 block text-xs font-medium text-primary hover:underline">
-            Ver detalhes e instruções de renovação →
+          <Link to="/portal/documentos" className="mt-3 block text-xs font-medium text-primary hover:underline">
+            Ver detalhes e enviar documentos →
           </Link>
         </CardContent>
       </Card>
 
-      <div className="flex items-center gap-2 rounded-xl border border-border bg-accent/20 px-4 py-3 text-xs text-muted-foreground">
-        <MapPin className="h-3.5 w-3.5 shrink-0" />
-        <span>Secretaria: Seg 08h–16h · Ter e Qua 13h–21h · Qui 08h–16h · Sex 07h–15h · Tel: (24) 2245-2089</span>
-      </div>
+      {/* Secretaria */}
+      <InfoSecretaria />
     </div>
   );
 }

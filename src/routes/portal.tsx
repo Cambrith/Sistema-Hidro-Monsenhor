@@ -52,7 +52,7 @@ const navPortal = [
   { to: "/portal/inicio", label: "Início", icon: Home },
   { to: "/portal/presencas", label: "Presenças", icon: CalendarDays },
   { to: "/portal/dados", label: "Meus dados", icon: ClipboardList },
-  { to: "/portal/atestado", label: "Atestado", icon: FileText },
+  { to: "/portal/documentos", label: "Documentos", icon: FileText },
 ];
 
 function PortalRoot() {
@@ -78,118 +78,132 @@ function PortalLayout() {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar desktop */}
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-white md:flex">
-        <div className="flex items-center gap-3 border-b border-border px-4 py-4">
-          <img src={logo} alt="Hidro Monsenhor" className="h-8 w-8 rounded-lg object-contain" />
-          <div className="min-w-0 leading-tight">
-            <p className="truncate text-sm font-semibold text-foreground">Portal do Aluno</p>
-            <p className="truncate text-xs text-muted-foreground">Hidro e Natação Monsenhor</p>
-          </div>
-        </div>
+      <aside
+  className="hidden w-60 shrink-0 flex-col md:flex"
+  style={{ background: "var(--gradient-hero)" }}
+>
+  <div className="flex flex-col items-center gap-2 border-b border-white/10 px-4 py-5">
+  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/95 shadow-sm">
+    <img src={logo} alt="Hidro Monsenhor" className="h-18 w-18 object-contain -translate-y-2" />
+  </span>
+  <div className="text-center leading-tight">
+    <p className="text-sm font-semibold text-white">Portal do Aluno</p>
+    <p className="text-xs text-white/60">Hidro e Natação Monsenhor</p>
+  </div>
+</div>
 
-        <div className="px-4 py-3">
-          <p className="text-xs text-muted-foreground">Olá,</p>
-          <p className="truncate text-sm font-semibold text-foreground">{primeiroNome}</p>
-        </div>
+  <div className="px-4 py-3">
+    <p className="text-xs text-white/60">Olá,</p>
+    <p className="truncate text-sm font-semibold text-white">{primeiroNome}</p>
+  </div>
 
-        <nav className="flex-1 px-2 py-1">
-          <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Menu
-          </p>
-          <ul className="space-y-0.5">
-            {navPortal.map((item) => {
-              const Icon = item.icon;
-              const ativo = pathname === item.to;
-              return (
-                <li key={item.to}>
-                  <Link
-                    to={item.to as never}
-                    className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                      ativo
-                        ? "bg-[#EFF6FF] text-[#1D4ED8]"
-                        : "text-foreground/70 hover:bg-accent hover:text-foreground"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+  <nav className="flex-1 px-2 py-1">
+    <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
+      Menu
+    </p>
+    <ul className="space-y-0.5">
+      {navPortal.map((item) => {
+        const Icon = item.icon;
+        const ativo = pathname === item.to;
+        return (
+          <li key={item.to}>
+            <Link
+              to={item.to as never}
+              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                ativo
+                  ? "bg-white/15 text-white"
+                  : "text-white/70 hover:bg-white/10 hover:text-white"
+              }`}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              {item.label}
+            </Link>
+          </li>
+        );
+      })}
+    </ul>
+  </nav>
 
-        <div className="border-t border-border p-2">
-          <button
-            type="button"
-            onClick={handleSair}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            Sair
-          </button>
-        </div>
-      </aside>
+  <div className="border-t border-white/10 p-2">
+    <button
+      type="button"
+      onClick={handleSair}
+      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+    >
+      <LogOut className="h-4 w-4 shrink-0" />
+      Sair
+    </button>
+  </div>
+</aside>
 
       {/* Mobile header */}
-      <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-white px-4 py-3 md:hidden">
-          <div className="flex items-center gap-3">
-            <img src={logo} alt="Hidro Monsenhor" className="h-7 w-7 rounded-md object-contain" />
-            <p className="text-sm font-semibold">Portal do Aluno</p>
-          </div>
-          <button
-            type="button"
-            aria-label="Abrir menu"
-            onClick={() => setMenuAberto((v) => !v)}
-            className="rounded-md p-1.5 text-foreground hover:bg-accent"
-          >
-            {menuAberto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </header>
+      {/* Mobile header */}
+<div className="flex flex-1 flex-col">
+  <header
+    className="sticky top-0 z-30 flex items-center justify-between border-b border-white/10 px-4 py-3 md:hidden"
+    style={{ background: "var(--gradient-hero)" }}
+  >
+    <div className="flex items-center gap-3">
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/95">
+        <img src={logo} alt="Hidro Monsenhor" className="h-6 w-6 object-contain" />
+      </span>
+      <p className="text-sm font-semibold text-white">Portal do Aluno</p>
+    </div>
+    <button
+      type="button"
+      aria-label="Abrir menu"
+      onClick={() => setMenuAberto((v) => !v)}
+      className="rounded-md p-1.5 text-white hover:bg-white/10"
+    >
+      {menuAberto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+    </button>
+  </header>
 
-        {menuAberto && (
-          <div className="z-20 border-b border-border bg-white px-4 py-3 md:hidden">
-            <p className="mb-2 text-xs text-muted-foreground">
-              Olá, <strong>{primeiroNome}</strong>
-            </p>
-            <ul className="space-y-0.5">
-              {navPortal.map((item) => {
-                const Icon = item.icon;
-                const ativo = pathname === item.to;
-                return (
-                  <li key={item.to}>
-                    <Link
-                      to={item.to as never}
-                      onClick={() => setMenuAberto(false)}
-                      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
-                        ativo ? "bg-[#EFF6FF] text-[#1D4ED8]" : "text-foreground/70 hover:bg-accent"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-            <div className="mt-2 border-t border-border pt-2">
-              <button
-                type="button"
-                onClick={handleSair}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent"
+  {menuAberto && (
+    <div
+      className="z-20 border-b border-white/10 px-4 py-3 md:hidden"
+      style={{ background: "var(--gradient-hero)" }}
+    >
+      <p className="mb-2 text-xs text-white/60">
+        Olá, <strong className="text-white">{primeiroNome}</strong>
+      </p>
+      <ul className="space-y-0.5">
+        {navPortal.map((item) => {
+          const Icon = item.icon;
+          const ativo = pathname === item.to;
+          return (
+            <li key={item.to}>
+              <Link
+                to={item.to as never}
+                onClick={() => setMenuAberto(false)}
+                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
+                  ativo ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
+                }`}
               >
-                <LogOut className="h-4 w-4" />
-                Sair
-              </button>
-            </div>
-          </div>
-        )}
-
-        <main className="flex-1 overflow-y-auto">
-          <Outlet />
-        </main>
+                <Icon className="h-4 w-4 shrink-0" />
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="mt-2 border-t border-white/10 pt-2">
+        <button
+          type="button"
+          onClick={handleSair}
+          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white"
+        >
+          <LogOut className="h-4 w-4" />
+          Sair
+        </button>
       </div>
+    </div>
+  )}
+
+  <main className="flex-1 overflow-y-auto">
+    <Outlet />
+  </main>
+</div>
     </div>
   );
 }

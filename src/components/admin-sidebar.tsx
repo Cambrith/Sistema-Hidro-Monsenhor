@@ -9,6 +9,7 @@ import {
   Shield,
   UserCog,
   LogOut,
+  FileText,
 } from "lucide-react";
 
 import {
@@ -65,6 +66,12 @@ const operacao: MenuItem[] = [
     label: "Avisos",
     icon: Megaphone,
     permissao: "avisos",
+  },
+  {
+    to: "/documentos",
+    label: "Documentos",
+    icon: FileText,
+    permissao: "alunos",
   },
   {
     to: "/relatorios",

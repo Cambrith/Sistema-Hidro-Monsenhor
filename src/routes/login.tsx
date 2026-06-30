@@ -126,8 +126,7 @@ function LoginPage() {
             </h2>
 
             <p className="max-w-md text-sm leading-relaxed text-white/85">
-              Área de trabalho para acompanhamento de pré-cadastros, alunos,
-              horários, presença e avisos do centro.
+              Área de trabalho para acompanhamento de alunos, turmas, presença e avisos do centro.
             </p>
           </div>
 

@@ -57,7 +57,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
 
             <Link to="/acesso">
   <Button size="sm" variant="outline" className="ml-2">
-    Acesso ao Painel
+    Acesse sua Conta
   </Button>
 </Link>
           </nav>
@@ -91,7 +91,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
   onClick={() => setOpen(false)}
   className="rounded-md px-3 py-2 text-sm font-semibold text-primary hover:bg-accent"
 >
-  Acesso ao Painel
+  Acesse sua Conta
 </Link>
             </div>
           </div>

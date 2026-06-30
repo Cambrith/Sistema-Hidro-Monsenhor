@@ -25,7 +25,7 @@ function formatarData(data?: string | null) {
 }
 
 function nomeMes(ano: number, mes: number) {
-  return new Date(ano, mes - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  return new Date(ano, mes - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }).toLowerCase();
 }
 
 function PortalPresencas() {

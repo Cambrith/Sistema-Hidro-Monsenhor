@@ -19,8 +19,8 @@ import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalPresencasRouteImport } from './routes/portal.presencas'
 import { Route as PortalInicioRouteImport } from './routes/portal.inicio'
+import { Route as PortalDocumentosRouteImport } from './routes/portal.documentos'
 import { Route as PortalDadosRouteImport } from './routes/portal.dados'
-import { Route as PortalAtestadoRouteImport } from './routes/portal.atestado'
 import { Route as AdminUsuariosRouteImport } from './routes/_admin.usuarios'
 import { Route as AdminTurmasRouteImport } from './routes/_admin.turmas'
 import { Route as AdminSegurancaRouteImport } from './routes/_admin.seguranca'
@@ -28,6 +28,7 @@ import { Route as AdminRelatoriosRouteImport } from './routes/_admin.relatorios'
 import { Route as AdminPresencaRouteImport } from './routes/_admin.presenca'
 import { Route as AdminPreCadastrosRouteImport } from './routes/_admin.pre-cadastros'
 import { Route as AdminPainelRouteImport } from './routes/_admin.painel'
+import { Route as AdminDocumentosRouteImport } from './routes/_admin.documentos'
 import { Route as AdminAvisosAdminRouteImport } from './routes/_admin.avisos-admin'
 import { Route as AdminAlunosRouteImport } from './routes/_admin.alunos'
 
@@ -80,14 +81,14 @@ const PortalInicioRoute = PortalInicioRouteImport.update({
   path: '/inicio',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalDocumentosRoute = PortalDocumentosRouteImport.update({
+  id: '/documentos',
+  path: '/documentos',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalDadosRoute = PortalDadosRouteImport.update({
   id: '/dados',
   path: '/dados',
-  getParentRoute: () => PortalRoute,
-} as any)
-const PortalAtestadoRoute = PortalAtestadoRouteImport.update({
-  id: '/atestado',
-  path: '/atestado',
   getParentRoute: () => PortalRoute,
 } as any)
 const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
@@ -125,6 +126,11 @@ const AdminPainelRoute = AdminPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDocumentosRoute = AdminDocumentosRouteImport.update({
+  id: '/documentos',
+  path: '/documentos',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAvisosAdminRoute = AdminAvisosAdminRouteImport.update({
   id: '/avisos-admin',
   path: '/avisos-admin',
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/pre-cadastro': typeof PreCadastroRoute
   '/alunos': typeof AdminAlunosRoute
   '/avisos-admin': typeof AdminAvisosAdminRoute
+  '/documentos': typeof AdminDocumentosRoute
   '/painel': typeof AdminPainelRoute
   '/pre-cadastros': typeof AdminPreCadastrosRoute
   '/presenca': typeof AdminPresencaRoute
@@ -153,8 +160,8 @@ export interface FileRoutesByFullPath {
   '/seguranca': typeof AdminSegurancaRoute
   '/turmas': typeof AdminTurmasRoute
   '/usuarios': typeof AdminUsuariosRoute
-  '/portal/atestado': typeof PortalAtestadoRoute
   '/portal/dados': typeof PortalDadosRoute
+  '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
   '/portal/presencas': typeof PortalPresencasRoute
 }
@@ -168,6 +175,7 @@ export interface FileRoutesByTo {
   '/pre-cadastro': typeof PreCadastroRoute
   '/alunos': typeof AdminAlunosRoute
   '/avisos-admin': typeof AdminAvisosAdminRoute
+  '/documentos': typeof AdminDocumentosRoute
   '/painel': typeof AdminPainelRoute
   '/pre-cadastros': typeof AdminPreCadastrosRoute
   '/presenca': typeof AdminPresencaRoute
@@ -175,8 +183,8 @@ export interface FileRoutesByTo {
   '/seguranca': typeof AdminSegurancaRoute
   '/turmas': typeof AdminTurmasRoute
   '/usuarios': typeof AdminUsuariosRoute
-  '/portal/atestado': typeof PortalAtestadoRoute
   '/portal/dados': typeof PortalDadosRoute
+  '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
   '/portal/presencas': typeof PortalPresencasRoute
 }
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/pre-cadastro': typeof PreCadastroRoute
   '/_admin/alunos': typeof AdminAlunosRoute
   '/_admin/avisos-admin': typeof AdminAvisosAdminRoute
+  '/_admin/documentos': typeof AdminDocumentosRoute
   '/_admin/painel': typeof AdminPainelRoute
   '/_admin/pre-cadastros': typeof AdminPreCadastrosRoute
   '/_admin/presenca': typeof AdminPresencaRoute
@@ -199,8 +208,8 @@ export interface FileRoutesById {
   '/_admin/seguranca': typeof AdminSegurancaRoute
   '/_admin/turmas': typeof AdminTurmasRoute
   '/_admin/usuarios': typeof AdminUsuariosRoute
-  '/portal/atestado': typeof PortalAtestadoRoute
   '/portal/dados': typeof PortalDadosRoute
+  '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
   '/portal/presencas': typeof PortalPresencasRoute
 }
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/pre-cadastro'
     | '/alunos'
     | '/avisos-admin'
+    | '/documentos'
     | '/painel'
     | '/pre-cadastros'
     | '/presenca'
@@ -223,8 +233,8 @@ export interface FileRouteTypes {
     | '/seguranca'
     | '/turmas'
     | '/usuarios'
-    | '/portal/atestado'
     | '/portal/dados'
+    | '/portal/documentos'
     | '/portal/inicio'
     | '/portal/presencas'
   fileRoutesByTo: FileRoutesByTo
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/pre-cadastro'
     | '/alunos'
     | '/avisos-admin'
+    | '/documentos'
     | '/painel'
     | '/pre-cadastros'
     | '/presenca'
@@ -245,8 +256,8 @@ export interface FileRouteTypes {
     | '/seguranca'
     | '/turmas'
     | '/usuarios'
-    | '/portal/atestado'
     | '/portal/dados'
+    | '/portal/documentos'
     | '/portal/inicio'
     | '/portal/presencas'
   id:
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/pre-cadastro'
     | '/_admin/alunos'
     | '/_admin/avisos-admin'
+    | '/_admin/documentos'
     | '/_admin/painel'
     | '/_admin/pre-cadastros'
     | '/_admin/presenca'
@@ -268,8 +280,8 @@ export interface FileRouteTypes {
     | '/_admin/seguranca'
     | '/_admin/turmas'
     | '/_admin/usuarios'
-    | '/portal/atestado'
     | '/portal/dados'
+    | '/portal/documentos'
     | '/portal/inicio'
     | '/portal/presencas'
   fileRoutesById: FileRoutesById
@@ -357,18 +369,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalInicioRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/documentos': {
+      id: '/portal/documentos'
+      path: '/documentos'
+      fullPath: '/portal/documentos'
+      preLoaderRoute: typeof PortalDocumentosRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/dados': {
       id: '/portal/dados'
       path: '/dados'
       fullPath: '/portal/dados'
       preLoaderRoute: typeof PortalDadosRouteImport
-      parentRoute: typeof PortalRoute
-    }
-    '/portal/atestado': {
-      id: '/portal/atestado'
-      path: '/atestado'
-      fullPath: '/portal/atestado'
-      preLoaderRoute: typeof PortalAtestadoRouteImport
       parentRoute: typeof PortalRoute
     }
     '/_admin/usuarios': {
@@ -420,6 +432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPainelRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_admin/documentos': {
+      id: '/_admin/documentos'
+      path: '/documentos'
+      fullPath: '/documentos'
+      preLoaderRoute: typeof AdminDocumentosRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_admin/avisos-admin': {
       id: '/_admin/avisos-admin'
       path: '/avisos-admin'
@@ -440,6 +459,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAlunosRoute: typeof AdminAlunosRoute
   AdminAvisosAdminRoute: typeof AdminAvisosAdminRoute
+  AdminDocumentosRoute: typeof AdminDocumentosRoute
   AdminPainelRoute: typeof AdminPainelRoute
   AdminPreCadastrosRoute: typeof AdminPreCadastrosRoute
   AdminPresencaRoute: typeof AdminPresencaRoute
@@ -452,6 +472,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAlunosRoute: AdminAlunosRoute,
   AdminAvisosAdminRoute: AdminAvisosAdminRoute,
+  AdminDocumentosRoute: AdminDocumentosRoute,
   AdminPainelRoute: AdminPainelRoute,
   AdminPreCadastrosRoute: AdminPreCadastrosRoute,
   AdminPresencaRoute: AdminPresencaRoute,
@@ -464,15 +485,15 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface PortalRouteChildren {
-  PortalAtestadoRoute: typeof PortalAtestadoRoute
   PortalDadosRoute: typeof PortalDadosRoute
+  PortalDocumentosRoute: typeof PortalDocumentosRoute
   PortalInicioRoute: typeof PortalInicioRoute
   PortalPresencasRoute: typeof PortalPresencasRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
-  PortalAtestadoRoute: PortalAtestadoRoute,
   PortalDadosRoute: PortalDadosRoute,
+  PortalDocumentosRoute: PortalDocumentosRoute,
   PortalInicioRoute: PortalInicioRoute,
   PortalPresencasRoute: PortalPresencasRoute,
 }

@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { getSessaoAluno } from "@/lib/auth-aluno";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ClipboardList, Phone, User } from "lucide-react";
+import { ClipboardList, MapPin, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal/dados")({
@@ -19,9 +19,17 @@ type DadosAluno = {
   modalidade: string;
   turma: string | null;
   responsavel: string | null;
+  nome_pai: string | null;
+  nome_mae: string | null;
   telefone: string | null;
+  telefone_fixo: string | null;
   whatsapp: string;
   email: string | null;
+  cpf: string | null;
+  endereco: string | null;
+  complemento: string | null;
+  bairro: string | null;
+  cep: string | null;
   criado_em: string;
   ativo: boolean;
 };
@@ -39,6 +47,20 @@ function formatarTelefone(numero?: string | null) {
   if (n.length === 11) return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}`;
   if (n.length === 10) return `(${n.slice(0, 2)}) ${n.slice(2, 6)}-${n.slice(6)}`;
   return numero;
+}
+
+function formatarCPF(cpf?: string | null) {
+  if (!cpf) return "—";
+  const n = cpf.replace(/\D/g, "");
+  if (n.length === 11) return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6, 9)}-${n.slice(9)}`;
+  return cpf;
+}
+
+function formatarCEP(cep?: string | null) {
+  if (!cep) return "—";
+  const n = cep.replace(/\D/g, "");
+  if (n.length === 8) return `${n.slice(0, 5)}-${n.slice(5)}`;
+  return cep;
 }
 
 function InfoLinha({ label, value }: { label: string; value: React.ReactNode }) {
@@ -62,7 +84,7 @@ function PortalDados() {
     setCarregando(true);
     const { data, error } = await supabase
       .from("alunos")
-      .select("nome_completo, nascimento, idade, modalidade, turma, responsavel, telefone, whatsapp, email, criado_em, ativo")
+      .select("nome_completo, nascimento, idade, modalidade, turma, responsavel, nome_pai, nome_mae, telefone, telefone_fixo, whatsapp, email, cpf, endereco, complemento, bairro, cep, criado_em, ativo")
       .eq("id", sessao.id)
       .maybeSingle();
     if (error || !data) { toast.error("Erro ao carregar seus dados."); setCarregando(false); return; }
@@ -85,6 +107,9 @@ function PortalDados() {
     </div>
   );
 
+  const enderecoCompleto = [aluno.endereco, aluno.complemento, aluno.bairro]
+    .filter(Boolean).join(", ") || null;
+
   return (
     <div className="mx-auto max-w-3xl space-y-5 px-4 py-6 md:px-6">
       <div>
@@ -104,8 +129,11 @@ function PortalDados() {
         <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
           <InfoLinha label="Nome completo" value={aluno.nome_completo} />
           <InfoLinha label="Data de nascimento" value={formatarData(aluno.nascimento)} />
-          {aluno.idade && <InfoLinha label="Idade" value={`${aluno.idade} anos`} />}
+          {aluno.idade ? <InfoLinha label="Idade" value={`${aluno.idade} anos`} /> : null}
+          <InfoLinha label="CPF" value={formatarCPF(aluno.cpf)} />
           {aluno.responsavel && <InfoLinha label="Responsável" value={aluno.responsavel} />}
+          {aluno.nome_pai && <InfoLinha label="Nome do pai" value={aluno.nome_pai} />}
+          {aluno.nome_mae && <InfoLinha label="Nome da mãe" value={aluno.nome_mae} />}
           <InfoLinha label="Matriculado em" value={formatarData(aluno.criado_em)} />
         </CardContent>
       </Card>
@@ -137,10 +165,28 @@ function PortalDados() {
         </CardHeader>
         <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
           <InfoLinha label="WhatsApp" value={formatarTelefone(aluno.whatsapp)} />
-          {aluno.telefone && <InfoLinha label="Telefone" value={formatarTelefone(aluno.telefone)} />}
+          {aluno.telefone && <InfoLinha label="Telefone celular" value={formatarTelefone(aluno.telefone)} />}
+          {aluno.telefone_fixo && <InfoLinha label="Telefone fixo" value={formatarTelefone(aluno.telefone_fixo)} />}
           {aluno.email && <InfoLinha label="E-mail" value={aluno.email} />}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MapPin className="h-4 w-4 text-primary" />
+            Endereço
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
+          <InfoLinha label="Logradouro" value={enderecoCompleto || "Não informado"} />
+          <InfoLinha label="CEP" value={formatarCEP(aluno.cep)} />
+        </CardContent>
+      </Card>
+
+      <p className="text-xs text-muted-foreground">
+        Dados incorretos? Compareça à secretaria para solicitar a correção.
+      </p>
     </div>
   );
 }

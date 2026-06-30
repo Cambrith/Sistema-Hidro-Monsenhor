@@ -49,13 +49,12 @@ function Acesso() {
                 <h2 className="mt-5 text-xl font-semibold" style={{ color: "#0B1F3A" }}>
                   Sou aluno
                 </h2>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                  Consulte suas presenças, situação da matrícula e dados
-                  cadastrais. O acesso é feito por CPF, data de nascimento e
-                  telefone — sem senha.
-                </p>
+               <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+  Consulte suas presenças, faltas e dados de matrícula usando
+  CPF, data de nascimento e telefone cadastrados na secretaria.
+</p>
                 <span className="mt-6 inline-flex items-center text-sm font-semibold text-[#1D4ED8]">
-                  Entrar como aluno
+  Acessar minha conta
                   <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </div>
@@ -72,11 +71,11 @@ function Acesso() {
                   Sou da equipe
                 </h2>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                  Acesso para recepção, professores e administração. Requer
-                  usuário e senha cadastrados no sistema interno.
-                </p>
+  Área restrita para recepção, professores e administração.
+  Acesso com usuário e senha cadastrados pela administração.
+</p>
                 <span className="mt-6 inline-flex items-center text-sm font-semibold text-slate-600">
-                  Ir para o painel
+  Acessar o painel
                   <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </div>
@@ -84,10 +83,10 @@ function Acesso() {
           </div>
 
           <p className="mt-10 text-center text-xs text-muted-foreground">
-            Dificuldades para acessar?{" "}
-            <span className="font-medium text-foreground/70">
-              Procure a secretaria do centro.
-            </span>
+           Dificuldades para acessar? Ligue para a secretaria:{" "}
+<a href="tel:+552422452089" className="font-medium text-foreground/70 hover:underline">
+  (24) 2245-2089
+</a>
           </p>
         </div>
       </div>
