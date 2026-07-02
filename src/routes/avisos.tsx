@@ -20,7 +20,7 @@ export const Route = createFileRoute("/avisos")({
       {
         name: "description",
         content:
-          "Comunicados oficiais do Centro Esportivo Prof.ª Marta Regina.",
+          "Comunicados oficiais do Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira.",
       },
     ],
   }),

@@ -22,7 +22,7 @@ export const Route = createFileRoute("/login")({
       {
         name: "description",
         content:
-          "Acesso ao painel administrativo do Centro Esportivo Prof.ª Marta Regina.",
+          "Acesso ao painel administrativo do Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira.",
       },
     ],
   }),
@@ -110,8 +110,7 @@ function LoginPage() {
               </p>
 
               <p className="mt-1 max-w-[430px] text-sm leading-snug text-white/80">
-                Centro Esportivo e Cultural Prof.ª Marta Regina de Carvalho
-                Ferreira
+                Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira
               </p>
             </div>
           </div>

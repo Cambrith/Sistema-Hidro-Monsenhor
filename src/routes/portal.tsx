@@ -263,7 +263,7 @@ function LoginAluno() {
             <div className="min-w-0 leading-tight">
               <p className="font-display text-2xl font-semibold">Hidro e Natação Monsenhor</p>
               <p className="mt-1 max-w-[430px] text-sm leading-snug text-white/80">
-                Centro Esportivo e Cultural Prof.ª Marta Regina de Carvalho Ferreira
+                Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira
               </p>
             </div>
           </div>
@@ -335,7 +335,7 @@ function LoginAluno() {
               </Button>
             </form>
             <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
-              Dificuldades para acessar? Procure a secretaria do centro.
+              Dificuldades para acessar? Ligue ou procure a secretaria do centro.
             </p>
             <div className="mt-6 text-center text-sm">
               <Link to="/acesso" className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground">

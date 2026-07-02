@@ -24,7 +24,6 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               alt="Hidro e Natação Monsenhor"
               className="h-12 w-auto max-w-[88px] shrink-0 object-contain sm:h-22 sm:max-w-[108px]"
             />
-
             <span className="flex flex-col leading-tight">
               <span
                 className="font-display text-base font-bold sm:text-lg"
@@ -32,34 +31,32 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               >
                 Hidro e Natação Monsenhor
               </span>
-
               <span className="hidden text-[11px] text-muted-foreground sm:block">
-                Centro Esportivo e Cultural Profª Marta Regina de Carvalho Ferreira
+                Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira
               </span>
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-1 md:flex">
+          <nav className="hidden items-center md:flex">
             {nav.map((n) => (
               <Link
                 key={n.to}
                 to={n.to}
-                className="rounded-md px-2 py-2 text-sm font-medium text-foreground/80 hover:bg-accent hover:text-foreground"
+                className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-accent hover:text-foreground"
                 activeProps={{
-  className:
-    "rounded-md px-2 py-2 text-sm font-semibold text-primary bg-accent",
-}}
+                  className:
+                    "rounded-md px-3 py-2 text-sm font-semibold text-primary bg-accent",
+                }}
                 activeOptions={{ exact: n.to === "/" }}
               >
                 {n.label}
               </Link>
             ))}
-
-            <Link to="/acesso">
-  <Button size="sm" variant="outline" className="ml-2">
-    Acesse sua Conta
-  </Button>
-</Link>
+            <Link to="/acesso" className="ml-3">
+              <Button size="sm" variant="outline">
+                Acesse sua Conta
+              </Button>
+            </Link>
           </nav>
 
           <button
@@ -85,14 +82,13 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                   {n.label}
                 </Link>
               ))}
-
               <Link
-  to="/acesso"
-  onClick={() => setOpen(false)}
-  className="rounded-md px-3 py-2 text-sm font-semibold text-primary hover:bg-accent"
->
-  Acesse sua Conta
-</Link>
+                to="/acesso"
+                onClick={() => setOpen(false)}
+                className="rounded-md px-3 py-2 text-sm font-semibold text-primary hover:bg-accent"
+              >
+                Minha conta
+              </Link>
             </div>
           </div>
         )}
@@ -110,28 +106,24 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                 className="h-17 w-auto max-w-[96px] shrink-0 object-contain"
                 aria-hidden
               />
-
               <p className="font-display font-semibold text-foreground">
                 Hidro e Natação Monsenhor
               </p>
             </div>
-
             <p className="mt-3 max-w-[340px] text-xs">
-              Centro Esportivo e Cultural Profª Marta Regina de Carvalho Ferreira
+              Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira
             </p>
           </div>
 
           <div className="leading-relaxed md:mx-auto md:w-fit">
             <p className="font-semibold text-foreground">Localização</p>
-
-            <p className="mt-3">R. Dr. Barros Franco, S/N</p>
-            <p>Pedro do Rio — Petrópolis, RJ</p>
+            <p className="mt-3">Rua Doutor Barros Franco, S/N</p>
+            <p>Pedro do Rio – Petrópolis, RJ</p>
             <p>CEP 25750-290</p>
           </div>
 
           <div className="leading-relaxed md:ml-auto md:w-fit">
             <p className="font-semibold text-foreground">Atendimento</p>
-
             <div className="mt-3 space-y-1">
               <p>Segundas e quintas: 8h às 16h</p>
               <p>Terças e quartas: 13h às 21h</p>
@@ -141,8 +133,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
         </div>
 
         <div className="border-t border-border px-4 py-3 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Hidro e Natação Monsenhor — Centro
-          Esportivo e Cultural Profª Marta Regina de Carvalho Ferreira.
+          © {new Date().getFullYear()} Hidro e Natação Monsenhor — Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira
         </div>
       </footer>
     </div>

@@ -91,14 +91,14 @@ export const Route = createRootRouteWithContext<{
       {
         name: "description",
         content:
-          "Sistema institucional do Centro Esportivo e Cultural Profª Marta Regina — natação e hidroginástica em Petrópolis/RJ.",
+          "Sistema institucional do Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira — natação e hidroginástica em Petrópolis/RJ.",
       },
       { name: "author", content: "A.T.L.A.S." },
       { property: "og:title", content: "Hidro Monsenhor" },
       {
         property: "og:description",
         content:
-          "Sistema institucional do Centro Esportivo e Cultural Profª Marta Regina — natação e hidroginástica em Petrópolis/RJ.",
+          "Sistema institucional do Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira — natação e hidroginástica em Petrópolis/RJ.",
       },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "pt_BR" },
@@ -106,7 +106,7 @@ export const Route = createRootRouteWithContext<{
       {
         name: "twitter:description",
         content:
-          "Sistema institucional do Centro Esportivo e Cultural Profª Marta Regina — natação e hidroginástica em Petrópolis/RJ.",
+          "Sistema institucional do Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira — natação e hidroginástica em Petrópolis/RJ.",
       },
       { name: "twitter:card", content: "summary" },
     ],

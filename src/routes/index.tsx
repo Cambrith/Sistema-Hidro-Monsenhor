@@ -44,7 +44,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Página de apoio à organização do Centro Esportivo e Cultural Prof.ª Marta Regina de Carvalho Ferreira.",
+          "Página de apoio à organização do Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira.",
       },
     ],
   }),
@@ -397,8 +397,8 @@ function Home() {
             </h1>
 
             <p className="mt-4 max-w-xl text-base sm:text-lg" style={{ color: "#334155" }}>
-              Página de apoio à organização do Centro Esportivo e Cultural Profª
-              Marta Regina de Carvalho Ferreira, em Pedro do Rio — Petrópolis, RJ.
+              Página de apoio à organização do Centro Esportivo e Cultural Professora
+              Marta Regina de Carvalho Ferreira.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -528,36 +528,23 @@ function Home() {
             </CardHeader>
            <CardContent className="flex-1 space-y-4 text-sm leading-relaxed text-foreground/80">
   <p>
-    O Centro Esportivo e Cultural Profª Marta Regina de Carvalho
-    Ferreira é um espaço público voltado à prática de atividades
-    aquáticas, à promoção da saúde e à convivência comunitária em
-    Pedro do Rio.
+    O Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira é um espaço público dedicado à prática de atividades aquáticas, à promoção da saúde e ao fortalecimento da convivência comunitária em Pedro do Rio.
   </p>
   <p>
-    Vinculado à Escola Municipal Monsenhor João de Deus Rodrigues, o
-    centro atende moradores da região com turmas de natação
-    infantil, natação adulta e hidroginástica, organizadas por
-    modalidade, horário e faixa etária.
+    Vinculado à Escola Municipal Monsenhor João de Deus Rodrigues, o centro oferece turmas de natação infantil, natação adulta e hidroginástica, organizadas por modalidade, faixa etária e horários, atendendo moradores de Pedro do Rio e de regiões próximas.
+
   </p>
   <p>
-    Com histórico de atendimento que remonta ao início dos anos
-    2000, o centro acumula milhares de alunos atendidos ao longo
-    dos anos, consolidando-se como referência de acesso ao esporte
-    aquático na região de Pedro do Rio e distritos vizinhos.
+    Com atuação desde o início dos anos 2000, o centro já atendeu milhares de alunos e consolidou-se como uma importante referência no acesso gratuito ao esporte aquático para a população local e dos distritos vizinhos.
   </p>
   <p>
-    A piscina é tratada por meio de geração eletrolítica de cloro a
-    partir de sal, um sistema mais moderno que reduz a necessidade
-    de produtos químicos tradicionais. O centro é hoje a única
-    opção gratuita de atividades aquáticas entre os distritos de
-    Pedro do Rio, Posse e Itaipava, tornando-se referência de
-    acesso ao esporte para a comunidade local.
+    Além de contar com infraestrutura adequada para a prática das atividades, o espaço é atualmente a única opção gratuita de atividades aquáticas entre os distritos de Pedro do Rio, Posse e Itaipava, ampliando o acesso ao esporte e incentivando a qualidade de vida da comunidade.
+
   </p>
   <p>
-    As atividades são oferecidas gratuitamente à comunidade. As
-    inscrições são realizadas exclusivamente de forma presencial,
-    diretamente no local, nos canais de atendimento informados ao
-    final desta página.
+    Todas as atividades são oferecidas gratuitamente. As inscrições são
+realizadas exclusivamente de forma presencial, diretamente no local,
+nos horários de atendimento da secretaria.
   </p>
 </CardContent>
           </Card>

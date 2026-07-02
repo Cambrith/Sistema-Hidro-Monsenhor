@@ -21,7 +21,7 @@ export const Route = createFileRoute("/pre-cadastro")({
       {
         name: "description",
         content:
-          "Saiba como funciona a inscrição no Centro Esportivo e Cultural Profª Marta Regina de Carvalho Ferreira.",
+          "Saiba como funciona a inscrição no Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira",
       },
     ],
   }),
@@ -32,7 +32,7 @@ const documentos = [
   {
     icon: Stethoscope,
     titulo: "Atestado médico",
-   descricao: "Deve estar atualizado e com data vigente, além de comprovar aptidão física para a modalidade desejada.",
+    descricao: "Deve estar atualizado e com data vigente, além de comprovar aptidão física para a modalidade desejada.",
     obrigatorio: true,
   },
   {
@@ -42,11 +42,11 @@ const documentos = [
     obrigatorio: true,
   },
   {
-    icon: Home,
-    titulo: "Comprovante de residência",
-    descricao: "Auxilia a confirmar os dados de endereço no cadastro.",
-    obrigatorio: false,
-  },
+  icon: Home,
+  titulo: "Comprovante de residência",
+  descricao: "Auxilia a confirmar os dados de endereço no cadastro. Pode ser uma conta de água, de luz ou de telefone em nome do morador.",
+  obrigatorio: false,
+},
 ];
 
 const atendimento = [
@@ -58,27 +58,21 @@ const atendimento = [
 const passos = [
   {
     numero: "1",
-    titulo: "Compareça à secretaria",
+    titulo: "Ligue antes para confirmar vagas",
     descricao:
-      "As inscrições são abertas no primeiro dia útil de cada mês e realizadas exclusivamente de forma presencial, durante o horário de atendimento.",
+      "Antes de se deslocar, entre em contato com a secretaria para verificar se há vaga disponível para a modalidade e horário que você deseja.",
   },
   {
     numero: "2",
-    titulo: "Confirme se há vaga para a modalidade desejada",
+    titulo: "Compareça à secretaria com os documentos",
     descricao:
-      "As turmas têm número limitado de alunos. A disponibilidade varia de mês para mês.",
+      "Vá pessoalmente durante o horário de atendimento levando o atestado médico e o documento de identificação. O cadastro é feito na hora.",
   },
   {
     numero: "3",
-    titulo: "Apresente os documentos necessários",
-    descricao:
-      "Apresente o atestado médico e o documento de identificação, ambos obrigatórios para iniciar o cadastro.",
-  },
-  {
-    numero: "4",
     titulo: "Confirme seus dados pessoais",
     descricao:
-      "Seus dados de endereço e contato serão registrados. Mantenha especialmente seu celular e WhatsApp atualizados para receber avisos sobre faltas, horários e comunicados da turma.",
+      "Seus dados de endereço e contato serão registrados. Mantenha seu celular e WhatsApp atualizados para receber avisos sobre horários e comunicados da turma.",
   },
 ];
 
@@ -86,27 +80,50 @@ function ComoSeInscreverPage() {
   return (
     <PublicLayout>
       <section className="mx-auto w-full max-w-3xl px-4 py-10">
+
+        {/* Cabeçalho */}
         <div className="mb-8 space-y-3">
           <h1 className="font-display text-3xl font-semibold">Como se inscrever</h1>
-
           <p className="text-sm leading-relaxed text-muted-foreground">
-            As inscrições para natação e hidroginástica são feitas presencialmente, na
-            secretaria. Esta página explica como funciona o processo, o que levar e quando
-            procurar a equipe.
-          </p>
+  As inscrições para natação e hidroginástica são feitas presencialmente, na
+  secretaria. As turmas têm número limitado de alunos e a procura costuma ser
+  alta.{" "}
+  <strong className="text-foreground">
+    Recomendamos ligar antes de ir para confirmar se há vagas disponíveis.
+  </strong>
+</p>
         </div>
 
-        <Card className="mb-6 border-warning/40 bg-warning/10">
-          <CardContent className="flex items-start gap-3 pt-6 text-sm">
-            <ClipboardCheck className="mt-0.5 h-4 w-4 shrink-0 text-warning-foreground" />
-            <p className="leading-relaxed text-foreground/85">
-              <strong>As vagas são limitadas e a procura é alta.</strong> Novas vagas surgem
-              aos poucos. Para verificar a disponibilidade, entre em contato com a secretaria
-              pelos canais de atendimento informados ao final desta página.
-            </p>
-          </CardContent>
-        </Card>
+        {/* Documentos necessários */}
+        <div className="mb-10">
+          <h2 className="font-display text-xl font-semibold">Documentos necessários</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Leve os itens abaixo no dia da inscrição.
+          </p>
 
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+  {documentos.map((d) => (
+    <Card key={d.titulo} className="h-full">
+      <CardContent className="flex h-full flex-col p-5">
+        <div className="mb-3 flex items-start justify-between gap-2">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+            <d.icon className="h-5 w-5" />
+          </span>
+          {!d.obrigatorio && (
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+              Opcional
+            </span>
+          )}
+        </div>
+        <p className="mb-2 text-sm font-semibold text-foreground">{d.titulo}</p>
+        <p className="flex-1 text-sm leading-relaxed text-muted-foreground">{d.descricao}</p>
+      </CardContent>
+    </Card>
+  ))}
+</div>
+        </div>
+
+        {/* Passo a passo */}
         <div className="mb-10 space-y-4">
           <h2 className="font-display text-xl font-semibold">Passo a passo</h2>
 
@@ -127,37 +144,7 @@ function ComoSeInscreverPage() {
           ))}
         </div>
 
-        <div className="mb-10">
-          <h2 className="font-display text-xl font-semibold">Documentos necessários</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Leve os itens abaixo no dia da inscrição.
-          </p>
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            {documentos.map((d) => (
-              <Card
-                key={d.titulo}
-                className="h-full"
-              >
-                <CardHeader className="space-y-3 h-full flex flex-col">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                      <d.icon className="h-5 w-5" />
-                    </span>
-                    {!d.obrigatorio && (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                        Opcional
-                      </span>
-                    )}
-                  </div>
-                  <CardTitle className="text-base">{d.titulo}</CardTitle>
-                  <CardDescription>{d.descricao}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        </div>
-
+        {/* Horário e localização */}
         <div className="mb-10 grid gap-4 sm:grid-cols-2">
           <Card>
             <CardHeader className="space-y-3">
@@ -166,7 +153,6 @@ function ComoSeInscreverPage() {
               </span>
               <CardTitle className="text-base">Horário de atendimento</CardTitle>
             </CardHeader>
-
             <CardContent className="space-y-2 text-sm">
               {atendimento.map((a) => (
                 <div key={a.dias} className="flex items-baseline justify-between gap-3">
@@ -184,15 +170,15 @@ function ComoSeInscreverPage() {
               </span>
               <CardTitle className="text-base">Localização</CardTitle>
             </CardHeader>
-
             <CardContent className="space-y-1 text-sm text-foreground/85">
-              <p>R. Dr. Barros Franco, S/N</p>
+              <p>Rua Doutor Barros Franco, S/N</p>
               <p>Pedro do Rio, Petrópolis, RJ</p>
               <p>CEP 25750-290</p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Ainda tem dúvidas */}
         <Card className="mb-10 bg-secondary/50">
           <CardContent className="pt-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
