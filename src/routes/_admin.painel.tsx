@@ -666,11 +666,11 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
       <div className="flex flex-col gap-3 rounded-md border border-dashed border-border bg-accent/30 px-3 py-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-medium text-foreground">
-            Painel interno — Hidro e Natação Monsenhor
+            Painel interno – Hidro e Natação Monsenhor
           </p>
 
           <p>
-            Área:{" "}
+            Usuário:{" "}
             <span className="font-medium text-foreground">
               {areaPorPerfil(sessao?.perfil)}
             </span>

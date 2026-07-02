@@ -325,23 +325,36 @@ function PortalDocumentos() {
   <CardHeader className="pb-3">
     <CardTitle className="text-base">Sobre a renovação</CardTitle>
   </CardHeader>
-  <CardContent className="space-y-2 text-sm text-foreground/80">
-    <p>
-      Os documentos devem ser renovados anualmente, preferencialmente no{" "}
-      <strong>1º dia letivo do ano</strong>. Após o envio, a equipe irá
-      analisar e atualizar sua situação no sistema.
-    </p>
-    <p>
-      Com dúvidas ou problemas, você pode ligar para a secretaria ou comparecer presencialmente.
-    </p>
-    <div className="mt-2 rounded-lg border border-border bg-accent/20 px-3 py-2.5 text-xs text-muted-foreground">
-      <strong className="text-foreground">Secretaria:</strong>{" "}
-      <a href="tel:+552422452089" className="font-medium text-foreground hover:underline">
-        (24) 2245-2089
-      </a>
-      {" "}· Seg 08h–16h · Ter e Qua 13h–21h · Qui 08h–16h · Sex 07h–15h
+  <CardContent className="space-y-3 text-sm text-foreground/80">
+  <p>
+    Os documentos devem ser renovados anualmente, preferencialmente no{" "}
+    <strong>1º dia letivo do ano</strong>. Após o envio, a equipe irá
+    analisar e atualizar sua situação no sistema.
+  </p>
+  <p>
+    Com dúvidas ou problemas, você pode ligar para a secretaria ou comparecer presencialmente.
+  </p>
+  <div className="rounded-lg border border-border bg-accent/20 p-3">
+    
+      <a href="tel:+552422452089"
+      className="text-base font-semibold text-primary hover:underline"
+    >
+      (24) 2245-2089
+    </a>
+    <div className="mt-2 grid grid-cols-3 gap-1.5">
+      {[
+        { dias: "Seg e Qui", horario: "08h–16h" },
+        { dias: "Ter e Qua", horario: "13h–21h" },
+        { dias: "Sexta", horario: "07h–15h" },
+      ].map((h) => (
+        <div key={h.dias} className="rounded-md border border-border bg-background px-2 py-1.5 text-center">
+          <p className="text-[11px] font-medium text-foreground">{h.dias}</p>
+          <p className="text-[11px] text-muted-foreground">{h.horario}</p>
+        </div>
+      ))}
     </div>
-  </CardContent>
+  </div>
+</CardContent>
 </Card>
     </div>
   );

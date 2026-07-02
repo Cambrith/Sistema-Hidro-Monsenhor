@@ -1,11 +1,13 @@
 import { supabase } from "@/lib/supabase";
 
 const KEY = "hidro-monsenhor-aluno-session";
+const TRINTA_DIAS_MS = 30 * 24 * 60 * 60 * 1000;
 
 export type SessaoAluno = {
   id: string;
   nome: string;
   cpf: string;
+  expiresAt: number;
 };
 
 function normalizarNumero(valor: string): string {
@@ -22,6 +24,11 @@ export function getSessaoAluno(): SessaoAluno | null {
     const sessao = JSON.parse(raw) as SessaoAluno;
 
     if (!sessao?.id || !sessao?.nome || !sessao?.cpf) {
+      localStorage.removeItem(KEY);
+      return null;
+    }
+
+    if (sessao.expiresAt && Date.now() > sessao.expiresAt) {
       localStorage.removeItem(KEY);
       return null;
     }
@@ -64,13 +71,13 @@ export async function loginAluno(
   ].filter(Boolean);
 
   const telefoneValido = telefonesAluno.some((t) => t === telefoneNorm);
-
   if (!telefoneValido) return null;
 
   const sessao: SessaoAluno = {
     id: aluno.id,
     nome: aluno.nome_completo,
     cpf: cpfNorm,
+    expiresAt: Date.now() + TRINTA_DIAS_MS,
   };
 
   localStorage.setItem(KEY, JSON.stringify(sessao));

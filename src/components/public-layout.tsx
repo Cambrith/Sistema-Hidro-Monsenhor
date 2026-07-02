@@ -37,7 +37,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             </span>
           </Link>
 
-          <nav className="hidden items-center md:flex">
+          <nav className="hidden items-center gap-1 md:flex">
             {nav.map((n) => (
               <Link
                 key={n.to}
@@ -52,11 +52,12 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                 {n.label}
               </Link>
             ))}
-            <Link to="/acesso" className="ml-3">
-              <Button size="sm" variant="outline">
-                Acesse sua Conta
-              </Button>
-            </Link>
+           <Link
+  to="/acesso"
+  className="ml-2 rounded-fulla bg-primary/80 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary"
+>
+  Minha conta
+</Link>
           </nav>
 
           <button
@@ -85,7 +86,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               <Link
                 to="/acesso"
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-semibold text-primary hover:bg-accent"
+                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
               >
                 Minha conta
               </Link>

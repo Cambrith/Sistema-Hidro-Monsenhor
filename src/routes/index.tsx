@@ -275,8 +275,8 @@ function TabelaHorarios() {
               Nenhum horário encontrado para os filtros selecionados.
             </div>
           ) : (
-            <div className="max-h-[340px] overflow-y-auto">
-              <table className="w-full text-sm">
+            <div className="max-h-[340px] overflow-x-auto overflow-y-auto">
+              <table className="min-w-[500px] w-full text-sm">
                 <thead className="sticky top-0 z-10 bg-background">
                   <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
                     <th className="px-4 py-3">Horário</th>

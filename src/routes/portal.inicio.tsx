@@ -52,17 +52,35 @@ function atestadoStatus(validade?: string | null) {
 }
 
 function InfoSecretaria() {
+  const horarios = [
+    { dias: "Seg e Qui", horario: "08h–16h" },
+    { dias: "Ter e Qua", horario: "13h–21h" },
+    { dias: "Sexta", horario: "07h–15h" },
+  ];
+
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-border bg-accent/20 px-4 py-3 text-xs text-muted-foreground">
-      <Phone className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-      <span>
-        Dúvidas? Ligue para a secretaria:{" "}
-        <a href="tel:+552422452089" className="font-medium text-foreground hover:underline">
-          (24) 2245-2089
-        </a>
-        {" "}· Seg 08h–16h · Ter e Qua 13h–21h · Qui 08h–16h · Sex 07h–15h.
+    <div className="rounded-xl border border-border bg-accent/20 px-4 py-4 text-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <Phone className="h-4 w-4 text-primary shrink-0" />
+        <span className="font-medium text-foreground">Dúvidas? Fale com a secretaria</span>
+      </div>
+      
+        <a href="tel:+552422452089"
+        className="text-lg font-semibold text-primary hover:underline"
+      >
+        (24) 2245-2089
+      </a>
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {horarios.map((h) => (
+          <div key={h.dias} className="rounded-lg border border-border bg-background px-2 py-2 text-center">
+            <p className="text-[11px] font-medium text-foreground">{h.dias}</p>
+            <p className="text-[11px] text-muted-foreground">{h.horario}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-2.5 text-xs text-muted-foreground">
         Se preferir, compareça presencialmente.
-      </span>
+      </p>
     </div>
   );
 }

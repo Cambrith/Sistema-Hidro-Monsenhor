@@ -24,9 +24,6 @@ function Acesso() {
 
         <div className="relative z-10 flex w-full max-w-2xl flex-col items-center">
           <div className="mb-10 text-center">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-[#1D4ED8]/70">
-              Hidro e Natação Monsenhor
-            </p>
             <h1
               className="font-display text-3xl font-bold sm:text-4xl"
               style={{ color: "#0B1F3A" }}
@@ -49,12 +46,11 @@ function Acesso() {
                 <h2 className="mt-5 text-xl font-semibold" style={{ color: "#0B1F3A" }}>
                   Sou aluno
                 </h2>
-               <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-  Consulte suas presenças, faltas e dados de matrícula usando
-  CPF, data de nascimento e telefone cadastrados na secretaria.
-</p>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+                  Veja suas presenças, faltas e situação da matrícula. Acesse com CPF, data de nascimento e telefone cadastrados na secretaria.
+                </p>
                 <span className="mt-6 inline-flex items-center text-sm font-semibold text-[#1D4ED8]">
-  Acessar minha conta
+                  Acessar minha conta
                   <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </div>
@@ -71,11 +67,10 @@ function Acesso() {
                   Sou da equipe
                 </h2>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-  Área restrita para recepção, professores e administração.
-  Acesso com usuário e senha cadastrados pela administração.
-</p>
+                  Área restrita para recepção, professores e administração. Acesse com usuário e senha fornecidos pela administração do centro.
+                </p>
                 <span className="mt-6 inline-flex items-center text-sm font-semibold text-slate-600">
-  Acessar o painel
+                  Acessar o painel
                   <ArrowRight className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </div>
@@ -83,10 +78,10 @@ function Acesso() {
           </div>
 
           <p className="mt-10 text-center text-xs text-muted-foreground">
-           Dificuldades para acessar? Ligue para a secretaria:{" "}
-<a href="tel:+552422452089" className="font-medium text-foreground/70 hover:underline">
-  (24) 2245-2089
-</a>
+            Dificuldades para acessar? Ligue para a secretaria:{" "}
+            <a href="tel:+552422452089" className="font-medium text-foreground/70 hover:underline">
+              (24) 2245-2089
+            </a>
           </p>
         </div>
       </div>

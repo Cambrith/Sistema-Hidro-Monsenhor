@@ -83,9 +83,9 @@ function PortalLayout() {
   style={{ background: "var(--gradient-hero)" }}
 >
   <div className="flex flex-col items-center gap-2 border-b border-white/10 px-4 py-5">
-  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/95 shadow-sm">
-    <img src={logo} alt="Hidro Monsenhor" className="h-18 w-18 object-contain -translate-y-2" />
-  </span>
+  <span className="grid h-16 w-16 shrink-0 place-items-center rounded-xl bg-white/95 shadow-sm">
+  <img src={logo} alt="Hidro Monsenhor" className="h-12 w-12 object-contain" />
+</span>
   <div className="text-center leading-tight">
     <p className="text-sm font-semibold text-white">Portal do Aluno</p>
     <p className="text-xs text-white/60">Hidro e Natação Monsenhor</p>
@@ -144,9 +144,9 @@ function PortalLayout() {
     style={{ background: "var(--gradient-hero)" }}
   >
     <div className="flex items-center gap-3">
-      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-white/95">
-        <img src={logo} alt="Hidro Monsenhor" className="h-6 w-6 object-contain" />
-      </span>
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/95">
+  <img src={logo} alt="Hidro Monsenhor" className="h-7 w-7 object-contain" />
+</span>
       <p className="text-sm font-semibold text-white">Portal do Aluno</p>
     </div>
     <button
@@ -207,7 +207,13 @@ function PortalLayout() {
     </div>
   );
 }
-
+function formatarTelefone(valor: string) {
+  const n = valor.replace(/\D/g, "").slice(0, 11);
+  if (n.length <= 2) return n;
+  if (n.length <= 7) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
+  if (n.length <= 11) return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}`;
+  return n;
+}
 function formatarCPF(valor: string) {
   const n = valor.replace(/\D/g, "").slice(0, 11);
   if (n.length <= 3) return n;
@@ -257,9 +263,9 @@ function LoginAluno() {
         <div aria-hidden className="pointer-events-none absolute -right-28 -top-28 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
         <div className="relative flex h-full flex-col justify-between p-9 xl:p-10">
           <div className="flex items-center gap-5">
-            <span className="grid h-24 w-24 shrink-0 place-items-center rounded-3xl bg-white/95 p-1 shadow-sm">
-              <img src={logo} alt="Hidro e Natação Monsenhor" style={{ width: "94px", height: "94px", objectFit: "contain" }} />
-            </span>
+            <span className="grid h-24 w-24 shrink-0 place-items-center rounded-3xl bg-white/95 shadow-sm">
+  <img src={logo} alt="Hidro e Natação Monsenhor" className="h-full w-full object-contain" />
+</span>
             <div className="min-w-0 leading-tight">
               <p className="font-display text-2xl font-semibold">Hidro e Natação Monsenhor</p>
               <p className="mt-1 max-w-[430px] text-sm leading-snug text-white/80">
@@ -293,7 +299,7 @@ function LoginAluno() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">CPF</label>
+                <label className="text-sm font-medium">CPF do aluno</label>
                 <Input
                   value={cpf}
                   onChange={(e) => setCpf(formatarCPF(e.target.value))}
@@ -317,15 +323,15 @@ function LoginAluno() {
                 <label className="text-sm font-medium">Telefone cadastrado</label>
                 <Input
                   value={telefone}
-                  onChange={(e) => setTelefone(e.target.value.replace(/\D/g, "").slice(0, 11))}
-                  placeholder="Ex.: 24999990000"
+                  onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
+                  placeholder="(24) 99999-0000"
                   disabled={entrando}
                   inputMode="numeric"
                   autoComplete="off"
                   type="tel"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Somente números com DDD. Exemplo: 24999990000
+                  Digite seu telefone com DDD. Somente números.
                 </p>
               </div>
               <Button type="submit" className="w-full" size="lg" disabled={entrando}>

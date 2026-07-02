@@ -156,12 +156,12 @@ export function AdminSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-3 px-2 py-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm">
-            <img
-              src={logo}
-              alt="Hidro e Natação Monsenhor"
-              className="h-14 w-14 scale-[1.45] object-contain -translate-x-[0px]"
-            />
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm">
+           <img
+  src={logo}
+  alt="Hidro e Natação Monsenhor"
+  className="h-9 w-9 object-contain"
+/>
           </span>
 
           <div className="flex min-w-0 flex-col leading-tight group-data-[collapsible=icon]:hidden">
@@ -206,13 +206,14 @@ export function AdminSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border/50 pt-2">
         <div className="px-2 py-1.5 text-xs text-sidebar-foreground/80 group-data-[collapsible=icon]:hidden">
-          <p className="truncate font-semibold text-sidebar-foreground">
-            {areaExibicao}
-          </p>
-
-          <p className="truncate text-[11px] text-sidebar-foreground/65">
-            {descricaoExibicao}
-          </p>
+          <p className="truncate text-[11px] text-sidebar-foreground/60">
+</p>
+<p className="truncate font-semibold text-sidebar-foreground">
+  {sessao?.nome?.split(" ")[0] ?? areaExibicao}
+</p>
+<p className="truncate text-[11px] text-sidebar-foreground/65">
+  {areaExibicao} · {descricaoExibicao}
+</p>
         </div>
 
         <SidebarMenu>
