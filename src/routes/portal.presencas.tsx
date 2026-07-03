@@ -25,7 +25,8 @@ function formatarData(data?: string | null) {
 }
 
 function nomeMes(ano: number, mes: number) {
-  return new Date(ano, mes - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" }).toLowerCase();
+  const texto = new Date(ano, mes - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 function PortalPresencas() {
@@ -71,7 +72,7 @@ function PortalPresencas() {
   const totalPresentes = presencas.filter((p) => p.status === "presente").length;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5 px-4 py-6 md:px-6">
+    <div className="mx-auto max-w-6xl space-y-6 p-8 lg:p-10">
       <div>
         <h1 className="text-xl font-semibold">Presenças</h1>
         <p className="text-sm text-muted-foreground">Histórico de frequência nas aulas.</p>
@@ -81,7 +82,7 @@ function PortalPresencas() {
         <button type="button" onClick={mesAnterior} className="rounded-md p-1 hover:bg-accent">
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <span className="text-sm font-medium capitalize">{nomeMes(ano, mes)}</span>
+        <span className="text-sm font-medium">{nomeMes(ano, mes)}</span>
         <button type="button" onClick={mesSeguinte} disabled={eMesAtual} className="rounded-md p-1 hover:bg-accent disabled:opacity-30">
           <ChevronRight className="h-5 w-5" />
         </button>

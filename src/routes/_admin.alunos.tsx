@@ -64,6 +64,17 @@ export const Route = createFileRoute("/_admin/alunos")({
 
 type Modalidade = "Natação Infantil" | "Natação Adulta" | "Hidroginástica";
 type StatusAluno = "ativo" | "inativo";
+type Nivel = "iniciante" | "intermediario" | "avancado";
+
+const niveis: { value: Nivel; label: string }[] = [
+  { value: "iniciante", label: "Iniciante" },
+  { value: "intermediario", label: "Intermediário" },
+  { value: "avancado", label: "Avançado" },
+];
+
+function labelNivel(nivel?: Nivel | null) {
+  return niveis.find((n) => n.value === nivel)?.label ?? "Não avaliado";
+}
 
 type Aluno = {
   id: string;
@@ -84,7 +95,9 @@ type Aluno = {
   cep: string | null;
   nome_pai: string | null;
   nome_mae: string | null;
-  atestado_validade: string | null;
+ atestado_validade: string | null;
+  parq_validade: string | null;
+  nivel: Nivel | null;
   observacoes: string | null;
   ativo: boolean;
   criado_em: string;
@@ -578,6 +591,10 @@ function FichaAlunoDialog({ aluno, open, onOpenChange, podeRegistrarOcorrencia, 
                 {aluno.atestado_validade && (
                   <InfoLinha label="Validade do atestado" value={formatarData(aluno.atestado_validade)} />
                 )}
+                {aluno.parq_validade && (
+                  <InfoLinha label="Validade do PAR-Q" value={formatarData(aluno.parq_validade)} />
+                )}
+                <InfoLinha label="Nível" value={labelNivel(aluno.nivel)} />
               </CardContent>
             </Card>
 
@@ -727,7 +744,8 @@ function NovoAlunoDialog({ open, onOpenChange, onSaved, turmas }: {
     nome_completo: "", nascimento: "", modalidade: "Natação Infantil" as Modalidade,
     turma_id: SEM_TURMA, responsavel: "", telefone: "", telefone_fixo: "",
     whatsapp: "", email: "", cpf: "", endereco: "", complemento: "",
-    bairro: "", cep: "", nome_pai: "", nome_mae: "", atestado_validade: "",
+    bairro: "", cep: "", nome_pai: "", nome_mae: "", atestado_validade: "", parq_validade: "",
+    nivel: "" as Nivel | "",
     observacoes: "", ativo: true,
   };
 
@@ -764,6 +782,8 @@ function NovoAlunoDialog({ open, onOpenChange, onSaved, turmas }: {
       nome_pai: f.nome_pai.trim() || null,
       nome_mae: f.nome_mae.trim() || null,
       atestado_validade: f.atestado_validade || null,
+      parq_validade: f.parq_validade || null,
+      nivel: f.nivel || null,
       observacoes: f.observacoes.trim() || null,
       ativo: f.ativo,
     }).select("id").single();
@@ -806,7 +826,17 @@ function NovoAlunoDialog({ open, onOpenChange, onSaved, turmas }: {
               <Input type="date" value={f.atestado_validade} onChange={(e) => setF((a) => ({ ...a, atestado_validade: e.target.value }))} />
             </Field>
           </div>
-
+<div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Validade do PAR-Q">
+              <Input type="date" value={f.parq_validade} onChange={(e) => setF((a) => ({ ...a, parq_validade: e.target.value }))} />
+            </Field>
+            <Field label="Nível (opcional)">
+              <select value={f.nivel} onChange={(e) => setF((a) => ({ ...a, nivel: e.target.value as Nivel | "" }))} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                <option value="">Não avaliado</option>
+                {niveis.map((n) => <option key={n.value} value={n.value}>{n.label}</option>)}
+              </select>
+            </Field>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Modalidade">
               <select value={f.modalidade} onChange={(e) => setF((a) => ({ ...a, modalidade: e.target.value as Modalidade, turma_id: SEM_TURMA }))} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
@@ -910,6 +940,8 @@ function EditarAlunoDialog({ aluno, open, onOpenChange, onSaved, turmas }: {
     nome_pai: aluno.nome_pai ?? "",
     nome_mae: aluno.nome_mae ?? "",
     atestado_validade: aluno.atestado_validade?.slice(0, 10) ?? "",
+    parq_validade: aluno.parq_validade?.slice(0, 10) ?? "",
+    nivel: (aluno.nivel ?? "") as Nivel | "",
     observacoes: aluno.observacoes ?? "",
     ativo: aluno.ativo,
   }));
@@ -934,6 +966,8 @@ function EditarAlunoDialog({ aluno, open, onOpenChange, onSaved, turmas }: {
         nome_pai: aluno.nome_pai ?? "",
         nome_mae: aluno.nome_mae ?? "",
         atestado_validade: aluno.atestado_validade?.slice(0, 10) ?? "",
+        parq_validade: aluno.parq_validade?.slice(0, 10) ?? "",
+        nivel: (aluno.nivel ?? "") as Nivel | "",
         observacoes: aluno.observacoes ?? "",
         ativo: aluno.ativo,
       });
@@ -969,6 +1003,8 @@ function EditarAlunoDialog({ aluno, open, onOpenChange, onSaved, turmas }: {
       nome_pai: f.nome_pai.trim() || null,
       nome_mae: f.nome_mae.trim() || null,
       atestado_validade: f.atestado_validade || null,
+      parq_validade: f.parq_validade || null,
+      nivel: f.nivel || null,
       observacoes: f.observacoes.trim() || null,
       ativo: f.ativo,
     }).eq("id", aluno.id);
@@ -1013,7 +1049,17 @@ function EditarAlunoDialog({ aluno, open, onOpenChange, onSaved, turmas }: {
               <Input type="date" value={f.atestado_validade} onChange={(e) => setF((a) => ({ ...a, atestado_validade: e.target.value }))} />
             </Field>
           </div>
-
+           <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Validade do PAR-Q">
+              <Input type="date" value={f.parq_validade} onChange={(e) => setF((a) => ({ ...a, parq_validade: e.target.value }))} />
+            </Field>
+            <Field label="Nível (opcional)">
+              <select value={f.nivel} onChange={(e) => setF((a) => ({ ...a, nivel: e.target.value as Nivel | "" }))} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                <option value="">Não avaliado</option>
+                {niveis.map((n) => <option key={n.value} value={n.value}>{n.label}</option>)}
+              </select>
+            </Field>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Modalidade">
               <select value={f.modalidade} onChange={(e) => setF((a) => ({ ...a, modalidade: e.target.value as Modalidade, turma_id: SEM_TURMA }))} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">

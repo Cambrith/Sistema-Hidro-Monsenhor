@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessao } from "@/lib/auth";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -290,11 +291,18 @@ function AnalisarDialog({
   onSaved: () => void;
 }) {
   const [observacao, setObservacao] = useState("");
+  const [validade, setValidade] = useState("");
   const [salvando, setSalvando] = useState(false);
+
+  const campoValidade = doc.tipo === "parq" ? "parq_validade" : "atestado_validade";
 
   async function atualizar(novoStatus: "aprovado" | "rejeitado") {
     if (novoStatus === "rejeitado" && !observacao.trim()) {
       toast.error("Informe o motivo da rejeição.");
+      return;
+    }
+    if (novoStatus === "aprovado" && !validade) {
+      toast.error("Informe a data de validade para aprovar.");
       return;
     }
 
@@ -312,7 +320,28 @@ function AnalisarDialog({
       return;
     }
 
-    toast.success(novoStatus === "aprovado" ? "Documento aprovado." : "Documento rejeitado.");
+    // Ao aprovar, grava a validade direto no cadastro do aluno,
+    // fechando o loop que antes exigia editar o aluno manualmente.
+    if (novoStatus === "aprovado") {
+      const { error: alunoError } = await supabase
+        .from("alunos")
+        .update({ [campoValidade]: validade })
+        .eq("id", doc.aluno_id);
+
+      if (alunoError) {
+        console.error(alunoError);
+        toast.error(
+          "Documento aprovado, mas houve erro ao atualizar a validade no cadastro do aluno. Atualize manualmente em Alunos."
+        );
+        setSalvando(false);
+        onSaved();
+        return;
+      }
+    }
+
+    toast.success(
+      novoStatus === "aprovado" ? "Documento aprovado e validade atualizada no cadastro." : "Documento rejeitado."
+    );
     onSaved();
   }
 
@@ -339,6 +368,20 @@ function AnalisarDialog({
                 Abrir
               </Button>
             </a>
+          </div>
+
+          {/* Validade (obrigatória para aprovar) */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">
+              Validade do {tipoCfg[doc.tipo] ?? doc.tipo}{" "}
+              <span className="text-muted-foreground">(obrigatória para aprovar)</span>
+            </label>
+            <Input
+              type="date"
+              value={validade}
+              onChange={(e) => setValidade(e.target.value)}
+              disabled={salvando}
+            />
           </div>
 
           {/* Observação */}

@@ -5,7 +5,7 @@ import { getSessaoAluno } from "@/lib/auth-aluno";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ArrowRight, CalendarDays, CheckCircle2, FileText, XCircle } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, ExternalLink, FileText, Users, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal/inicio")({
@@ -19,6 +19,7 @@ type DadosAluno = {
   modalidade: string;
   turma: string | null;
   atestado_validade: string | null;
+  parq_validade: string | null;
   ativo: boolean;
 };
 
@@ -26,6 +27,15 @@ type Presenca = {
   id: string;
   data: string;
   status: "presente" | "falta" | "falta justificada";
+};
+
+type TurmaInfo = {
+  nome: string;
+  modalidade: string;
+  dia_semana: string | null;
+  horario_inicio: string | null;
+  horario_fim: string | null;
+  professor: string | null;
 };
 
 function formatarData(data?: string | null) {
@@ -43,7 +53,7 @@ function mesAtual() {
   return { inicio: `${ano}-${mes}-01`, fim: `${ano}-${mes}-31`, label };
 }
 
-function atestadoStatus(validade?: string | null) {
+function statusValidade(validade?: string | null) {
   if (!validade) return "ausente";
   const diff = (new Date(validade).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
   if (diff < 0) return "vencido";
@@ -55,6 +65,7 @@ function PortalInicio() {
   const sessao = getSessaoAluno();
   const [aluno, setAluno] = useState<DadosAluno | null>(null);
   const [presencas, setPresencas] = useState<Presenca[]>([]);
+  const [turmaInfo, setTurmaInfo] = useState<TurmaInfo | null>(null);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => { if (sessao) carregarDados(); }, []);
@@ -62,19 +73,31 @@ function PortalInicio() {
   async function carregarDados() {
     if (!sessao) return;
     setCarregando(true);
+
     const { data, error } = await supabase
       .from("alunos")
-      .select("id, nome_completo, modalidade, turma, atestado_validade, ativo")
+      .select("id, nome_completo, modalidade, turma, atestado_validade, parq_validade, ativo")
       .eq("id", sessao.id)
       .maybeSingle();
     if (error || !data) { toast.error("Erro ao carregar seus dados."); setCarregando(false); return; }
     setAluno(data as DadosAluno);
+
     const { inicio, fim } = mesAtual();
     const { data: dp } = await supabase
       .from("presencas").select("id, data, status")
       .eq("aluno_id", sessao.id).gte("data", inicio).lte("data", fim)
       .order("data", { ascending: false });
     setPresencas((dp ?? []) as Presenca[]);
+
+    const { data: dt } = await supabase
+      .from("alunos_turmas")
+      .select("turmas(nome, modalidade, dia_semana, horario_inicio, horario_fim, professor)")
+      .eq("aluno_id", sessao.id)
+      .eq("ativo", true)
+      .maybeSingle();
+    const turmaVinculo = (dt as { turmas: TurmaInfo[] | null } | null)?.turmas?.[0] ?? null;
+    setTurmaInfo(turmaVinculo);
+
     setCarregando(false);
   }
 
@@ -97,11 +120,29 @@ function PortalInicio() {
   const totalFaltas = presencas.filter((p) => p.status === "falta").length;
   const faltasJustificadas = presencas.filter((p) => p.status === "falta justificada").length;
   const totalPresentes = presencas.filter((p) => p.status === "presente").length;
-  const statusAtestado = atestadoStatus(aluno.atestado_validade);
+  const statusAtestado = statusValidade(aluno.atestado_validade);
+  const statusParq = statusValidade(aluno.parq_validade);
   const primeiroNome = aluno.nome_completo.split(" ")[0];
 
+  // Vencido, vencendo ou ausente geram alerta (atestado e PAR-Q).
+  // "ausente"/"vencido" são graves (vermelho); "vencendo" é atenção (amarelo).
+  const atestadoProblema = statusAtestado !== "ok";
+  const parqProblema = statusParq !== "ok";
+  const mostrarAlerta = atestadoProblema || parqProblema;
+
+  const pendencias: string[] = [];
+  if (statusAtestado === "ausente") pendencias.push("Atestado médico não cadastrado.");
+  if (statusAtestado === "vencido") pendencias.push(`Atestado médico venceu em ${formatarData(aluno.atestado_validade)}.`);
+  if (statusAtestado === "vencendo") pendencias.push(`Atestado médico vence em ${formatarData(aluno.atestado_validade)}.`);
+  if (statusParq === "ausente") pendencias.push("PAR-Q não cadastrado.");
+  if (statusParq === "vencido") pendencias.push(`PAR-Q venceu em ${formatarData(aluno.parq_validade)}.`);
+  if (statusParq === "vencendo") pendencias.push(`PAR-Q vence em ${formatarData(aluno.parq_validade)}.`);
+
+  const grave = statusAtestado === "vencido" || statusAtestado === "ausente"
+    || statusParq === "vencido" || statusParq === "ausente";
+
   return (
-    <div className="mx-auto max-w-3xl space-y-5 px-4 py-6 md:px-6">
+    <div className="mx-auto max-w-6xl space-y-6 p-8 lg:p-10">
 
       {/* Saudação */}
       <div className="flex items-center justify-between rounded-xl border border-border bg-accent/20 px-4 py-3">
@@ -118,34 +159,76 @@ function PortalInicio() {
         </Badge>
       </div>
 
-      {/* Alerta atestado */}
-      {statusAtestado !== "ok" && (
+      {/* Alerta documentos */}
+      {mostrarAlerta && (
         <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm ${
-          statusAtestado === "vencendo"
-            ? "border-yellow-300 bg-yellow-50 text-yellow-700"
-            : "border-red-300 bg-red-50 text-red-700"
+          grave ? "border-red-300 bg-red-50 text-red-700" : "border-yellow-300 bg-yellow-50 text-yellow-700"
         }`}>
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <div className="space-y-1">
-            <p>
-              {statusAtestado === "ausente" && "Seu atestado médico não está cadastrado."}
-              {statusAtestado === "vencido" && `Seu atestado venceu em ${formatarData(aluno.atestado_validade)}.`}
-              {statusAtestado === "vencendo" && `Seu atestado vence em ${formatarData(aluno.atestado_validade)}.`}
-            </p>
+          <div className="space-y-1.5">
+            <ul className="space-y-0.5">
+              {pendencias.map((msg) => <li key={msg}>{msg}</li>)}
+            </ul>
             <p>
               Envie pelo portal na aba{" "}
               <Link to="/portal/documentos" className="font-medium underline underline-offset-2">
                 Documentos
               </Link>
-              {" "}ou ligue para a secretaria:{" "}
-              <a href="tel:+552422452089" className="font-medium underline underline-offset-2">
-                (24) 2245-2089
-              </a>
-              .
+              {" "}ou acesse os{" "}
+              <Link to="/" hash="canais-oficiais" className="font-medium underline underline-offset-2">
+                canais de contato
+              </Link>
+              {" "}para contatar a secretaria.
             </p>
           </div>
         </div>
       )}
+
+      {/* Minha Turma */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Users className="h-4 w-4 text-primary" />
+            Minha Turma
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          {turmaInfo ? (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Turma</span>
+                <span className="font-medium">{turmaInfo.nome}</span>
+              </div>
+              <div className="flex items-center justify-between border-t border-border pt-3">
+                <span className="text-muted-foreground">Dia</span>
+                <span className="font-medium">{turmaInfo.dia_semana || "—"}</span>
+              </div>
+              <div className="flex items-center justify-between border-t border-border pt-3">
+                <span className="text-muted-foreground">Horário</span>
+                <span className="font-medium">
+                  {turmaInfo.horario_inicio && turmaInfo.horario_fim
+                    ? `${turmaInfo.horario_inicio.slice(0, 5)} às ${turmaInfo.horario_fim.slice(0, 5)}`
+                    : "—"}
+                </span>
+              </div>
+              {turmaInfo.professor && (
+                <div className="flex items-center justify-between border-t border-border pt-3">
+                  <span className="text-muted-foreground">Professor(a)</span>
+                  <span className="font-medium">{turmaInfo.professor}</span>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Você ainda não está vinculado a uma turma. Fale com a secretaria pelos{" "}
+              <Link to="/" hash="canais-oficiais" className="font-medium text-primary underline underline-offset-2">
+                canais de contato
+              </Link>
+              .
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Frequência */}
       <Card>
@@ -228,17 +311,17 @@ function PortalInicio() {
         </CardContent>
       </Card>
 
-      {/* Atestado resumido */}
+      {/* Documentos resumido */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <FileText className="h-4 w-4 text-primary" />
-            Atestado médico
+            Documentos
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-sm">
+        <CardContent className="space-y-3 text-sm">
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Validade</span>
+            <span className="text-muted-foreground">Atestado médico</span>
             <span className={`font-medium ${
               statusAtestado === "ok" ? "text-green-700"
               : statusAtestado === "vencendo" ? "text-yellow-700"
@@ -247,25 +330,36 @@ function PortalInicio() {
               {aluno.atestado_validade ? formatarData(aluno.atestado_validade) : "Não cadastrado"}
             </span>
           </div>
-          <Link to="/portal/documentos" className="mt-3 block text-xs font-medium text-primary hover:underline">
+          <div className="flex items-center justify-between border-t border-border pt-3">
+            <span className="text-muted-foreground">PAR-Q</span>
+            <span className={`font-medium ${
+              statusParq === "ok" ? "text-green-700"
+              : statusParq === "vencendo" ? "text-yellow-700"
+              : "text-red-700"
+            }`}>
+              {aluno.parq_validade ? formatarData(aluno.parq_validade) : "Não cadastrado"}
+            </span>
+          </div>
+          <Link to="/portal/documentos" className="block pt-1 text-xs font-medium text-primary hover:underline">
             Ver detalhes e enviar documentos →
           </Link>
         </CardContent>
       </Card>
 
       {/* Canais de contato */}
-      <div className="rounded-xl border border-border bg-accent/20 px-4 py-4 text-sm">
+      <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
         <p className="font-medium text-foreground">Precisa de ajuda?</p>
-        <p className="mt-1 text-muted-foreground">
+        <p className="mt-1">
           Acesse os canais oficiais do centro para falar com a secretaria, tirar dúvidas ou acompanhar novidades.
         </p>
-        
-          <a href="/#canais-oficiais"
-          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+        <Link
+          to="/"
+          hash="canais-oficiais"
+          className="mt-2 inline-flex items-center gap-1 font-medium text-primary underline underline-offset-2"
         >
           Ver canais de contato
-          <ArrowRight className="h-3.5 w-3.5" />
-        </a>
+          <ExternalLink className="h-3 w-3" />
+        </Link>
       </div>
 
     </div>

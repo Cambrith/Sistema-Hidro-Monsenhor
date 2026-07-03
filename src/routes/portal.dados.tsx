@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { getSessaoAluno } from "@/lib/auth-aluno";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ClipboardList, MapPin, Phone, User } from "lucide-react";
+import { ClipboardList, ExternalLink, MapPin, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal/dados")({
@@ -111,7 +111,7 @@ function PortalDados() {
     .filter(Boolean).join(", ") || null;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5 px-4 py-6 md:px-6">
+    <div className="mx-auto max-w-6xl space-y-6 p-8 lg:p-10">
       <div>
         <h1 className="text-xl font-semibold">Meus dados</h1>
         <p className="text-sm text-muted-foreground">
@@ -184,16 +184,20 @@ function PortalDados() {
         </CardContent>
       </Card>
 
-      <p className="text-xs text-muted-foreground">
-  Dados incorretos?{" "}
-  <Link
-    to="/"
-    hash="canais-oficiais"
-    className="font-medium text-foreground/70 hover:underline"
-  >
-    Veja os canais de contato
-  </Link>
-</p>
+      <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+  <p>
+    Dados incorretos?{" "}
+    <Link
+      to="/"
+      hash="canais-oficiais"
+      className="font-medium text-primary underline underline-offset-2 inline-flex items-center gap-1"
+    >
+      Veja os canais de contato e fale com a secretaria
+      <ExternalLink className="h-3 w-3" />
+    </Link>
+    .
+  </p>
+</div>
     </div>
   );
 }
