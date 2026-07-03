@@ -336,10 +336,10 @@ function Home() {
 
     const ajustePorSecao: Record<string, number> = {
       avisos: 28,
-      modalidades: 15,
-      horarios: 22,
-      localizacao: 20,
-      "canais-oficiais": 56,
+      modalidades: 1,
+      horarios: 5,
+      localizacao: 15,
+      "canais-oficiais": 10,
     };
 
     setTimeout(() => {

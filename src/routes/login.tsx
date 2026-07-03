@@ -205,12 +205,12 @@ function LoginPage() {
 
             <div className="mt-6 text-center text-sm">
               <Link
-                to="/"
-                className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <ArrowLeft className="mr-1 h-4 w-4" />
-                Voltar ao site
-              </Link>
+  to="/acesso"
+  className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
+>
+  <ArrowLeft className="mr-1 h-4 w-4" />
+  Voltar
+</Link>
             </div>
           </CardContent>
         </Card>

@@ -78,27 +78,24 @@ function PortalLayout() {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar desktop */}
-      <aside
-  className="hidden w-60 shrink-0 flex-col md:flex"
-  style={{ background: "var(--gradient-hero)" }}
->
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
   <div className="flex flex-col items-center gap-2 border-b border-white/10 px-4 py-5">
-  <span className="grid h-16 w-16 shrink-0 place-items-center rounded-xl bg-white/95 shadow-sm">
-  <img src={logo} alt="Hidro Monsenhor" className="h-12 w-12 object-contain" />
+  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white p-0 shadow-sm">
+  <img src={logo} alt="Hidro Monsenhor" className="h-full w-full object-contain" />
 </span>
   <div className="text-center leading-tight">
-    <p className="text-sm font-semibold text-white">Portal do Aluno</p>
-    <p className="text-xs text-white/60">Hidro e Natação Monsenhor</p>
+    <p className="text-sm font-semibold text-sidebar-foreground">Portal do Aluno</p>
+<p className="text-xs text-sidebar-foreground/60">Hidro e Natação Monsenhor</p>
   </div>
 </div>
 
   <div className="px-4 py-3">
-    <p className="text-xs text-white/60">Olá,</p>
-    <p className="truncate text-sm font-semibold text-white">{primeiroNome}</p>
+    <p className="text-xs text-sidebar-foreground/60">Olá,</p>
+<p className="truncate text-sm font-semibold text-sidebar-foreground">{primeiroNome}</p>
   </div>
 
   <nav className="flex-1 px-2 py-1">
-    <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
+    <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
       Menu
     </p>
     <ul className="space-y-0.5">
@@ -111,8 +108,8 @@ function PortalLayout() {
               to={item.to as never}
               className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 ativo
-                  ? "bg-white/15 text-white"
-                  : "text-white/70 hover:bg-white/10 hover:text-white"
+  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -124,11 +121,11 @@ function PortalLayout() {
     </ul>
   </nav>
 
-  <div className="border-t border-white/10 p-2">
+  <div className="border-t border-sidebar-border p-2">
     <button
       type="button"
       onClick={handleSair}
-      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+     className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
     >
       <LogOut className="h-4 w-4 shrink-0" />
       Sair
@@ -139,34 +136,28 @@ function PortalLayout() {
       {/* Mobile header */}
       {/* Mobile header */}
 <div className="flex flex-1 flex-col">
-  <header
-    className="sticky top-0 z-30 flex items-center justify-between border-b border-white/10 px-4 py-3 md:hidden"
-    style={{ background: "var(--gradient-hero)" }}
-  >
+  <header className="sticky top-0 z-30 flex items-center justify-between border-b border-sidebar-border bg-sidebar px-4 py-3 md:hidden">
     <div className="flex items-center gap-3">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/95">
-  <img src={logo} alt="Hidro Monsenhor" className="h-7 w-7 object-contain" />
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white p-1.5 shadow-sm">
+  <img src={logo} alt="Hidro Monsenhor" className="h-full w-full object-contain" />
 </span>
-      <p className="text-sm font-semibold text-white">Portal do Aluno</p>
+<p className="text-sm font-semibold text-sidebar-foreground">Portal do Aluno</p>
     </div>
     <button
       type="button"
       aria-label="Abrir menu"
       onClick={() => setMenuAberto((v) => !v)}
-      className="rounded-md p-1.5 text-white hover:bg-white/10"
+      className="rounded-md p-1.5 text-sidebar-foreground hover:bg-sidebar-accent/60"
     >
       {menuAberto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
     </button>
   </header>
 
   {menuAberto && (
-    <div
-      className="z-20 border-b border-white/10 px-4 py-3 md:hidden"
-      style={{ background: "var(--gradient-hero)" }}
-    >
-      <p className="mb-2 text-xs text-white/60">
-        Olá, <strong className="text-white">{primeiroNome}</strong>
-      </p>
+    <div className="z-20 border-b border-sidebar-border bg-sidebar px-4 py-3 md:hidden">
+      <p className="mb-2 text-xs text-sidebar-foreground/60">
+  Olá, <strong className="text-sidebar-foreground">{primeiroNome}</strong>
+</p>
       <ul className="space-y-0.5">
         {navPortal.map((item) => {
           const Icon = item.icon;
@@ -177,7 +168,7 @@ function PortalLayout() {
                 to={item.to as never}
                 onClick={() => setMenuAberto(false)}
                 className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
-                  ativo ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
+                  ativo ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
                 }`}
               >
                 <Icon className="h-4 w-4 shrink-0" />
@@ -187,12 +178,12 @@ function PortalLayout() {
           );
         })}
       </ul>
-      <div className="mt-2 border-t border-white/10 pt-2">
-        <button
-          type="button"
-          onClick={handleSair}
-          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white"
-        >
+      <div className="mt-2 border-t border-sidebar-border pt-2">
+  <button
+    type="button"
+    onClick={handleSair}
+    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+  >
           <LogOut className="h-4 w-4" />
           Sair
         </button>
@@ -331,7 +322,7 @@ function LoginAluno() {
                   type="tel"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Digite seu telefone com DDD. Somente números.
+                  Digite seu telefone celular ou fixo com DDD. Somente números.
                 </p>
               </div>
               <Button type="submit" className="w-full" size="lg" disabled={entrando}>
@@ -341,8 +332,11 @@ function LoginAluno() {
               </Button>
             </form>
             <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground">
-              Dificuldades para acessar? Ligue ou procure a secretaria do centro.
-            </p>
+  Dificuldades para acessar?{" "}
+  <a href="/#canais-oficiais" className="font-medium hover:underline">
+    Veja os canais de contato
+  </a>
+</p>
             <div className="mt-6 text-center text-sm">
               <Link to="/acesso" className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground">
                 <ArrowLeft className="mr-1 h-4 w-4" />

@@ -156,13 +156,13 @@ export function AdminSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-3 px-2 py-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm">
-           <img
-  src={logo}
-  alt="Hidro e Natação Monsenhor"
-  className="h-9 w-9 object-contain"
-/>
-          </span>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-sm">
+  <img
+    src={logo}
+    alt="Hidro e Natação Monsenhor"
+    className="h-full w-full object-contain"
+  />
+</span>
 
           <div className="flex min-w-0 flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="truncate font-display text-sm font-semibold text-sidebar-foreground">
@@ -212,7 +212,7 @@ export function AdminSidebar() {
   {sessao?.nome?.split(" ")[0] ?? areaExibicao}
 </p>
 <p className="truncate text-[11px] text-sidebar-foreground/65">
-  {areaExibicao} · {descricaoExibicao}
+  {descricaoExibicao}
 </p>
         </div>
 

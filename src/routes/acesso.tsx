@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicLayout } from "@/components/public-layout";
-import { GraduationCap, Users, ArrowRight } from "lucide-react";
+import { Waves, Users, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/acesso")({
   head: () => ({
@@ -41,7 +41,7 @@ function Acesso() {
               <div className="relative flex h-full flex-col rounded-2xl border border-[#DBEAFE] bg-white p-7 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#1D4ED8]/50 hover:shadow-lg">
                 <div className="absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-[#1D4ED8]" />
                 <span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#EFF6FF] text-[#1D4ED8] shadow-sm">
-                  <GraduationCap className="h-7 w-7" />
+                  <Waves className="h-7 w-7" />
                 </span>
                 <h2 className="mt-5 text-xl font-semibold" style={{ color: "#0B1F3A" }}>
                   Sou aluno
@@ -78,11 +78,11 @@ function Acesso() {
           </div>
 
           <p className="mt-10 text-center text-xs text-muted-foreground">
-            Dificuldades para acessar? Ligue para a secretaria:{" "}
-            <a href="tel:+552422452089" className="font-medium text-foreground/70 hover:underline">
-              (24) 2245-2089
-            </a>
-          </p>
+  Dificuldades para acessar?{" "}
+  <a href="/#canais-oficiais" className="font-medium text-foreground/70 hover:underline">
+    Veja os canais de contato
+  </a>
+</p>
         </div>
       </div>
     </PublicLayout>
