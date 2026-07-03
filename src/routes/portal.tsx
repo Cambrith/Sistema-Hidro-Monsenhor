@@ -80,8 +80,8 @@ function PortalLayout() {
       {/* Sidebar desktop */}
       <aside className="hidden w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
   <div className="flex flex-col items-center gap-2 border-b border-white/10 px-4 py-5">
-  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white p-0 shadow-sm">
-  <img src={logo} alt="Hidro Monsenhor" className="h-full w-full object-contain" />
+  <span className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl bg-white p-1 shadow-sm overflow-hidden">
+  <img src={logo} alt="Hidro Monsenhor" className="h-full w-full scale-120 object-contain" />
 </span>
   <div className="text-center leading-tight">
     <p className="text-sm font-semibold text-sidebar-foreground">Portal do Aluno</p>
@@ -138,7 +138,7 @@ function PortalLayout() {
 <div className="flex flex-1 flex-col">
   <header className="sticky top-0 z-30 flex items-center justify-between border-b border-sidebar-border bg-sidebar px-4 py-3 md:hidden">
     <div className="flex items-center gap-3">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white p-1.5 shadow-sm">
+      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white p-1 shadow-sm">
   <img src={logo} alt="Hidro Monsenhor" className="h-full w-full object-contain" />
 </span>
 <p className="text-sm font-semibold text-sidebar-foreground">Portal do Aluno</p>

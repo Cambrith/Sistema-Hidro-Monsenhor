@@ -537,9 +537,9 @@ function Home() {
   <p>
   Com atuação desde o início dos anos 2000, o centro já atendeu milhares de
   alunos ao longo dos anos. O espaço leva o nome da professora Marta Regina
-  de Carvalho Ferreira, docente de história e diretora adjunta da unidade por
-  16 anos, homenageada após seu falecimento pelo compromisso e dedicação à
-  comunidade de Pedro do Rio.
+  de Carvalho Ferreira, docente de história e diretora adjunta da Escola
+  Municipal Monsenhor João de Deus Rodrigues por 16 anos, homenageada após
+  seu falecimento pelo compromisso e dedicação à comunidade de Pedro do Rio.
 </p>
   <p>
     Além de contar com infraestrutura adequada para a prática das atividades, o espaço é atualmente a única opção gratuita de atividades aquáticas entre os distritos de Pedro do Rio, Posse e Itaipava, ampliando o acesso ao esporte e incentivando a qualidade de vida da comunidade.

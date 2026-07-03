@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessaoAluno } from "@/lib/auth-aluno";
@@ -185,8 +185,15 @@ function PortalDados() {
       </Card>
 
       <p className="text-xs text-muted-foreground">
-        Dados incorretos? Compareça à secretaria para solicitar a correção.
-      </p>
+  Dados incorretos?{" "}
+  <Link
+    to="/"
+    hash="canais-oficiais"
+    className="font-medium text-foreground/70 hover:underline"
+  >
+    Veja os canais de contato
+  </Link>
+</p>
     </div>
   );
 }
