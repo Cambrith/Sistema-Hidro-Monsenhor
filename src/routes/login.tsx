@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { entrar } from "@/lib/auth";
+import { statusBloqueio, registrarTentativaFalha, limparTentativas } from "@/lib/rate-limit";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/logo-simbolo.png";
@@ -31,6 +32,12 @@ export const Route = createFileRoute("/login")({
 
 const USUARIO_KEY = "hidro-monsenhor-ultimo-usuario";
 
+// Painel admin: só 3 contas, mas com privilégio alto (Administrador chega
+// em segurança/backup) — por isso o bloqueio aqui é mais rígido que o do
+// portal do aluno.
+const MAX_TENTATIVAS_ADMIN = 5;
+const BLOQUEIO_ADMIN_MS = 15 * 60 * 1000;
+
 function LoginPage() {
   const nav = useNavigate();
 
@@ -50,6 +57,16 @@ function LoginPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const bloqueio = statusBloqueio("admin");
+
+    if (bloqueio.bloqueado) {
+      const minutos = Math.ceil(bloqueio.segundosRestantes / 60);
+      toast.error(
+        `Muitas tentativas erradas. Tente novamente em ${minutos} minuto${minutos > 1 ? "s" : ""}.`,
+      );
+      return;
+    }
+
     if (!usuario.trim() || !senha.trim()) {
       toast.error("Informe usuário e senha.");
       return;
@@ -61,10 +78,27 @@ function LoginPage() {
       const sessao = await entrar(usuario, senha);
 
       if (!sessao) {
-        toast.error("Usuário ou senha inválidos.");
+        const resultado = registrarTentativaFalha(
+          "admin",
+          MAX_TENTATIVAS_ADMIN,
+          BLOQUEIO_ADMIN_MS,
+        );
+
+        if (resultado.bloqueado) {
+          const minutos = Math.ceil(resultado.segundosRestantes / 60);
+          toast.error(
+            `Muitas tentativas erradas. Acesso bloqueado por ${minutos} minutos.`,
+          );
+        } else {
+          toast.error(
+            `Usuário ou senha inválidos. Tentativas restantes: ${resultado.tentativasRestantes}.`,
+          );
+        }
+
         return;
       }
 
+      limparTentativas("admin");
       localStorage.setItem(USUARIO_KEY, usuario.trim());
 
       toast.success(`Bem-vindo(a), ${sessao.perfil}.`);

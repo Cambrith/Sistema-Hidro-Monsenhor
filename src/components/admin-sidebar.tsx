@@ -10,6 +10,7 @@ import {
   UserCog,
   LogOut,
   FileText,
+  Hourglass,
 } from "lucide-react";
 
 import {
@@ -27,8 +28,7 @@ import {
 
 import { getSessao, podeAcessar, sair, type Permissao } from "@/lib/auth";
 
-import logo from "@/assets/Golfinho Solitario (2.0).png"; 
-
+import logo from "@/assets/logo-simbolo.png";
 type MenuItem = {
   to: string;
   label: string;
@@ -71,6 +71,12 @@ const operacao: MenuItem[] = [
     to: "/documentos",
     label: "Documentos",
     icon: FileText,
+    permissao: "alunos",
+  },
+  {
+    to: "/pre-cadastros",
+    label: "Lista de Espera",
+    icon: Hourglass,
     permissao: "alunos",
   },
   {
@@ -155,14 +161,14 @@ export function AdminSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-3 px-2 py-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white p-1 shadow-sm">
-  <img
-    src={logo}
-    alt="Hidro e Natação Monsenhor"
-    className="h-full w-full object-contain"
-  />
-</span>
+       <div className="flex items-center gap-3 px-2 py-3 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-sm group-data-[collapsible=icon]:size-7 group-data-[collapsible=icon]:p-1">
+            <img
+              src={logo}
+              alt="Hidro e Natação Monsenhor"
+              className="h-full w-full scale-140 object-contain"
+            />
+          </span>
 
           <div className="flex min-w-0 flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="truncate font-display text-sm font-semibold text-sidebar-foreground">

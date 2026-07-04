@@ -9,6 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessaoAluno, loginAluno, sairAluno } from "@/lib/auth-aluno";
+import { statusBloqueio, registrarTentativaFalha, limparTentativas } from "@/lib/rate-limit";
 import {
   Card,
   CardContent,
@@ -27,6 +28,7 @@ import {
   Home,
   LogOut,
   Loader2,
+  Megaphone,
   Menu,
   X,
 } from "lucide-react";
@@ -55,13 +57,12 @@ const navPortal = [
   { to: "/portal/presencas", label: "Presenças", icon: CalendarDays },
   { to: "/portal/dados", label: "Meus dados", icon: ClipboardList },
   { to: "/portal/documentos", label: "Documentos", icon: FileText },
+  { to: "/portal/avisos", label: "Avisos", icon: Megaphone },
   { to: "/portal/ajuda", label: "Dúvidas", icon: HelpCircle },
 ];
 
 type PendenciaDocumentos = "urgente" | "atencao" | null;
 
-// Mesma regra usada em portal.inicio.tsx: sem validade = "ausente",
-// data já passada = "vencido", a até 30 dias de vencer = "vencendo".
 function statusValidade(validade?: string | null) {
   if (!validade) return "ausente";
   const diff = (new Date(validade).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
@@ -117,7 +118,6 @@ function PortalLayout() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Sidebar desktop */}
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar md:flex">
         <div className="flex flex-col items-center gap-2 border-b border-white/10 px-4 py-5">
           <span className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl bg-white p-1 shadow-sm overflow-hidden">
@@ -182,7 +182,6 @@ function PortalLayout() {
         </div>
       </aside>
 
-      {/* Mobile header */}
       <div className="flex flex-1 flex-col">
         <header className="sticky top-0 z-30 flex items-center justify-between border-b border-sidebar-border bg-sidebar px-4 py-3 md:hidden">
           <div className="flex items-center gap-3">
@@ -257,7 +256,36 @@ function PortalLayout() {
     </div>
   );
 }
+function handleMaskedChange(
+  e: React.ChangeEvent<HTMLInputElement>,
+  formatarFn: (v: string) => string,
+  setEstado: (v: string) => void
+) {
+  const input = e.target;
+  const valorAntigo = input.value;
+  const selecaoStart = input.selectionStart || 0;
 
+  // Conta quantos números havia antes do cursor antes de formatar
+  const digitosAntesDoCursor = valorAntigo.slice(0, selecaoStart).replace(/\D/g, "").length;
+
+  const valorFormatado = formatarFn(valorAntigo);
+  setEstado(valorFormatado);
+
+  // Ajusta a posição do cursor após o React atualizar o DOM
+  setTimeout(() => {
+    let novaPosicao = 0;
+    let digitosEncontrados = 0;
+
+    while (digitosEncontrados < digitosAntesDoCursor && novaPosicao < valorFormatado.length) {
+      if (/\d/.test(valorFormatado[novaPosicao])) {
+        digitosEncontrados++;
+      }
+      novaPosicao++;
+    }
+
+    input.setSelectionRange(novaPosicao, novaPosicao);
+  }, 0);
+}
 function formatarTelefone(valor: string) {
   const n = valor.replace(/\D/g, "").slice(0, 11);
   if (n.length <= 2) return n;
@@ -274,6 +302,39 @@ function formatarCPF(valor: string) {
   return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6, 9)}-${n.slice(9)}`;
 }
 
+// Máscara de digitação: a pessoa só digita números (ex.: 04081958) e o
+// campo já vai formatando sozinho como 04/08/1958 — evita o calendário
+// nativo do navegador, que é confuso pra quem tem pouca prática com
+// celular (ter que "voltar mês" dezenas de vezes até achar o ano certo).
+function formatarDataNascimento(valor: string) {
+  const n = valor.replace(/\D/g, "").slice(0, 8);
+  if (n.length <= 2) return n;
+  if (n.length <= 4) return `${n.slice(0, 2)}/${n.slice(2)}`;
+  return `${n.slice(0, 2)}/${n.slice(2, 4)}/${n.slice(4)}`;
+}
+
+// Converte DD/MM/AAAA pro formato AAAA-MM-DD que fica salvo no banco
+// (é o mesmo formato que o <input type="date"> antigo já entregava).
+// Retorna null se a data estiver incompleta ou não fizer sentido.
+function dataNascimentoParaISO(valor: string): string | null {
+  const n = valor.replace(/\D/g, "");
+  if (n.length !== 8) return null;
+
+  const dia = n.slice(0, 2);
+  const mes = n.slice(2, 4);
+  const ano = n.slice(4, 8);
+
+  const diaNum = Number(dia);
+  const mesNum = Number(mes);
+  const anoNum = Number(ano);
+
+  if (diaNum < 1 || diaNum > 31) return null;
+  if (mesNum < 1 || mesNum > 12) return null;
+  if (anoNum < 1900 || anoNum > new Date().getFullYear()) return null;
+
+  return `${ano}-${mes}-${dia}`;
+}
+
 function LoginAluno() {
   const nav = useNavigate();
   const [cpf, setCpf] = useState("");
@@ -281,22 +342,60 @@ function LoginAluno() {
   const [telefone, setTelefone] = useState("");
   const [entrando, setEntrando] = useState(false);
 
+  // Portal do aluno não tem senha — CPF+nascimento+telefone é a segurança
+  // inteira. Bloqueio mais curto que o do admin porque tem muito mais
+  // gente usando (idosos, celular) e é normal errar um número de vez em
+  // quando; mesmo assim, 5 tentativas a cada 5 min já inviabiliza
+  // adivinhação por tentativa e erro.
+  const MAX_TENTATIVAS_ALUNO = 5;
+  const BLOQUEIO_ALUNO_MS = 5 * 60 * 1000;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const bloqueio = statusBloqueio("aluno");
+
+    if (bloqueio.bloqueado) {
+      const minutos = Math.ceil(bloqueio.segundosRestantes / 60);
+      toast.error(
+        `Muitas tentativas erradas. Tente novamente em ${minutos} minuto${minutos > 1 ? "s" : ""}.`,
+      );
+      return;
+    }
+
     const cpfNum = cpf.replace(/\D/g, "");
     const telNum = telefone.replace(/\D/g, "");
+    const nascimentoISO = dataNascimentoParaISO(nascimento);
 
     if (cpfNum.length < 11) { toast.error("Informe o CPF completo (11 dígitos)."); return; }
-    if (!nascimento) { toast.error("Informe a data de nascimento."); return; }
+    if (!nascimentoISO) { toast.error("Informe a data de nascimento completa (dia, mês e ano)."); return; }
     if (telNum.length < 10) { toast.error("Informe o telefone com DDD."); return; }
 
     setEntrando(true);
     try {
-      const sessao = await loginAluno(cpf, nascimento, telefone);
+      const sessao = await loginAluno(cpf, nascimentoISO, telefone);
       if (!sessao) {
-        toast.error("Dados não encontrados. Verifique as informações ou procure a secretaria.");
+        const resultado = registrarTentativaFalha(
+          "aluno",
+          MAX_TENTATIVAS_ALUNO,
+          BLOQUEIO_ALUNO_MS,
+        );
+
+        if (resultado.bloqueado) {
+          const minutos = Math.ceil(resultado.segundosRestantes / 60);
+          toast.error(
+            `Muitas tentativas erradas. Acesso bloqueado por ${minutos} minutos.`,
+          );
+        } else {
+          toast.error(
+            `Dados não encontrados. Verifique as informações ou procure a secretaria. Tentativas restantes: ${resultado.tentativasRestantes}.`,
+          );
+        }
+
         return;
       }
+
+      limparTentativas("aluno");
       toast.success(`Bem-vindo(a), ${sessao.nome.split(" ")[0]}!`);
       nav({ to: "/portal/inicio" });
     } catch {
@@ -351,37 +450,40 @@ function LoginAluno() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">CPF do aluno</label>
+                <label className="text-sm font-medium">CPF do Aluno</label>
                 <Input
-                  value={cpf}
-                  onChange={(e) => setCpf(formatarCPF(e.target.value))}
-                  placeholder="000.000.000-00"
-                  maxLength={14}
-                  disabled={entrando}
-                  inputMode="numeric"
-                  autoComplete="off"
-                />
+  value={cpf}
+  onChange={(e) => handleMaskedChange(e, formatarCPF, setCpf)}
+  placeholder="000.000.000-00"
+  maxLength={14}
+  disabled={entrando}
+  inputMode="numeric"
+  autoComplete="off"
+/>
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Data de nascimento</label>
+                <label className="text-sm font-medium">Data de Nascimento</label>
                 <Input
-                  type="date"
-                  value={nascimento}
-                  onChange={(e) => setNascimento(e.target.value)}
-                  disabled={entrando}
-                />
+  value={nascimento}
+  onChange={(e) => handleMaskedChange(e, formatarDataNascimento, setNascimento)}
+  placeholder="DD/MM/AAAA"
+  maxLength={10}
+  disabled={entrando}
+  inputMode="numeric"
+  autoComplete="off"
+/>
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Telefone cadastrado</label>
+                <label className="text-sm font-medium">Telefone Cadastrado</label>
                 <Input
-                  value={telefone}
-                  onChange={(e) => setTelefone(formatarTelefone(e.target.value))}
-                  placeholder="(24) 99999-0000"
-                  disabled={entrando}
-                  inputMode="numeric"
-                  autoComplete="off"
-                  type="tel"
-                />
+  value={telefone}
+  onChange={(e) => handleMaskedChange(e, formatarTelefone, setTelefone)}
+  placeholder="(24) 99999-0000"
+  disabled={entrando}
+  inputMode="numeric"
+  autoComplete="off"
+  type="tel"
+/>
                 <p className="text-xs text-muted-foreground">
                   Digite seu telefone celular ou fixo com DDD. Somente números.
                 </p>

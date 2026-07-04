@@ -21,6 +21,7 @@ import { Route as PortalPresencasRouteImport } from './routes/portal.presencas'
 import { Route as PortalInicioRouteImport } from './routes/portal.inicio'
 import { Route as PortalDocumentosRouteImport } from './routes/portal.documentos'
 import { Route as PortalDadosRouteImport } from './routes/portal.dados'
+import { Route as PortalAvisosRouteImport } from './routes/portal.avisos'
 import { Route as PortalAjudaRouteImport } from './routes/portal.ajuda'
 import { Route as AdminUsuariosRouteImport } from './routes/_admin.usuarios'
 import { Route as AdminTurmasRouteImport } from './routes/_admin.turmas'
@@ -90,6 +91,11 @@ const PortalDocumentosRoute = PortalDocumentosRouteImport.update({
 const PortalDadosRoute = PortalDadosRouteImport.update({
   id: '/dados',
   path: '/dados',
+  getParentRoute: () => PortalRoute,
+} as any)
+const PortalAvisosRoute = PortalAvisosRouteImport.update({
+  id: '/avisos',
+  path: '/avisos',
   getParentRoute: () => PortalRoute,
 } as any)
 const PortalAjudaRoute = PortalAjudaRouteImport.update({
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/turmas': typeof AdminTurmasRoute
   '/usuarios': typeof AdminUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
+  '/portal/avisos': typeof PortalAvisosRoute
   '/portal/dados': typeof PortalDadosRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByTo {
   '/turmas': typeof AdminTurmasRoute
   '/usuarios': typeof AdminUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
+  '/portal/avisos': typeof PortalAvisosRoute
   '/portal/dados': typeof PortalDadosRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/_admin/turmas': typeof AdminTurmasRoute
   '/_admin/usuarios': typeof AdminUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
+  '/portal/avisos': typeof PortalAvisosRoute
   '/portal/dados': typeof PortalDadosRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
@@ -243,6 +252,7 @@ export interface FileRouteTypes {
     | '/turmas'
     | '/usuarios'
     | '/portal/ajuda'
+    | '/portal/avisos'
     | '/portal/dados'
     | '/portal/documentos'
     | '/portal/inicio'
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/turmas'
     | '/usuarios'
     | '/portal/ajuda'
+    | '/portal/avisos'
     | '/portal/dados'
     | '/portal/documentos'
     | '/portal/inicio'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/_admin/turmas'
     | '/_admin/usuarios'
     | '/portal/ajuda'
+    | '/portal/avisos'
     | '/portal/dados'
     | '/portal/documentos'
     | '/portal/inicio'
@@ -393,6 +405,13 @@ declare module '@tanstack/react-router' {
       path: '/dados'
       fullPath: '/portal/dados'
       preLoaderRoute: typeof PortalDadosRouteImport
+      parentRoute: typeof PortalRoute
+    }
+    '/portal/avisos': {
+      id: '/portal/avisos'
+      path: '/avisos'
+      fullPath: '/portal/avisos'
+      preLoaderRoute: typeof PortalAvisosRouteImport
       parentRoute: typeof PortalRoute
     }
     '/portal/ajuda': {
@@ -505,6 +524,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface PortalRouteChildren {
   PortalAjudaRoute: typeof PortalAjudaRoute
+  PortalAvisosRoute: typeof PortalAvisosRoute
   PortalDadosRoute: typeof PortalDadosRoute
   PortalDocumentosRoute: typeof PortalDocumentosRoute
   PortalInicioRoute: typeof PortalInicioRoute
@@ -513,6 +533,7 @@ interface PortalRouteChildren {
 
 const PortalRouteChildren: PortalRouteChildren = {
   PortalAjudaRoute: PortalAjudaRoute,
+  PortalAvisosRoute: PortalAvisosRoute,
   PortalDadosRoute: PortalDadosRoute,
   PortalDocumentosRoute: PortalDocumentosRoute,
   PortalInicioRoute: PortalInicioRoute,

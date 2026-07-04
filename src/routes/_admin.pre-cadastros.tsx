@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -27,6 +28,13 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -38,6 +46,7 @@ import {
   Hourglass,
   MinusCircle,
   MoreHorizontal,
+  Plus,
   RefreshCw,
   Search,
   Trash2,
@@ -47,24 +56,26 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_admin/pre-cadastros")({
-  head: () => ({ meta: [{ title: "Pré-cadastros" }] }),
-  component: PreCadastrosAdmin,
+  head: () => ({ meta: [{ title: "Lista de Espera" }] }),
+  component: ListaEsperaAdmin,
 });
 
-type StatusPreCadastro =
+type Modalidade = "Natação Infantil" | "Natação Adulta" | "Hidroginástica";
+
+type StatusListaEspera =
   | "pendente"
   | "aprovado"
   | "fila de espera"
   | "recusado"
   | "inativo";
 
-type PreCadastro = {
+type ItemListaEspera = {
   id: string;
   nome_aluno: string;
   nascimento: string;
   idade: number;
   modalidade: string;
-  turno: string;
+  turno: string | null;
   horario_interesse: string | null;
   escola_turma: string | null;
   observacoes: string | null;
@@ -72,7 +83,7 @@ type PreCadastro = {
   telefone: string | null;
   whatsapp: string;
   email: string | null;
-  status: StatusPreCadastro;
+  status: StatusListaEspera;
   criado_em: string;
   created_at: string;
 };
@@ -89,13 +100,37 @@ type Turma = {
   ativa: boolean;
 };
 
-const statusStyle: Record<StatusPreCadastro, string> = {
+const SEM_TURMA = "__sem_turma__";
+
+const modalidades: Modalidade[] = [
+  "Natação Infantil",
+  "Natação Adulta",
+  "Hidroginástica",
+];
+
+const statusStyle: Record<StatusListaEspera, string> = {
   pendente: "border border-yellow-300 bg-yellow-50 text-yellow-800",
   aprovado: "border border-green-300 bg-green-50 text-green-700",
   "fila de espera": "border border-blue-300 bg-blue-50 text-blue-700",
   recusado: "border border-red-300 bg-red-50 text-red-700",
   inativo: "border border-muted bg-muted text-muted-foreground",
 };
+
+function calcIdade(nascimento: string) {
+  if (!nascimento) return 0;
+  const dataNascimento = new Date(nascimento);
+  const hoje = new Date();
+  let idade = hoje.getFullYear() - dataNascimento.getFullYear();
+  const diferencaMes = hoje.getMonth() - dataNascimento.getMonth();
+  if (diferencaMes < 0 || (diferencaMes === 0 && hoje.getDate() < dataNascimento.getDate())) {
+    idade -= 1;
+  }
+  return Math.max(0, idade);
+}
+
+function somenteNumeros(valor: string) {
+  return valor.replace(/\D/g, "").slice(0, 11);
+}
 
 function formatarTelefone(numero?: string | null) {
   if (!numero) return "—";
@@ -163,20 +198,31 @@ function textoTurma(turma: Turma) {
   );
 }
 
-function encontrarTurmaDoPreCadastro(pre: PreCadastro, turmas: Turma[]) {
-  const modalidadePre = normalizarTexto(pre.modalidade);
-  const textoPre = normalizarTexto(`${pre.horario_interesse ?? ""} ${pre.turno ?? ""}`);
-  const horaPre = extrairHora(pre.horario_interesse || pre.turno);
+function labelTurma(turma: Turma) {
+  const horario =
+    turma.horario_inicio && turma.horario_fim
+      ? `${turma.horario_inicio.slice(0, 5)} às ${turma.horario_fim.slice(0, 5)}`
+      : turma.horario_inicio
+        ? turma.horario_inicio.slice(0, 5)
+        : "horário não informado";
+  const dia = turma.dia_semana ? `${turma.dia_semana} — ` : "";
+  return `${turma.nome} (${dia}${horario})`;
+}
+
+function encontrarTurmaDoItem(item: ItemListaEspera, turmas: Turma[]) {
+  const modalidadeItem = normalizarTexto(item.modalidade);
+  const textoItem = normalizarTexto(`${item.horario_interesse ?? ""} ${item.turno ?? ""}`);
+  const horaItem = extrairHora(item.horario_interesse || item.turno);
 
   const turmasDaModalidade = turmas.filter(
-    (turma) => turma.ativa && normalizarTexto(turma.modalidade) === modalidadePre,
+    (turma) => turma.ativa && normalizarTexto(turma.modalidade) === modalidadeItem,
   );
 
   if (turmasDaModalidade.length === 0) return null;
 
-  if (horaPre) {
+  if (horaItem) {
     const porHora = turmasDaModalidade.filter(
-      (turma) => turma.horario_inicio?.slice(0, 5) === horaPre,
+      (turma) => turma.horario_inicio?.slice(0, 5) === horaItem,
     );
 
     if (porHora.length === 1) return porHora[0];
@@ -184,7 +230,7 @@ function encontrarTurmaDoPreCadastro(pre: PreCadastro, turmas: Turma[]) {
     if (porHora.length > 1) {
       const porTexto = porHora.find((turma) => {
         const texto = textoTurma(turma);
-        return textoPre.includes(texto) || texto.includes(textoPre);
+        return textoItem.includes(texto) || texto.includes(textoItem);
       });
 
       return porTexto ?? porHora[0];
@@ -193,7 +239,7 @@ function encontrarTurmaDoPreCadastro(pre: PreCadastro, turmas: Turma[]) {
 
   const porTexto = turmasDaModalidade.find((turma) => {
     const texto = textoTurma(turma);
-    return textoPre.includes(texto) || texto.includes(textoPre);
+    return textoItem.includes(texto) || texto.includes(textoItem);
   });
 
   return porTexto ?? null;
@@ -235,21 +281,23 @@ async function turmaTemVaga(turma: Turma, alunoIdIgnorado?: string) {
   return true;
 }
 
-function PreCadastrosAdmin() {
+function ListaEsperaAdmin() {
   const sessao = getSessao();
   const perfil = sessao?.perfil;
 
   const podeAnalisar = perfil === "Administrador" || perfil === "Recepção";
   const podeConverter = perfil === "Administrador" || perfil === "Recepção";
   const podeExcluir = perfil === "Administrador";
+  const podeAdicionar = perfil === "Administrador" || perfil === "Recepção";
   const apenasVisualiza = perfil === "Professor";
 
-  const [preCadastros, setPreCadastros] = useState<PreCadastro[]>([]);
+  const [itens, setItens] = useState<ItemListaEspera[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [q, setQ] = useState("");
-  const [filtro, setFiltro] = useState<"todos" | StatusPreCadastro>("todos");
+  const [filtro, setFiltro] = useState<"todos" | StatusListaEspera>("fila de espera");
   const [verId, setVerId] = useState<string | null>(null);
+  const [novoAberto, setNovoAberto] = useState(false);
 
   async function carregarTurmas() {
     const { data, error } = await supabase
@@ -269,24 +317,24 @@ function PreCadastrosAdmin() {
     setTurmas((data ?? []) as Turma[]);
   }
 
-  async function carregarPreCadastros() {
+  async function carregarListaEspera() {
     const { data, error } = await supabase
-      .from("pre_cadastros")
+      .from("lista_espera")
       .select("*")
       .order("created_at", { ascending: false });
 
     if (error) {
       console.error(error);
-      toast.error(`Erro ao carregar pré-cadastros: ${error.message}`);
+      toast.error(`Erro ao carregar lista de espera: ${error.message}`);
       return;
     }
 
-    setPreCadastros((data ?? []) as PreCadastro[]);
+    setItens((data ?? []) as ItemListaEspera[]);
   }
 
   async function carregarTudo() {
     setCarregando(true);
-    await Promise.all([carregarPreCadastros(), carregarTurmas()]);
+    await Promise.all([carregarListaEspera(), carregarTurmas()]);
     setCarregando(false);
   }
 
@@ -297,36 +345,36 @@ function PreCadastrosAdmin() {
   const filtrados = useMemo(() => {
     const busca = q.trim().toLowerCase();
 
-    return preCadastros.filter((pre) => {
-      const passaFiltro = filtro === "todos" || pre.status === filtro;
+    return itens.filter((item) => {
+      const passaFiltro = filtro === "todos" || item.status === filtro;
 
       const passaBusca =
         !busca ||
-        pre.nome_aluno.toLowerCase().includes(busca) ||
-        (pre.responsavel ?? "").toLowerCase().includes(busca) ||
-        pre.whatsapp.toLowerCase().includes(busca) ||
-        (pre.telefone ?? "").toLowerCase().includes(busca) ||
-        (pre.email ?? "").toLowerCase().includes(busca);
+        item.nome_aluno.toLowerCase().includes(busca) ||
+        (item.responsavel ?? "").toLowerCase().includes(busca) ||
+        item.whatsapp.toLowerCase().includes(busca) ||
+        (item.telefone ?? "").toLowerCase().includes(busca) ||
+        (item.email ?? "").toLowerCase().includes(busca);
 
       return passaFiltro && passaBusca;
     });
-  }, [preCadastros, q, filtro]);
+  }, [itens, q, filtro]);
 
-  const verItem = preCadastros.find((pre) => pre.id === verId);
+  const verItem = itens.find((item) => item.id === verId);
   const dadosEscolares = separarEscolaTurma(verItem?.escola_turma);
 
   async function atualizarStatus(
     id: string,
-    status: StatusPreCadastro,
+    status: StatusListaEspera,
     mensagem: string,
   ) {
     if (!podeAnalisar) {
-      toast.error("Seu perfil não tem permissão para alterar pré-cadastros.");
+      toast.error("Seu perfil não tem permissão para alterar a lista de espera.");
       return false;
     }
 
     const { error } = await supabase
-      .from("pre_cadastros")
+      .from("lista_espera")
       .update({ status })
       .eq("id", id);
 
@@ -336,8 +384,8 @@ function PreCadastrosAdmin() {
       return false;
     }
 
-    setPreCadastros((lista) =>
-      lista.map((pre) => (pre.id === id ? { ...pre, status } : pre)),
+    setItens((lista) =>
+      lista.map((item) => (item.id === id ? { ...item, status } : item)),
     );
 
     toast.success(mensagem);
@@ -382,30 +430,30 @@ function PreCadastrosAdmin() {
     return true;
   }
 
-  async function converterEmAluno(pre: PreCadastro) {
+  async function converterEmAluno(item: ItemListaEspera) {
     if (!podeConverter) {
-      toast.error("Seu perfil não tem permissão para converter pré-cadastros.");
+      toast.error("Seu perfil não tem permissão para converter itens da lista de espera.");
       return;
     }
 
-    if (pre.status === "aprovado") {
-      toast.info("Este pré-cadastro já foi convertido ou aprovado.");
+    if (item.status === "aprovado") {
+      toast.info("Este item já foi convertido ou aprovado.");
       return;
     }
 
     const confirmado = window.confirm(
-      `Deseja converter "${pre.nome_aluno}" em aluno cadastrado?`,
+      `Deseja converter "${item.nome_aluno}" em aluno cadastrado?`,
     );
 
     if (!confirmado) return;
 
-    const turmaEncontrada = encontrarTurmaDoPreCadastro(pre, turmas);
+    const turmaEncontrada = encontrarTurmaDoItem(item, turmas);
 
     const { data: alunoExistente, error: buscaError } = await supabase
       .from("alunos")
       .select("id")
-      .eq("nome_completo", pre.nome_aluno)
-      .eq("nascimento", pre.nascimento)
+      .eq("nome_completo", item.nome_aluno)
+      .eq("nascimento", item.nascimento)
       .limit(1);
 
     if (buscaError) {
@@ -424,11 +472,11 @@ function PreCadastrosAdmin() {
       }
 
       await atualizarStatus(
-        pre.id,
+        item.id,
         "aprovado",
         turmaEncontrada
-          ? "Pré-cadastro aprovado e aluno existente vinculado à turma."
-          : "Pré-cadastro aprovado. Aluno já existia, mas nenhuma turma correspondente foi encontrada.",
+          ? "Convertido e aluno existente vinculado à turma."
+          : "Marcado como aprovado. Aluno já existia, mas nenhuma turma correspondente foi encontrada.",
       );
 
       return;
@@ -443,16 +491,16 @@ function PreCadastrosAdmin() {
     const { data: alunoCriado, error: alunoError } = await supabase
       .from("alunos")
       .insert({
-        nome_completo: pre.nome_aluno,
-        nascimento: pre.nascimento,
-        idade: pre.idade,
-        modalidade: pre.modalidade,
+        nome_completo: item.nome_aluno,
+        nascimento: item.nascimento,
+        idade: item.idade,
+        modalidade: item.modalidade,
         turma: turmaEncontrada?.nome ?? null,
-        responsavel: pre.responsavel,
-        telefone: pre.telefone,
-        whatsapp: pre.whatsapp,
-        email: pre.email,
-        observacoes: pre.observacoes,
+        responsavel: item.responsavel,
+        telefone: item.telefone,
+        whatsapp: item.whatsapp,
+        email: item.email,
+        observacoes: item.observacoes,
         ativo: true,
       })
       .select("id")
@@ -471,7 +519,7 @@ function PreCadastrosAdmin() {
     }
 
     await atualizarStatus(
-      pre.id,
+      item.id,
       "aprovado",
       turmaEncontrada
         ? "Aluno cadastrado e vinculado à turma escolhida."
@@ -479,38 +527,38 @@ function PreCadastrosAdmin() {
     );
   }
 
-  async function excluirPreCadastro(id: string) {
+  async function excluirItem(id: string) {
     if (!podeExcluir) {
-      toast.error("Apenas a Administração pode excluir pré-cadastros.");
+      toast.error("Apenas a Administração pode excluir itens da lista de espera.");
       return;
     }
 
     const confirmado = window.confirm(
-      "Tem certeza que deseja excluir este pré-cadastro? Essa ação não poderá ser desfeita.",
+      "Tem certeza que deseja excluir este item da lista de espera? Essa ação não poderá ser desfeita.",
     );
 
     if (!confirmado) return;
 
-    const { error } = await supabase.from("pre_cadastros").delete().eq("id", id);
+    const { error } = await supabase.from("lista_espera").delete().eq("id", id);
 
     if (error) {
       console.error(error);
-      toast.error(`Não foi possível excluir o pré-cadastro: ${error.message}`);
+      toast.error(`Não foi possível excluir: ${error.message}`);
       return;
     }
 
-    setPreCadastros((lista) => lista.filter((pre) => pre.id !== id));
+    setItens((lista) => lista.filter((item) => item.id !== id));
     setVerId(null);
-    toast.success("Pré-cadastro excluído.");
+    toast.success("Removido da lista de espera.");
   }
 
-  const filtros: Array<{ k: "todos" | StatusPreCadastro; label: string }> = [
+  const filtros: Array<{ k: "todos" | StatusListaEspera; label: string }> = [
     { k: "todos", label: "Todos" },
-    { k: "pendente", label: "Pendentes" },
-    { k: "aprovado", label: "Aprovados" },
-    { k: "fila de espera", label: "Fila de espera" },
+    { k: "fila de espera", label: "Aguardando" },
+    { k: "aprovado", label: "Convertidos" },
     { k: "recusado", label: "Recusados" },
     { k: "inativo", label: "Inativos" },
+    { k: "pendente", label: "Pendentes (antigos)" },
   ];
 
   return (
@@ -519,31 +567,40 @@ function PreCadastrosAdmin() {
         <CardHeader>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <CardTitle>Pré-cadastros recebidos</CardTitle>
+              <CardTitle>Lista de espera</CardTitle>
               <CardDescription>
                 {apenasVisualiza
-                  ? "Visualização das solicitações recebidas pelo sistema."
-                  : "Aprovar, converter, encaminhar para fila ou recusar solicitações."}
+                  ? "Visualização de quem está aguardando vaga."
+                  : "Cadastre manualmente quem está aguardando vaga e acompanhe a fila por modalidade."}
               </CardDescription>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={carregarTudo}
-              disabled={carregando}
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Atualizar
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={carregarTudo}
+                disabled={carregando}
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Atualizar
+              </Button>
+
+              {podeAdicionar && (
+                <Button type="button" size="sm" onClick={() => setNovoAberto(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Adicionar à lista
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
           {apenasVisualiza && (
             <div className="rounded-md border border-dashed border-border bg-accent/30 px-3 py-2 text-sm text-muted-foreground">
-              Perfil de professor: pré-cadastros disponíveis apenas para consulta.
+              Perfil de professor: lista de espera disponível apenas para consulta.
               Alterações são restritas à Administração e à Recepção.
             </div>
           )}
@@ -554,20 +611,20 @@ function PreCadastrosAdmin() {
               <Input
                 value={q}
                 onChange={(event) => setQ(event.target.value)}
-                placeholder="Buscar pré-cadastro"
+                placeholder="Buscar na lista de espera"
                 className="pl-9"
               />
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {filtros.map((item) => (
+              {filtros.map((f) => (
                 <Button
-                  key={item.k}
-                  variant={filtro === item.k ? "default" : "outline"}
+                  key={f.k}
+                  variant={filtro === f.k ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setFiltro(item.k)}
+                  onClick={() => setFiltro(f.k)}
                 >
-                  {item.label}
+                  {f.label}
                 </Button>
               ))}
             </div>
@@ -577,32 +634,32 @@ function PreCadastrosAdmin() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Aluno</TableHead>
+                  <TableHead>Nome</TableHead>
                   <TableHead>Modalidade</TableHead>
-                  <TableHead>Horário</TableHead>
+                  <TableHead>Horário de interesse</TableHead>
                   <TableHead>Contato</TableHead>
-                  <TableHead>Recebido</TableHead>
+                  <TableHead>Na lista desde</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {filtrados.map((pre) => (
-                  <TableRow key={pre.id}>
+                {filtrados.map((item) => (
+                  <TableRow key={item.id}>
                     <TableCell>
-                      <p className="font-medium">{pre.nome_aluno}</p>
-                      <p className="text-xs text-muted-foreground">{pre.idade} anos</p>
+                      <p className="font-medium">{item.nome_aluno}</p>
+                      <p className="text-xs text-muted-foreground">{item.idade} anos</p>
                     </TableCell>
 
-                    <TableCell>{pre.modalidade}</TableCell>
+                    <TableCell>{item.modalidade}</TableCell>
 
-                    <TableCell>{pre.horario_interesse || pre.turno}</TableCell>
+                    <TableCell>{item.horario_interesse || item.turno || "—"}</TableCell>
 
                     <TableCell>
-                      {pre.responsavel ? (
+                      {item.responsavel ? (
                         <p className="text-sm font-medium">
-                          Responsável: {pre.responsavel}
+                          Responsável: {item.responsavel}
                         </p>
                       ) : (
                         <p className="text-sm font-medium">
@@ -611,31 +668,31 @@ function PreCadastrosAdmin() {
                       )}
 
                       <p className="text-xs text-muted-foreground">
-                        WhatsApp: {formatarTelefone(pre.whatsapp)}
+                        WhatsApp: {formatarTelefone(item.whatsapp)}
                       </p>
 
-                      {pre.telefone && (
+                      {item.telefone && (
                         <p className="text-xs text-muted-foreground">
-                          Telefone: {formatarTelefone(pre.telefone)}
+                          Telefone: {formatarTelefone(item.telefone)}
                         </p>
                       )}
 
-                      {pre.email && (
+                      {item.email && (
                         <p className="break-all text-xs text-muted-foreground">
-                          E-mail: {pre.email}
+                          E-mail: {item.email}
                         </p>
                       )}
                     </TableCell>
 
                     <TableCell className="text-sm">
-                      {formatarData(pre.criado_em || pre.created_at)}
+                      {formatarData(item.criado_em || item.created_at)}
                     </TableCell>
 
                     <TableCell>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${statusStyle[pre.status]}`}
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${statusStyle[item.status]}`}
                       >
-                        {pre.status}
+                        {item.status}
                       </span>
                     </TableCell>
 
@@ -648,7 +705,7 @@ function PreCadastrosAdmin() {
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setVerId(pre.id)}>
+                          <DropdownMenuItem onClick={() => setVerId(item.id)}>
                             <EyeIcon className="mr-2 h-4 w-4" />
                             Visualizar
                           </DropdownMenuItem>
@@ -660,22 +717,22 @@ function PreCadastrosAdmin() {
                               <DropdownMenuItem
                                 onClick={() =>
                                   atualizarStatus(
-                                    pre.id,
+                                    item.id,
                                     "fila de espera",
-                                    "Encaminhado para fila de espera.",
+                                    "Marcado como aguardando na fila.",
                                   )
                                 }
                               >
                                 <Hourglass className="mr-2 h-4 w-4" />
-                                Colocar em fila
+                                Marcar como aguardando
                               </DropdownMenuItem>
 
                               <DropdownMenuItem
                                 onClick={() =>
                                   atualizarStatus(
-                                    pre.id,
+                                    item.id,
                                     "recusado",
-                                    "Pré-cadastro recusado.",
+                                    "Marcado como recusado.",
                                   )
                                 }
                               >
@@ -686,9 +743,9 @@ function PreCadastrosAdmin() {
                               <DropdownMenuItem
                                 onClick={() =>
                                   atualizarStatus(
-                                    pre.id,
+                                    item.id,
                                     "inativo",
-                                    "Pré-cadastro marcado como inativo.",
+                                    "Marcado como inativo.",
                                   )
                                 }
                               >
@@ -704,11 +761,11 @@ function PreCadastrosAdmin() {
 
                               <DropdownMenuItem
                                 className="text-green-700 focus:text-green-700"
-                                disabled={pre.status === "aprovado"}
-                                onClick={() => converterEmAluno(pre)}
+                                disabled={item.status === "aprovado"}
+                                onClick={() => converterEmAluno(item)}
                               >
                                 <UserCheck className="mr-2 h-4 w-4" />
-                                {pre.status === "aprovado"
+                                {item.status === "aprovado"
                                   ? "Aluno já convertido"
                                   : "Converter em aluno"}
                               </DropdownMenuItem>
@@ -721,7 +778,7 @@ function PreCadastrosAdmin() {
 
                               <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
-                                onClick={() => excluirPreCadastro(pre.id)}
+                                onClick={() => excluirItem(item.id)}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Excluir
@@ -741,8 +798,8 @@ function PreCadastrosAdmin() {
                       className="py-10 text-center text-sm text-muted-foreground"
                     >
                       {carregando
-                        ? "Carregando pré-cadastros..."
-                        : "Nenhum pré-cadastro encontrado."}
+                        ? "Carregando lista de espera..."
+                        : "Ninguém na lista de espera com esses filtros."}
                     </TableCell>
                   </TableRow>
                 )}
@@ -758,15 +815,15 @@ function PreCadastrosAdmin() {
             <>
               <SheetHeader>
                 <SheetTitle>{verItem.nome_aluno}</SheetTitle>
-                <SheetDescription>Detalhes do pré-cadastro</SheetDescription>
+                <SheetDescription>Detalhes da inscrição na lista de espera</SheetDescription>
               </SheetHeader>
 
               <div className="mt-6 space-y-4 px-4 text-sm">
-                <Section title="Dados do aluno">
+                <Section title="Dados">
                   <Row k="Nascimento" v={formatarData(verItem.nascimento)} />
                   <Row k="Idade" v={`${verItem.idade} anos`} />
                   <Row k="Modalidade" v={verItem.modalidade} />
-                  <Row k="Horário" v={verItem.horario_interesse || verItem.turno} />
+                  <Row k="Horário de interesse" v={verItem.horario_interesse || verItem.turno} />
 
                   {dadosEscolares?.escola && (
                     <Row k="Escola" v={dadosEscolares.escola} />
@@ -797,7 +854,7 @@ function PreCadastrosAdmin() {
 
                 <Section title="Situação">
                   <Row k="Status" v={verItem.status} />
-                  <Row k="Recebido em" v={formatarData(verItem.criado_em)} />
+                  <Row k="Na lista desde" v={formatarData(verItem.criado_em || verItem.created_at)} />
                 </Section>
 
                 <Section title="Observações">
@@ -828,12 +885,12 @@ function PreCadastrosAdmin() {
                         atualizarStatus(
                           verItem.id,
                           "fila de espera",
-                          "Encaminhado para fila de espera.",
+                          "Marcado como aguardando na fila.",
                         )
                       }
                     >
                       <Hourglass className="mr-2 h-4 w-4" />
-                      Colocar em fila de espera
+                      Marcar como aguardando
                     </Button>
 
                     <Button
@@ -843,7 +900,7 @@ function PreCadastrosAdmin() {
                         atualizarStatus(
                           verItem.id,
                           "recusado",
-                          "Pré-cadastro recusado.",
+                          "Marcado como recusado.",
                         )
                       }
                     >
@@ -855,10 +912,10 @@ function PreCadastrosAdmin() {
                       <Button
                         type="button"
                         variant="destructive"
-                        onClick={() => excluirPreCadastro(verItem.id)}
+                        onClick={() => excluirItem(verItem.id)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        Excluir pré-cadastro
+                        Excluir da lista
                       </Button>
                     )}
                   </div>
@@ -868,7 +925,203 @@ function PreCadastrosAdmin() {
           )}
         </SheetContent>
       </Sheet>
+
+      {podeAdicionar && (
+        <NovoItemDialog
+          open={novoAberto}
+          onOpenChange={setNovoAberto}
+          onSaved={carregarTudo}
+          turmas={turmas}
+        />
+      )}
     </div>
+  );
+}
+
+function NovoItemDialog({
+  open,
+  onOpenChange,
+  onSaved,
+  turmas,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaved: () => void;
+  turmas: Turma[];
+}) {
+  const estadoInicial = {
+    nome_aluno: "",
+    nascimento: "",
+    modalidade: "Natação Infantil" as Modalidade,
+    turma_id: SEM_TURMA,
+    responsavel: "",
+    telefone: "",
+    whatsapp: "",
+    email: "",
+    observacoes: "",
+  };
+
+  const [f, setF] = useState(estadoInicial);
+  const [salvando, setSalvando] = useState(false);
+
+  useEffect(() => {
+    if (!open) setF(estadoInicial);
+  }, [open]);
+
+  const turmasFiltradas = turmas.filter((t) => t.ativa && t.modalidade === f.modalidade);
+
+  async function submit() {
+    if (!f.nome_aluno.trim()) { toast.error("Informe o nome completo."); return; }
+    if (!f.nascimento) { toast.error("Informe a data de nascimento."); return; }
+    if (!f.whatsapp.trim() || f.whatsapp.trim().length < 10) { toast.error("Informe um WhatsApp válido com DDD."); return; }
+
+    const turmaSelecionada = f.turma_id === SEM_TURMA ? null : turmas.find((t) => t.id === f.turma_id) ?? null;
+
+    setSalvando(true);
+
+    const { error } = await supabase.from("lista_espera").insert({
+      nome_aluno: f.nome_aluno.trim(),
+      nascimento: f.nascimento,
+      idade: calcIdade(f.nascimento),
+      modalidade: f.modalidade,
+      turno: null,
+      horario_interesse: turmaSelecionada ? labelTurma(turmaSelecionada) : null,
+      escola_turma: null,
+      responsavel: f.responsavel.trim() || null,
+      telefone: f.telefone.trim() || null,
+      whatsapp: f.whatsapp.trim(),
+      email: f.email.trim() || null,
+      observacoes: f.observacoes.trim() || null,
+      status: "fila de espera",
+    });
+
+    setSalvando(false);
+
+    if (error) {
+      console.error(error);
+      toast.error(`Não foi possível adicionar à lista de espera: ${error.message}`);
+      return;
+    }
+
+    toast.success("Adicionado à lista de espera.");
+    onOpenChange(false);
+    onSaved();
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Adicionar à lista de espera</DialogTitle>
+          <DialogDescription>
+            Use quando não houver vaga disponível no momento do contato. Assim que abrir vaga, encontre a pessoa aqui pelo filtro "Aguardando".
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4">
+          <Campo label="Nome completo">
+            <Input
+              value={f.nome_aluno}
+              onChange={(e) => setF((a) => ({ ...a, nome_aluno: e.target.value }))}
+              placeholder="Nome do interessado"
+              disabled={salvando}
+            />
+          </Campo>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Campo label="Data de nascimento">
+              <Input
+                type="date"
+                value={f.nascimento}
+                onChange={(e) => setF((a) => ({ ...a, nascimento: e.target.value }))}
+                disabled={salvando}
+              />
+            </Campo>
+            <Campo label="Modalidade">
+              <select
+                value={f.modalidade}
+                onChange={(e) => setF((a) => ({ ...a, modalidade: e.target.value as Modalidade, turma_id: SEM_TURMA }))}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                disabled={salvando}
+              >
+                {modalidades.map((m) => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </Campo>
+          </div>
+
+          <Campo label="Turma de interesse (opcional)">
+            <select
+              value={f.turma_id}
+              onChange={(e) => setF((a) => ({ ...a, turma_id: e.target.value }))}
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              disabled={salvando}
+            >
+              <option value={SEM_TURMA}>Sem preferência específica</option>
+              {turmasFiltradas.map((t) => <option key={t.id} value={t.id}>{labelTurma(t)}</option>)}
+            </select>
+          </Campo>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Campo label="Responsável (se menor de idade)">
+              <Input
+                value={f.responsavel}
+                onChange={(e) => setF((a) => ({ ...a, responsavel: e.target.value }))}
+                placeholder="Opcional"
+                disabled={salvando}
+              />
+            </Campo>
+            <Campo label="WhatsApp">
+              <Input
+                value={f.whatsapp}
+                onChange={(e) => setF((a) => ({ ...a, whatsapp: somenteNumeros(e.target.value) }))}
+                placeholder="DDD + número"
+                maxLength={11}
+                disabled={salvando}
+              />
+            </Campo>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Campo label="Telefone (opcional)">
+              <Input
+                value={f.telefone}
+                onChange={(e) => setF((a) => ({ ...a, telefone: somenteNumeros(e.target.value) }))}
+                placeholder="Opcional"
+                maxLength={11}
+                disabled={salvando}
+              />
+            </Campo>
+            <Campo label="E-mail (opcional)">
+              <Input
+                type="email"
+                value={f.email}
+                onChange={(e) => setF((a) => ({ ...a, email: e.target.value }))}
+                placeholder="Opcional"
+                disabled={salvando}
+              />
+            </Campo>
+          </div>
+
+          <Campo label="Observações">
+            <Textarea
+              value={f.observacoes}
+              onChange={(e) => setF((a) => ({ ...a, observacoes: e.target.value }))}
+              placeholder="Qualquer informação relevante pra quando a vaga abrir"
+              disabled={salvando}
+            />
+          </Campo>
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={salvando}>
+              Cancelar
+            </Button>
+            <Button type="button" onClick={submit} disabled={salvando}>
+              {salvando ? "Salvando..." : "Adicionar à lista"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -899,5 +1152,14 @@ function Row({
       <span className="text-muted-foreground">{k}</span>
       <span className="text-right font-medium">{v || "—"}</span>
     </div>
+  );
+}
+
+function Campo({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="grid gap-1.5 text-sm">
+      <span className="font-medium">{label}</span>
+      {children}
+    </label>
   );
 }

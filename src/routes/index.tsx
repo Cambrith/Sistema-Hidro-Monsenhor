@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PublicLayout } from "@/components/public-layout";
 import { Button } from "@/components/ui/button";
-import { AvisoMensagemHtml, textoPlanoAviso } from "@/lib/sanitizar-aviso";
+import { AvisoMensagemHtml } from "@/lib/sanitizar-aviso";
 import {
   Card,
   CardContent,
@@ -55,6 +55,7 @@ type Aviso = {
   id: string;
   titulo: string;
   mensagem: string;
+  resumo: string | null;
   data: string;
   importante: boolean;
   publico: boolean;
@@ -470,7 +471,12 @@ function Home() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="line-clamp-4 text-sm leading-relaxed text-muted-foreground">{textoPlanoAviso(aviso.mensagem)}</p>
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {aviso.resumo?.trim() ||
+                        (aviso.importante
+                          ? "Comunicado importante — toque para conferir todos os detalhes."
+                          : "Toque para conferir todos os detalhes deste comunicado.")}
+                    </p>
                     <p className="mt-4 inline-flex items-center text-sm font-medium text-primary">
                       Ler aviso completo
                       <ArrowRight className="ml-1 h-3.5 w-3.5 opacity-70 transition-transform group-hover:translate-x-0.5" />

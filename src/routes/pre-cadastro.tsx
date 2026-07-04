@@ -58,7 +58,7 @@ const atendimento = [
 const passos = [
   {
     numero: "1",
-    titulo: "Ligue antes para confirmar vagas",
+    titulo: "Contate antes para confirmar vagas",
     descricao:
       "Antes de se deslocar, entre em contato com a secretaria para verificar se há vaga disponível para a modalidade e horário que você deseja.",
   },

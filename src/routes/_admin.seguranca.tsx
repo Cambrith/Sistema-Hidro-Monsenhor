@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import {
   Card,
@@ -26,6 +26,9 @@ import {
   AlertTriangle,
   LockKeyhole,
   FileDown,
+  RefreshCw,
+  CalendarDays,
+  Hourglass,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -95,13 +98,42 @@ const tabelasBackup = [
   "alunos",
   "turmas",
   "alunos_turmas",
-  "pre_cadastros",
+  "lista_espera",
   "avisos",
   "chamadas",
   "presencas",
+  "documentos_aluno",
+  "ocorrencias_alunos",
 ] as const;
 
 type TabelaBackup = (typeof tabelasBackup)[number];
+
+const labelTabela: Record<TabelaBackup, string> = {
+  alunos: "Alunos",
+  turmas: "Turmas",
+  alunos_turmas: "Vínculos aluno–turma",
+  lista_espera: "Lista de espera",
+  avisos: "Avisos",
+  chamadas: "Chamadas (registro de aula)",
+  presencas: "Presenças",
+  documentos_aluno: "Documentos enviados",
+  ocorrencias_alunos: "Ocorrências de alunos",
+};
+
+// Botões de acesso rápido pras tabelas mais usadas no dia a dia.
+// As demais ficam no seletor "Exportar outra tabela", pra não virar
+// uma parede de botões conforme o banco cresce.
+const tabelasAcessoRapido: TabelaBackup[] = ["alunos", "turmas", "presencas"];
+const tabelasSecundarias: TabelaBackup[] = tabelasBackup.filter(
+  (t) => !tabelasAcessoRapido.includes(t),
+);
+
+type ResumoContagem = {
+  alunosAtivos: number | null;
+  turmasAtivas: number | null;
+  documentosPendentes: number | null;
+  naListaDeEspera: number | null;
+};
 
 function badgeClass(tone: IndicadorTone) {
   if (tone === "warn") {
@@ -142,6 +174,29 @@ async function buscarTabela(nomeTabela: TabelaBackup) {
   return data ?? [];
 }
 
+async function carregarResumo(): Promise<ResumoContagem> {
+  const [alunosAtivos, turmasAtivas, documentosPendentes, naListaDeEspera] =
+    await Promise.all([
+      supabase.from("alunos").select("id", { count: "exact", head: true }).eq("ativo", true),
+      supabase.from("turmas").select("id", { count: "exact", head: true }).eq("ativa", true),
+      supabase
+        .from("documentos_aluno")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pendente"),
+      supabase
+        .from("lista_espera")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "fila de espera"),
+    ]);
+
+  return {
+    alunosAtivos: alunosAtivos.count ?? null,
+    turmasAtivas: turmasAtivas.count ?? null,
+    documentosPendentes: documentosPendentes.count ?? null,
+    naListaDeEspera: naListaDeEspera.count ?? null,
+  };
+}
+
 function imprimirPolitica() {
   const confirmado = window.confirm(
     "Deseja abrir a impressão da página? Na janela de impressão, você poderá escolher “Salvar como PDF”.",
@@ -169,20 +224,24 @@ function baixarRoteiroSql() {
 -- alunos
 -- turmas
 -- alunos_turmas
--- pre_cadastros
+-- lista_espera
 -- avisos
 -- chamadas
 -- presencas
+-- documentos_aluno
+-- ocorrencias_alunos
 
 -- Consultas de conferência:
 
 select count(*) as total_alunos from public.alunos;
 select count(*) as total_turmas from public.turmas;
 select count(*) as total_vinculos from public.alunos_turmas;
-select count(*) as total_pre_cadastros from public.pre_cadastros;
+select count(*) as total_lista_espera from public.lista_espera;
 select count(*) as total_avisos from public.avisos;
 select count(*) as total_chamadas from public.chamadas;
 select count(*) as total_presencas from public.presencas;
+select count(*) as total_documentos from public.documentos_aluno;
+select count(*) as total_ocorrencias from public.ocorrencias_alunos;
 
 -- Conferência de segurança:
 select public.meu_perfil();
@@ -208,10 +267,30 @@ function encerrarSessao() {
 
 function Seguranca() {
   const [exportando, setExportando] = useState(false);
+  const [tabelaSelecionada, setTabelaSelecionada] = useState<TabelaBackup>("lista_espera");
+  const [resumo, setResumo] = useState<ResumoContagem | null>(null);
+  const [carregandoResumo, setCarregandoResumo] = useState(true);
+
+  useEffect(() => {
+    atualizarResumo();
+  }, []);
+
+  async function atualizarResumo() {
+    setCarregandoResumo(true);
+    try {
+      const dados = await carregarResumo();
+      setResumo(dados);
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro ao carregar o resumo do banco.");
+    } finally {
+      setCarregandoResumo(false);
+    }
+  }
 
   async function exportarBackupGeral() {
     const confirmado = window.confirm(
-      "Deseja gerar um backup JSON das principais tabelas do sistema?",
+      "Deseja gerar um backup JSON com todas as tabelas principais do sistema?",
     );
 
     if (!confirmado) return;
@@ -223,10 +302,12 @@ function Seguranca() {
         alunos: [],
         turmas: [],
         alunos_turmas: [],
-        pre_cadastros: [],
+        lista_espera: [],
         avisos: [],
         chamadas: [],
         presencas: [],
+        documentos_aluno: [],
+        ocorrencias_alunos: [],
       };
 
       for (const tabela of tabelasBackup) {
@@ -265,7 +346,7 @@ function Seguranca() {
 
   async function exportarTabela(nomeTabela: TabelaBackup) {
     const confirmado = window.confirm(
-      `Deseja exportar os dados da tabela "${nomeTabela}" em JSON?`,
+      `Deseja exportar os dados da tabela "${labelTabela[nomeTabela]}" em JSON?`,
     );
 
     if (!confirmado) return;
@@ -289,12 +370,12 @@ function Seguranca() {
         ),
       );
 
-      toast.success(`Tabela ${nomeTabela} exportada.`);
+      toast.success(`Tabela "${labelTabela[nomeTabela]}" exportada.`);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Erro desconhecido.";
 
-      toast.error(`Erro ao exportar ${nomeTabela}.`, {
+      toast.error(`Erro ao exportar ${labelTabela[nomeTabela]}.`, {
         description: message,
       });
     } finally {
@@ -350,6 +431,60 @@ function Seguranca() {
 
       <Card className="print:hidden">
         <CardHeader>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Server className="h-5 w-5 text-primary" />
+                Resumo do banco
+              </CardTitle>
+              <CardDescription>
+                Números em tempo real, direto do Supabase.
+              </CardDescription>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={atualizarResumo}
+              disabled={carregandoResumo}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Atualizar
+            </Button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <ResumoCard
+            icon={Users}
+            label="Alunos ativos"
+            valor={resumo?.alunosAtivos}
+            carregando={carregandoResumo}
+          />
+          <ResumoCard
+            icon={CalendarDays}
+            label="Turmas ativas"
+            valor={resumo?.turmasAtivas}
+            carregando={carregandoResumo}
+          />
+          <ResumoCard
+            icon={FileText}
+            label="Documentos pendentes"
+            valor={resumo?.documentosPendentes}
+            carregando={carregandoResumo}
+            tone={resumo?.documentosPendentes ? "warn" : "ok"}
+          />
+          <ResumoCard
+            icon={Hourglass}
+            label="Na lista de espera"
+            valor={resumo?.naListaDeEspera}
+            carregando={carregandoResumo}
+          />
+        </CardContent>
+      </Card>
+
+      <Card className="print:hidden">
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardCheck className="h-5 w-5 text-primary" />
             Ações administrativas
@@ -387,35 +522,18 @@ function Seguranca() {
               Backup geral JSON
             </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => exportarTabela("alunos")}
-              disabled={exportando}
-            >
-              <DownloadCloud className="mr-2 h-4 w-4" />
-              Exportar alunos
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => exportarTabela("turmas")}
-              disabled={exportando}
-            >
-              <DownloadCloud className="mr-2 h-4 w-4" />
-              Exportar turmas
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => exportarTabela("presencas")}
-              disabled={exportando}
-            >
-              <DownloadCloud className="mr-2 h-4 w-4" />
-              Exportar presenças
-            </Button>
+            {tabelasAcessoRapido.map((tabela) => (
+              <Button
+                key={tabela}
+                type="button"
+                variant="outline"
+                onClick={() => exportarTabela(tabela)}
+                disabled={exportando}
+              >
+                <DownloadCloud className="mr-2 h-4 w-4" />
+                Exportar {labelTabela[tabela].toLowerCase()}
+              </Button>
+            ))}
 
             <Button
               type="button"
@@ -436,6 +554,38 @@ function Seguranca() {
               <LogOut className="mr-2 h-4 w-4" />
               Encerrar sessão
             </Button>
+          </div>
+
+          <div className="flex flex-col gap-2 rounded-lg border border-border p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium">Exportar outra tabela</p>
+              <p className="text-xs text-muted-foreground">
+                Vínculos, lista de espera, avisos, chamadas, documentos ou ocorrências.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={tabelaSelecionada}
+                onChange={(e) => setTabelaSelecionada(e.target.value as TabelaBackup)}
+                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                disabled={exportando}
+              >
+                {tabelasSecundarias.map((tabela) => (
+                  <option key={tabela} value={tabela}>
+                    {labelTabela[tabela]}
+                  </option>
+                ))}
+              </select>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => exportarTabela(tabelaSelecionada)}
+                disabled={exportando}
+              >
+                <DownloadCloud className="mr-2 h-4 w-4" />
+                Exportar
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -459,8 +609,9 @@ function Seguranca() {
           </p>
 
           <p>
-            2. As áreas de alunos, turmas, chamadas, presenças, avisos, relatórios
-            e segurança devem respeitar as permissões definidas para cada perfil;
+            2. As áreas de alunos, turmas, chamadas, presenças, avisos, documentos,
+            lista de espera, relatórios e segurança devem respeitar as permissões
+            definidas para cada perfil;
           </p>
 
           <p>
@@ -492,9 +643,9 @@ function Seguranca() {
           </p>
 
           <p>
-            2. Informações de pré-cadastro, alunos, presença, responsáveis e
-            registros administrativos devem permanecer restritas ao painel
-            interno;
+            2. Informações de lista de espera, alunos, presença, responsáveis,
+            documentos enviados e registros administrativos devem permanecer
+            restritas ao painel interno;
           </p>
 
           <p>
@@ -509,6 +660,43 @@ function Seguranca() {
           </p>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function ResumoCard({
+  icon: Icon,
+  label,
+  valor,
+  carregando,
+  tone = "ok",
+}: {
+  icon: LucideIcon;
+  label: string;
+  valor?: number | null;
+  carregando: boolean;
+  tone?: IndicadorTone;
+}) {
+  return (
+    <div className="rounded-xl border border-border p-4">
+      <div className="flex items-center justify-between gap-3">
+        <span className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-accent-foreground">
+          <Icon className="h-4 w-4" />
+        </span>
+        {tone === "warn" && typeof valor === "number" && valor > 0 && (
+          <Badge variant="outline" className={badgeClass("warn")}>
+            Atenção
+          </Badge>
+        )}
+      </div>
+      <p className="mt-3 text-2xl font-bold">
+        {carregando ? (
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        ) : (
+          valor ?? "—"
+        )}
+      </p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }

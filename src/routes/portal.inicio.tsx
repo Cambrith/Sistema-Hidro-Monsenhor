@@ -95,7 +95,7 @@ function PortalInicio() {
       .eq("aluno_id", sessao.id)
       .eq("ativo", true)
       .maybeSingle();
-    const turmaVinculo = (dt as { turmas: TurmaInfo[] | null } | null)?.turmas?.[0] ?? null;
+    const turmaVinculo = (dt as { turmas: TurmaInfo | null } | null)?.turmas ?? null;
     setTurmaInfo(turmaVinculo);
 
     setCarregando(false);

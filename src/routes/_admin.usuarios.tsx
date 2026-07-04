@@ -19,6 +19,7 @@ import {
   UserCog,
   CheckCircle2,
   MinusCircle,
+  AlertTriangle,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_admin/usuarios")({
@@ -31,12 +32,12 @@ export const Route = createFileRoute("/_admin/usuarios")({
 const perfis = [
   {
     nome: "Administrador",
-    desc: "Acesso completo ao sistema e às configurações internas.",
+    desc: "Acesso completo ao sistema, incluindo segurança, backup e gestão de usuários.",
     cor: "bg-primary text-primary-foreground",
   },
   {
     nome: "Recepção",
-    desc: "Gerenciamento de alunos, pré-cadastros, avisos e presença.",
+    desc: "Gerenciamento de alunos, turmas, lista de espera, documentos, avisos e presença.",
     cor: "bg-accent text-accent-foreground border border-border",
   },
   {
@@ -46,13 +47,16 @@ const perfis = [
   },
 ];
 
+// Mesma ordem do menu em admin-sidebar.tsx, pra ficar fácil comparar.
+// Os valores aqui refletem o que está em permissoesPorPerfil (lib/auth.ts).
 const matriz = [
   { recurso: "Painel administrativo", admin: true, recep: true, prof: true },
-  { recurso: "Pré-cadastros", admin: true, recep: true, prof: false },
   { recurso: "Alunos", admin: true, recep: true, prof: false },
   { recurso: "Turmas", admin: true, recep: true, prof: true },
   { recurso: "Presença", admin: true, recep: true, prof: true },
   { recurso: "Avisos", admin: true, recep: true, prof: false },
+  { recurso: "Documentos", admin: true, recep: true, prof: false },
+  { recurso: "Lista de Espera", admin: true, recep: true, prof: false },
   { recurso: "Relatórios", admin: true, recep: true, prof: false },
   { recurso: "Segurança e Backup", admin: true, recep: false, prof: false },
   { recurso: "Usuários e perfis", admin: true, recep: false, prof: false },
@@ -93,10 +97,7 @@ function Usuarios() {
 
         <CardContent className="grid gap-4 md:grid-cols-3">
           {perfis.map((p) => (
-            <div
-              key={p.nome}
-              className="rounded-xl border border-border p-4"
-            >
+            <div key={p.nome} className="rounded-xl border border-border p-4">
               <Badge className={p.cor}>{p.nome}</Badge>
 
               <p className="mt-3 text-sm leading-relaxed text-foreground/80">
@@ -121,27 +122,16 @@ function Usuarios() {
             <TableHeader>
               <TableRow>
                 <TableHead>Recurso</TableHead>
-
-                <TableHead className="text-center">
-                  Administrador
-                </TableHead>
-
-                <TableHead className="text-center">
-                  Recepção
-                </TableHead>
-
-                <TableHead className="text-center">
-                  Professor
-                </TableHead>
+                <TableHead className="text-center">Administrador</TableHead>
+                <TableHead className="text-center">Recepção</TableHead>
+                <TableHead className="text-center">Professor</TableHead>
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {matriz.map((r) => (
                 <TableRow key={r.recurso}>
-                  <TableCell className="font-medium">
-                    {r.recurso}
-                  </TableCell>
+                  <TableCell className="font-medium">{r.recurso}</TableCell>
 
                   <TableCell className="text-center">
                     {r.admin ? (
@@ -195,18 +185,12 @@ function Usuarios() {
             <TableBody>
               {equipe.map((e) => (
                 <TableRow key={e.usuario}>
-                  <TableCell className="font-medium">
-                    {e.nome}
-                  </TableCell>
-
+                  <TableCell className="font-medium">{e.nome}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {e.usuario}
                   </TableCell>
-
                   <TableCell>
-                    <Badge variant="outline">
-                      {e.perfil}
-                    </Badge>
+                    <Badge variant="outline">{e.perfil}</Badge>
                   </TableCell>
                 </TableRow>
               ))}

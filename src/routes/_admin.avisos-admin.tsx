@@ -45,6 +45,7 @@ import {
   Underline,
   List,
   ListOrdered,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -57,9 +58,11 @@ type Aviso = {
   id: string;
   titulo: string;
   mensagem: string;
+  resumo: string | null;
   data: string;
   importante: boolean;
   publico: boolean;
+  visivel_portal: boolean;
   ativo: boolean;
   created_at?: string;
 };
@@ -67,9 +70,11 @@ type Aviso = {
 type AvisoForm = {
   titulo: string;
   mensagem: string;
+  resumo: string;
   data: string;
   importante: boolean;
   publico: boolean;
+  visivel_portal: boolean;
 };
 
 function hojeISO() {
@@ -173,9 +178,11 @@ function formVazio(): AvisoForm {
   return {
     titulo: "",
     mensagem: "",
+    resumo: "",
     data: hojeISO(),
     importante: false,
     publico: true,
+    visivel_portal: true,
   };
 }
 
@@ -183,9 +190,11 @@ function avisoParaForm(aviso: Aviso): AvisoForm {
   return {
     titulo: aviso.titulo ?? "",
     mensagem: sanitizarHtmlAviso(aviso.mensagem ?? ""),
+    resumo: aviso.resumo ?? "",
     data: aviso.data ?? hojeISO(),
     importante: Boolean(aviso.importante),
     publico: Boolean(aviso.publico),
+    visivel_portal: Boolean(aviso.visivel_portal),
   };
 }
 
@@ -280,7 +289,11 @@ function AvisosAdmin() {
 
     const { error } = await supabase
       .from("avisos")
-      .update({ ativo, publico: ativo ? aviso.publico : false })
+      .update({
+        ativo,
+        publico: ativo ? aviso.publico : false,
+        visivel_portal: ativo ? aviso.visivel_portal : false,
+      })
       .eq("id", aviso.id);
 
     if (error) {
@@ -477,15 +490,24 @@ function AvisoCard({
               </Badge>
             )}
 
-            {ativo && aviso.publico ? (
+            {ativo && aviso.publico && (
               <Badge className="bg-primary text-primary-foreground">
                 <Eye className="mr-1 h-3 w-3" />
-                Público
+                Site público
               </Badge>
-            ) : (
+            )}
+
+            {ativo && aviso.visivel_portal && (
+              <Badge className="bg-blue-600 text-white hover:bg-blue-600">
+                <Users className="mr-1 h-3 w-3" />
+                Portal alunos
+              </Badge>
+            )}
+
+            {ativo && !aviso.publico && !aviso.visivel_portal && (
               <Badge variant="outline">
                 <EyeOff className="mr-1 h-3 w-3" />
-                Não público
+                Somente admin
               </Badge>
             )}
           </div>
@@ -506,9 +528,9 @@ function AvisoCard({
           </p>
         )}
 
-        {ativo && !aviso.publico && (
+        {ativo && !aviso.publico && !aviso.visivel_portal && (
           <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-            Este aviso é interno e não aparece na página pública de avisos.
+            Este aviso é interno: não aparece no site público nem no portal do aluno.
           </p>
         )}
 
@@ -601,9 +623,11 @@ function AvisoDialog({
     const payload = {
       titulo,
       mensagem: mensagemSanitizada,
+      resumo: form.resumo.trim() || null,
       data: form.data,
       importante: form.importante,
       publico: form.publico,
+      visivel_portal: form.visivel_portal,
     };
 
     if (aviso) {
@@ -675,7 +699,21 @@ function AvisoDialog({
             />
           </Fld>
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <Fld label="Resumo para o card (opcional)">
+            <Input
+              value={form.resumo}
+              onChange={(e) =>
+                setForm((atual) => ({ ...atual, resumo: e.target.value.slice(0, 140) }))
+              }
+              placeholder="Ex.: Piscina fechada para manutenção nos dias 10 e 11. Veja os detalhes."
+              maxLength={140}
+            />
+            <p className="text-xs text-muted-foreground">
+              {form.resumo.length}/140 caracteres. Aparece no card, antes do aluno clicar em "Ler aviso completo". Se deixar em branco, um texto padrão é usado.
+            </p>
+          </Fld>
+
+          <div className="grid gap-3 md:grid-cols-2">
             <Fld label="Data">
               <Input
                 type="date"
@@ -700,12 +738,14 @@ function AvisoDialog({
                 }
               />
             </div>
+          </div>
 
+          <div className="grid gap-3 md:grid-cols-2">
             <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
               <div>
-                <Label className="text-sm">Público</Label>
+                <Label className="text-sm">Site público</Label>
                 <p className="text-xs text-muted-foreground">
-                  Aparece na página pública.
+                  Aparece na aba de avisos do site institucional.
                 </p>
               </div>
               <Switch
@@ -715,11 +755,26 @@ function AvisoDialog({
                 }
               />
             </div>
+
+            <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+              <div>
+                <Label className="text-sm">Portal do aluno</Label>
+                <p className="text-xs text-muted-foreground">
+                  Aparece pros alunos logados no portal.
+                </p>
+              </div>
+              <Switch
+                checked={form.visivel_portal}
+                onCheckedChange={(valor) =>
+                  setForm((atual) => ({ ...atual, visivel_portal: valor }))
+                }
+              />
+            </div>
           </div>
 
-          {!form.publico && (
+          {!form.publico && !form.visivel_portal && (
             <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-              Avisos internos ficam visíveis apenas no painel administrativo.
+              Sem nenhuma das duas opções marcadas, este aviso fica visível só aqui no painel administrativo.
             </p>
           )}
         </div>
@@ -803,7 +858,7 @@ function RichTextEditor({
 
   function classesBotao(comando: string) {
     return formatosAtivos[comando]
-      ? "bg-blue-100 text-blue-600 hover:bg-blue-100 hover:text-blue-600"
+      ? "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground"
       : "";
   }
 

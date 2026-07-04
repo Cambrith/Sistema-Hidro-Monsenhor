@@ -44,58 +44,98 @@ export const Route = createFileRoute("/_admin")({
   component: AdminLayout,
 });
 
-const titles: Record<string, { title: string; sub?: string }> = {
-  "/painel": { title: "Painel", sub: "Visão geral do centro" },
-  "/pre-cadastros": {
-    title: "Pré-cadastros",
-    sub: "Solicitações recebidas pela equipe",
+// Fonte única de verdade: título exibido no topo + permissão exigida de
+// cada rota do admin. Antes isso vivia em dois objetos separados (títulos
+// e permissões) — foi exatamente por causa disso que "/pre-cadastros"
+// ficou meses mostrando o título "Pré-cadastros" mesmo depois de virar
+// Lista de Espera. Agora é um lugar só, difícil de esquecer de atualizar.
+type ConfigRotaAdmin = {
+  title: string;
+  sub?: string;
+  permissao?: Permissao;
+};
+
+const configRotasAdmin: Record<string, ConfigRotaAdmin> = {
+  "/painel": {
+    title: "Painel",
+    sub: "Visão geral do centro",
+    permissao: "painel",
   },
-  "/alunos": { title: "Alunos", sub: "Cadastro e gestão dos estudantes" },
-  "/turmas": { title: "Turmas", sub: "Organização das atividades" },
-  "/presenca": { title: "Presença", sub: "Controle digital de frequência" },
-  "/avisos-admin": { title: "Avisos", sub: "Comunicação com a comunidade" },
-  "/relatorios": { title: "Relatórios", sub: "Indicadores e exportações" },
+  "/pre-cadastros": {
+    title: "Lista de Espera",
+    sub: "Fila de espera por modalidade e turma",
+    // Confirmado em lib/auth.ts: Administrador e Recepção têm tanto
+    // "pre-cadastros" quanto "alunos", então nunca ficam dessincronizados
+    // na prática — mas continuam sendo permissões distintas, então se
+    // criar um perfil novo no futuro, dê as duas juntas.
+    permissao: "pre-cadastros",
+  },
+  "/documentos": {
+    title: "Documentos",
+    sub: "Atestados e documentos enviados pelos alunos",
+    // Antes esta rota não tinha entrada aqui = nenhuma checagem de
+    // permissão. Qualquer perfil logado (até Professor) conseguia entrar
+    // digitando a URL direto, mesmo sem o link aparecer no menu. Usei
+    // "alunos" pra bater com a permissão que já controla o link no menu.
+    permissao: "alunos",
+  },
+  "/alunos": {
+    title: "Alunos",
+    sub: "Cadastro e gestão dos estudantes",
+    permissao: "alunos",
+  },
+  "/turmas": {
+    title: "Turmas",
+    sub: "Organização das atividades",
+    permissao: "turmas",
+  },
+  "/presenca": {
+    title: "Presença",
+    sub: "Controle digital de frequência",
+    permissao: "presenca",
+  },
+  "/avisos-admin": {
+    title: "Avisos",
+    sub: "Comunicação com a comunidade",
+    permissao: "avisos",
+  },
+  "/relatorios": {
+    title: "Relatórios",
+    sub: "Indicadores e exportações",
+    permissao: "relatorios",
+  },
   "/seguranca": {
     title: "Segurança e Backup",
     sub: "Boas práticas e indicadores",
+    permissao: "seguranca",
   },
-  "/usuarios": { title: "Usuários e Perfis", sub: "Permissões da equipe" },
+  "/usuarios": {
+    title: "Usuários e Perfis",
+    sub: "Permissões da equipe",
+    permissao: "usuarios",
+  },
 };
 
-const permissoesRotas: Record<string, Permissao> = {
-  "/painel": "painel",
-  "/pre-cadastros": "pre-cadastros",
-  "/alunos": "alunos",
-  "/turmas": "turmas",
-  "/presenca": "presenca",
-  "/avisos-admin": "avisos",
-  "/relatorios": "relatorios",
-  "/seguranca": "seguranca",
-  "/usuarios": "usuarios",
-};
+function configDaRota(pathname: string): ConfigRotaAdmin | null {
+  if (configRotasAdmin[pathname]) return configRotasAdmin[pathname];
 
-function permissaoDaRota(pathname: string): Permissao | null {
-  const rotaExata = permissoesRotas[pathname];
-
-  if (rotaExata) return rotaExata;
-
-  const rotaEncontrada = Object.entries(permissoesRotas).find(([rota]) => {
+  const encontrada = Object.entries(configRotasAdmin).find(([rota]) => {
     return pathname === rota || pathname.startsWith(`${rota}/`);
   });
 
-  return rotaEncontrada?.[1] ?? null;
+  return encontrada?.[1] ?? null;
+}
+
+function permissaoDaRota(pathname: string): Permissao | null {
+  return configDaRota(pathname)?.permissao ?? null;
 }
 
 function getMeta(pathname: string) {
-  const metaExata = titles[pathname];
-
-  if (metaExata) return metaExata;
-
-  const metaEncontrada = Object.entries(titles).find(([rota]) => {
-    return pathname === rota || pathname.startsWith(`${rota}/`);
-  });
-
-  return metaEncontrada?.[1] ?? { title: "Painel administrativo" };
+  const config = configDaRota(pathname);
+  return {
+    title: config?.title ?? "Painel administrativo",
+    sub: config?.sub,
+  };
 }
 
 function perfilClassName(sessao: Sessao | null) {
