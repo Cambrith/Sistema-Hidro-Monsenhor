@@ -94,7 +94,7 @@ const infos = [
   },
   {
     title: "Troca de horário",
-    text: "A troca de turma é permitida a cada 3 meses, salvo exceções avaliadas pela secretaria. Para solicitar, compareça pessoalmente.",
+    text: "A troca de turma é permitida a cada 3 meses, salvo exceções avaliadas pela secretaria. Para solicitar, contate a secretaria.",
     icon: Clock,
   },
 ];

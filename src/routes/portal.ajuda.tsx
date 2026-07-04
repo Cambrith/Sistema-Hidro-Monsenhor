@@ -42,7 +42,7 @@ const regras = [
     icon: RefreshCw,
     titulo: "Troca de turma",
     texto:
-      "Pode ser solicitada à secretaria. Fale pelos canais de contato para verificar disponibilidade.",
+      "Pode ser solicitada à secretaria a cada 3 meses. Fale pelos canais de contato para verificar disponibilidade.",
   },
 ];
 
