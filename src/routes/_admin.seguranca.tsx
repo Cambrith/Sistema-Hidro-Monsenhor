@@ -563,11 +563,11 @@ function Seguranca() {
                 Vínculos, lista de espera, avisos, chamadas, documentos ou ocorrências.
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <select
                 value={tabelaSelecionada}
                 onChange={(e) => setTabelaSelecionada(e.target.value as TabelaBackup)}
-                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm sm:w-auto"
                 disabled={exportando}
               >
                 {tabelasSecundarias.map((tabela) => (
@@ -581,6 +581,7 @@ function Seguranca() {
                 variant="outline"
                 onClick={() => exportarTabela(tabelaSelecionada)}
                 disabled={exportando}
+                className="w-full sm:w-auto"
               >
                 <DownloadCloud className="mr-2 h-4 w-4" />
                 Exportar

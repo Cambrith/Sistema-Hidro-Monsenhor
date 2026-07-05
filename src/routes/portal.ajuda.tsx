@@ -1,50 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  AlertTriangle,
-  Clock,
-  ExternalLink,
-  FileText,
-  HelpCircle,
-  RefreshCw,
-  ShieldCheck,
-} from "lucide-react";
+import { ExternalLink, HelpCircle, ShieldCheck } from "lucide-react";
+import { regrasCentro } from "@/lib/regras-centro";
 
 export const Route = createFileRoute("/portal/ajuda")({
   head: () => ({ meta: [{ title: "Dúvidas – Portal do Aluno" }] }),
   component: PortalAjuda,
 });
-
-const regras = [
-  {
-    icon: AlertTriangle,
-    titulo: "Faltas",
-    texto:
-      "4 ou mais faltas sem justificativa no mês anulam a vaga. Até 3 faltas não justificadas ainda mantém você ativo.",
-  },
-  {
-    icon: FileText,
-    titulo: "Atestado médico e PAR-Q",
-    texto:
-      "Ambos devem ser renovados anualmente, no 1º dia letivo do ano. Envie pelo portal na aba Documentos.",
-  },
-  {
-    icon: ShieldCheck,
-    titulo: "Uniforme",
-    texto: "Touca azul-marinho ou preta. Sunga ou maiô da mesma cor.",
-  },
-  {
-    icon: Clock,
-    titulo: "Tolerância de atraso",
-    texto: "5 minutos após o horário de início da aula.",
-  },
-  {
-    icon: RefreshCw,
-    titulo: "Troca de turma",
-    texto:
-      "Pode ser solicitada à secretaria a cada 3 meses. Fale pelos canais de contato para verificar disponibilidade.",
-  },
-];
 
 const faq = [
   {
@@ -92,7 +54,7 @@ function PortalAjuda() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-2">
-            {regras.map((r) => {
+            {regrasCentro.map((r) => {
               const Icon = r.icon;
               return (
                 <div
@@ -105,6 +67,11 @@ function PortalAjuda() {
                   <div>
                     <p className="text-sm font-medium">{r.titulo}</p>
                     <p className="mt-0.5 text-sm text-muted-foreground">{r.texto}</p>
+                    {r.acaoPortal && (
+                      <p className="mt-1 text-sm font-medium text-primary">
+                        {r.acaoPortal}
+                      </p>
+                    )}
                   </div>
                 </div>
               );

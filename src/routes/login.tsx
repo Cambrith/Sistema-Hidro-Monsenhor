@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import {
   Card,
   CardContent,
@@ -9,14 +9,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { entrar } from "@/lib/auth";
+import { useState } from "react";
+import { entrar, getSessao } from "@/lib/auth";
 import { statusBloqueio, registrarTentativaFalha, limparTentativas } from "@/lib/rate-limit";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/logo-simbolo.png";
+// Proteção contra tentativas de força bruta no login.
+const MAX_TENTATIVAS_ADMIN = 5;
+const BLOQUEIO_ADMIN_MS = 15 * 60 * 1000; // 15 minutos
 
 export const Route = createFileRoute("/login")({
+  beforeLoad: () => {
+    if (typeof window === "undefined") return;
+    if (getSessao()) {
+      throw redirect({ to: "/painel" });
+    }
+  },
   head: () => ({
     meta: [
       { title: "Entrar no painel administrativo" },
@@ -30,14 +39,6 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-const USUARIO_KEY = "hidro-monsenhor-ultimo-usuario";
-
-// Painel admin: só 3 contas, mas com privilégio alto (Administrador chega
-// em segurança/backup) — por isso o bloqueio aqui é mais rígido que o do
-// portal do aluno.
-const MAX_TENTATIVAS_ADMIN = 5;
-const BLOQUEIO_ADMIN_MS = 15 * 60 * 1000;
-
 function LoginPage() {
   const nav = useNavigate();
 
@@ -45,14 +46,6 @@ function LoginPage() {
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [entrando, setEntrando] = useState(false);
-
-  useEffect(() => {
-    const ultimoUsuario = localStorage.getItem(USUARIO_KEY);
-
-    if (ultimoUsuario) {
-      setUsuario(ultimoUsuario);
-    }
-  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,8 +92,6 @@ function LoginPage() {
       }
 
       limparTentativas("admin");
-      localStorage.setItem(USUARIO_KEY, usuario.trim());
-
       toast.success(`Bem-vindo(a), ${sessao.perfil}.`);
 
       nav({ to: "/painel" });
@@ -151,11 +142,11 @@ function LoginPage() {
             </p>
 
             <h2 className="font-display text-4xl font-semibold leading-tight">
-              Organização interna para recepção, turmas e gestão.
+              Gestão completa do centro, em um só lugar.
             </h2>
 
             <p className="max-w-md text-sm leading-relaxed text-white/85">
-              Área de trabalho para acompanhamento de alunos, turmas, presença e avisos do centro.
+              Área de trabalho para alunos, turmas, presença, documentos, lista de espera, avisos e relatórios do centro.
             </p>
           </div>
 

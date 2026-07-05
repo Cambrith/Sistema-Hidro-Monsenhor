@@ -7,7 +7,7 @@ import logo from "@/assets/logo-simbolo.png";
 const nav = [
   { to: "/", label: "Início" },
   { to: "/avisos", label: "Avisos" },
-  { to: "/acesso-rapido", label: "Acesso Rápido" },
+  { to: "/acesso-rapido", label: "Dúvidas Frequentes" },
   { to: "/pre-cadastro", label: "Como se Inscrever" },
 ];
 
@@ -86,9 +86,9 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               <Link
                 to="/acesso"
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2 text-sm font-medium hover:bg-accent"
+                className="mt-1 self-start rounded-full bg-primary/80 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary"
               >
-                Minha conta
+                Minha Conta
               </Link>
             </div>
           </div>

@@ -1,6 +1,11 @@
 import { supabase } from "@/lib/supabase";
 
 const KEY = "hidro-monsenhor-session";
+const DURACAO_SESSAO_MS: Record<Perfil, number> = {
+  Administrador: 30 * 24 * 60 * 60 * 1000,
+  Recepção: 14 * 24 * 60 * 60 * 1000,
+  Professor: 60 * 24 * 60 * 60 * 1000,
+};
 
 export type Perfil = "Administrador" | "Recepção" | "Professor";
 
@@ -9,6 +14,7 @@ export type Sessao = {
   nome: string;
   email: string;
   perfil: Perfil;
+  expiresAt: number;
 };
 
 export type Permissao =
@@ -118,6 +124,11 @@ export function getSessao(): Sessao | null {
       return null;
     }
 
+    if (sessao.expiresAt && Date.now() > sessao.expiresAt) {
+      localStorage.removeItem(KEY);
+      return null;
+    }
+
     return sessao;
   } catch {
     localStorage.removeItem(KEY);
@@ -165,6 +176,7 @@ export async function entrar(
     nome: perfilData.nome,
     email,
     perfil: perfilData.perfil,
+    expiresAt: Date.now() + DURACAO_SESSAO_MS[perfilData.perfil],
   };
 
   localStorage.setItem(KEY, JSON.stringify(sessao));

@@ -34,6 +34,7 @@ import {
   Clock,
   UserCheck,
   FileText,
+  Hourglass,
   type LucideIcon,
 } from "lucide-react";
 
@@ -53,26 +54,6 @@ export const Route = createFileRoute("/_admin/painel")({
   }),
   component: Painel,
 });
-
-type Aviso = {
-  id: string;
-  titulo: string;
-  mensagem: string;
-  data: string;
-  importante: boolean;
-  publico: boolean;
-};
-
-type PreCadastro = {
-  id: string;
-  nome_aluno: string;
-  modalidade: string;
-  turno: string;
-  horario_interesse: string | null;
-  status: string;
-  criado_em: string;
-  created_at?: string | null;
-};
 
 type Aluno = {
   id: string;
@@ -110,7 +91,8 @@ type DashboardTo =
   | "/avisos-admin"
   | "/turmas"
   | "/presenca"
-  | "/relatorios";
+  | "/relatorios"
+  | "/documentos";
 
 type DashboardCard = {
   title: string;
@@ -179,7 +161,7 @@ function descricaoPainel(perfil?: string) {
   }
 
   if (perfil === "Recepção") {
-    return "Acompanhamento de pré-cadastros, alunos, turmas, avisos e presença.";
+    return "Acompanhamento de alunos, turmas, documentos, listas de espera, avisos e presença.";
   }
 
   if (perfil === "Professor") {
@@ -194,10 +176,6 @@ function normalizarTexto(valor?: string | null) {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
-}
-
-function statusIgual(status: string | null | undefined, esperado: string) {
-  return normalizarTexto(status) === normalizarTexto(esperado);
 }
 
 function mesDeData(data?: string | null) {
@@ -307,13 +285,16 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
   const percentual = (vagasOcupadas / totalVagas) * 100;
 
   return Math.max(1, Math.min(100, percentual));
-} function Painel() {
+}
+
+function Painel() {
   const [sessao, setSessao] = useState<Sessao | null>(null);
-  const [avisos, setAvisos] = useState<Aviso[]>([]);
-  const [preCadastros, setPreCadastros] = useState<PreCadastro[]>([]);
   const [alunos, setAlunos] = useState<Aluno[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [alunosTurmas, setAlunosTurmas] = useState<AlunoTurma[]>([]);
+  const [avisosPublicadosCount, setAvisosPublicadosCount] = useState(0);
+  const [filaEsperaCount, setFilaEsperaCount] = useState(0);
+  const [documentosPendentesCount, setDocumentosPendentesCount] = useState(0);
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
@@ -327,11 +308,12 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
     setCarregando(true);
 
     if (!sessaoAtual) {
-      setAvisos([]);
-      setPreCadastros([]);
       setAlunos([]);
       setTurmas([]);
       setAlunosTurmas([]);
+      setAvisosPublicadosCount(0);
+      setFilaEsperaCount(0);
+      setDocumentosPendentesCount(0);
       setCarregando(false);
       return;
     }
@@ -339,35 +321,41 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
     const permissoes = permissoesPorPerfil[sessaoAtual.perfil] ?? [];
     const tem = (permissao: Permissao) => permissoes.includes(permissao);
 
-    let avisosLista: Aviso[] = [];
-    let preLista: PreCadastro[] = [];
     let alunosLista: Aluno[] = [];
     let turmasLista: Turma[] = [];
     let vinculosLista: AlunoTurma[] = [];
+    let avisosCount = 0;
+    let filaCount = 0;
+    let documentosCount = 0;
 
     if (tem("avisos")) {
-      const { data, error } = await supabase
+      const { count, error } = await supabase
         .from("avisos")
-        .select("*")
-        .order("data", { ascending: false });
+        .select("id", { count: "exact", head: true })
+        .eq("publico", true);
 
       if (error) {
         console.error(error);
       } else {
-        avisosLista = (data ?? []) as Aviso[];
+        avisosCount = count ?? 0;
       }
     }
 
+    // "pre-cadastros" é o nome histórico dessa permissão em lib/auth.ts.
+    // A TABELA por trás já foi renomeada pra lista_espera — só a chave
+    // de permissão continua com o nome antigo. Ver observação em
+    // _admin.tsx sobre confirmar se essa permissão bate com o que o
+    // menu (admin-sidebar.tsx) usa pra mostrar o link.
     if (tem("pre-cadastros")) {
-      const { data, error } = await supabase
-        .from("pre_cadastros")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { count, error } = await supabase
+        .from("lista_espera")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "fila de espera");
 
       if (error) {
         console.error(error);
       } else {
-        preLista = (data ?? []) as PreCadastro[];
+        filaCount = count ?? 0;
       }
     }
 
@@ -383,6 +371,17 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
         console.error(error);
       } else {
         alunosLista = (data ?? []) as Aluno[];
+      }
+
+      const { count: docsCount, error: docsError } = await supabase
+        .from("documentos_aluno")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pendente");
+
+      if (docsError) {
+        console.error(docsError);
+      } else {
+        documentosCount = docsCount ?? 0;
       }
     }
 
@@ -412,11 +411,12 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
       }
     }
 
-    setAvisos(avisosLista);
-    setPreCadastros(preLista);
     setAlunos(alunosLista);
     setTurmas(turmasLista);
     setAlunosTurmas(vinculosLista);
+    setAvisosPublicadosCount(avisosCount);
+    setFilaEsperaCount(filaCount);
+    setDocumentosPendentesCount(documentosCount);
     setCarregando(false);
   }
 
@@ -460,17 +460,6 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
     );
 
     const ocupacaoBarra = larguraBarraOcupacao(vagasOcupadas, totalVagas);
-
-    const pendentes = preCadastros.filter((pre) =>
-      statusIgual(pre.status, "pendente"),
-    ).length;
-
-    const fila = preCadastros.filter((pre) =>
-      statusIgual(pre.status, "fila de espera"),
-    ).length;
-
-    const avisosPublicados = avisos.filter((aviso) => aviso.publico).length;
-    const avisosRecentes = avisos.slice(0, 6);
 
     const alunosPorModalidade = modalidades.map((modalidade) => ({
       modalidade: modalidade.replace("Natação ", "Nat. "),
@@ -559,17 +548,13 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
       ocupacaoNumero,
       ocupacaoTexto,
       ocupacaoBarra,
-      pendentes,
-      fila,
-      avisosPublicados,
-      avisosRecentes,
       alunosPorModalidade,
       ocupacaoPorTurma,
       aniversariantes,
       proximasTurmas,
       diaReferencia,
     };
-  }, [alunos, turmas, alunosTurmas, preCadastros, avisos]);
+  }, [alunos, turmas, alunosTurmas]);
 
   const cardsEstatisticas = useMemo<DashboardCard[]>(() => {
     const todos: DashboardCard[] = [
@@ -606,8 +591,24 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
         permissao: "turmas",
       },
       {
+        title: "Fila de espera",
+        value: filaEsperaCount,
+        description: "Pessoas aguardando vaga",
+        icon: Hourglass,
+        to: "/pre-cadastros",
+        permissao: "pre-cadastros",
+      },
+      {
+        title: "Documentos pendentes",
+        value: documentosPendentesCount,
+        description: "Atestados e PAR-Q aguardando análise",
+        icon: FileText,
+        to: "/documentos",
+        permissao: "alunos",
+      },
+      {
         title: "Avisos publicados",
-        value: dados.avisosPublicados,
+        value: avisosPublicadosCount,
         description: "Comunicados visíveis no site",
         icon: Megaphone,
         to: "/avisos-admin",
@@ -616,7 +617,7 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
     ];
 
     return todos.filter((card) => permissoes.includes(card.permissao));
-  }, [dados, permissoes]);
+  }, [dados, permissoes, filaEsperaCount, documentosPendentesCount, avisosPublicadosCount]);
 
   const cardsAtalhos = useMemo<DashboardCard[]>(() => {
     const todos: DashboardCard[] = [
@@ -639,7 +640,7 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
     ];
 
     return todos.filter((card) => permissoes.includes(card.permissao));
-  }, [dados, permissoes]);
+  }, [permissoes]);
 
   if (!sessao && !carregando) {
     return (
@@ -661,7 +662,9 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
         </Card>
       </div>
     );
-  }   return (
+  }
+
+  return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 rounded-md border border-dashed border-border bg-accent/30 px-3 py-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -706,7 +709,7 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {cardsEstatisticas.map((card) => {
             const Icon = card.icon;
 
@@ -875,7 +878,7 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
                 </CardDescription>
               </CardHeader>
 
-              <CardContent className="h-72">
+              <CardContent className="h-72 overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={dados.alunosPorModalidade}
@@ -883,7 +886,7 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
                       top: 8,
                       right: 8,
                       bottom: 0,
-                      left: -16,
+                      left: 0,
                     }}
                   >
                     <CartesianGrid
@@ -901,6 +904,7 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
                       allowDecimals={false}
                       tick={{ fontSize: 12 }}
                       stroke="var(--color-muted-foreground)"
+                      width={32}
                     />
 
                     <Tooltip
@@ -1129,35 +1133,6 @@ function larguraBarraOcupacao(vagasOcupadas: number, totalVagas: number) {
           </CardContent>
         </Card>
       )}
-      <Card className="border-dashed">
-        <CardContent className="flex flex-col gap-3 p-4 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground">
-              <FileText className="h-4 w-4" />
-            </span>
-
-            <div>
-              <p className="font-medium text-foreground">
-                Painel preparado para apresentação
-              </p>
-
-              <p>
-                Os indicadores são calculados automaticamente a partir dos dados
-                cadastrados no Supabase.
-              </p>
-            </div>
-          </div>
-
-          {temPermissao("relatorios") && (
-            <Link to="/relatorios">
-              <Button variant="outline" size="sm">
-                Abrir relatórios
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }

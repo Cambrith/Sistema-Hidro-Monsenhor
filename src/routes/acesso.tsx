@@ -47,7 +47,7 @@ function Acesso() {
                   Sou aluno
                 </h2>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                  Veja suas presenças, faltas e situação da matrícula. Acesse com CPF, data de nascimento e telefone cadastrados na secretaria.
+                  Veja suas presenças, faltas, turma, documentos e avisos da secretaria. Acesse com CPF, data de nascimento e telefone cadastrados.
                 </p>
                 <span className="mt-6 inline-flex items-center text-sm font-semibold text-[#1D4ED8]">
                   Acessar minha conta
@@ -67,7 +67,7 @@ function Acesso() {
                   Sou da equipe
                 </h2>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                  Área restrita para recepção, professores e administração. Acesse com usuário e senha fornecidos pela administração do centro.
+                  Gerencie alunos, turmas, presença, documentos e avisos do centro. Acesso restrito para recepção, professores e administração, com usuário e senha.
                 </p>
                 <span className="mt-6 inline-flex items-center text-sm font-semibold text-slate-600">
                   Acessar o painel

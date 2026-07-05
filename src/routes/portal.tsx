@@ -20,18 +20,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft,
-  CalendarDays,
-  ClipboardList,
-  FileText,
-  HelpCircle,
-  Home,
-  LogOut,
-  Loader2,
-  Megaphone,
-  Menu,
-  X,
-} from "lucide-react";
+  SidebarProvider,
+  SidebarInset,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import { PortalSidebar, type PendenciaDocumentos } from "@/components/portal-sidebar";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/logo-simbolo.png";
 
@@ -52,17 +47,6 @@ export const Route = createFileRoute("/portal")({
   component: PortalRoot,
 });
 
-const navPortal = [
-  { to: "/portal/inicio", label: "Início", icon: Home },
-  { to: "/portal/presencas", label: "Presenças", icon: CalendarDays },
-  { to: "/portal/dados", label: "Meus dados", icon: ClipboardList },
-  { to: "/portal/documentos", label: "Documentos", icon: FileText },
-  { to: "/portal/avisos", label: "Avisos", icon: Megaphone },
-  { to: "/portal/ajuda", label: "Dúvidas", icon: HelpCircle },
-];
-
-type PendenciaDocumentos = "urgente" | "atencao" | null;
-
 function statusValidade(validade?: string | null) {
   if (!validade) return "ausente";
   const diff = (new Date(validade).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
@@ -77,11 +61,19 @@ function PortalRoot() {
   return <PortalLayout />;
 }
 
+const titulosPortal: Record<string, string> = {
+  "/portal/inicio": "Início",
+  "/portal/presencas": "Presenças",
+  "/portal/dados": "Meus dados",
+  "/portal/documentos": "Documentos",
+  "/portal/avisos": "Avisos",
+  "/portal/ajuda": "Dúvidas",
+};
+
 function PortalLayout() {
   const navigate = useNavigate();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const path = useRouterState({ select: (s) => s.location.pathname });
   const sessao = getSessaoAluno();
-  const [menuAberto, setMenuAberto] = useState(false);
   const [pendenciaDocumentos, setPendenciaDocumentos] = useState<PendenciaDocumentos>(null);
 
   useEffect(() => {
@@ -115,147 +107,35 @@ function PortalLayout() {
   }
 
   const primeiroNome = sessao?.nome?.split(" ")[0] ?? "Aluno";
+  const tituloAtual = titulosPortal[path] ?? "Portal do Aluno";
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-sidebar-border bg-sidebar md:flex">
-        <div className="flex flex-col items-center gap-2 border-b border-white/10 px-4 py-5">
-          <span className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl bg-white p-1 shadow-sm overflow-hidden">
-            <img src={logo} alt="Hidro Monsenhor" className="h-full w-full scale-120 object-contain" />
-          </span>
-          <div className="text-center leading-tight">
-            <p className="text-sm font-semibold text-sidebar-foreground">Portal do Aluno</p>
-            <p className="text-xs text-sidebar-foreground/60">Hidro e Natação Monsenhor</p>
-          </div>
-        </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <PortalSidebar
+          nomeAluno={primeiroNome}
+          pendenciaDocumentos={pendenciaDocumentos}
+          onSair={handleSair}
+        />
 
-        <div className="px-4 py-3">
-          <p className="text-xs text-sidebar-foreground/60">Olá,</p>
-          <p className="truncate text-sm font-semibold text-sidebar-foreground">{primeiroNome}</p>
-        </div>
-
-        <nav className="flex-1 px-2 py-1">
-          <p className="mb-1 px-2 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
-            Menu
-          </p>
-          <ul className="space-y-0.5">
-            {navPortal.map((item) => {
-              const Icon = item.icon;
-              const ativo = pathname === item.to;
-              const mostrarBadge = item.to === "/portal/documentos" && pendenciaDocumentos;
-              return (
-                <li key={item.to}>
-                  <Link
-                    to={item.to as never}
-                    className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                      ativo
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="flex-1">{item.label}</span>
-                    {mostrarBadge && (
-                      <span
-                        className={`h-2 w-2 shrink-0 rounded-full ${
-                          pendenciaDocumentos === "urgente" ? "bg-red-500" : "bg-yellow-500"
-                        }`}
-                        aria-label={pendenciaDocumentos === "urgente" ? "Pendência urgente" : "Pendência"}
-                      />
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
-        <div className="border-t border-sidebar-border p-2">
-          <button
-            type="button"
-            onClick={handleSair}
-            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            Sair
-          </button>
-        </div>
-      </aside>
-
-      <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-sidebar-border bg-sidebar px-4 py-3 md:hidden">
-          <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white p-1 shadow-sm">
-              <img src={logo} alt="Hidro Monsenhor" className="h-full w-full object-contain" />
-            </span>
-            <p className="text-sm font-semibold text-sidebar-foreground">Portal do Aluno</p>
-          </div>
-          <button
-            type="button"
-            aria-label="Abrir menu"
-            onClick={() => setMenuAberto((v) => !v)}
-            className="rounded-md p-1.5 text-sidebar-foreground hover:bg-sidebar-accent/60"
-          >
-            {menuAberto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </header>
-
-        {menuAberto && (
-          <div className="z-20 border-b border-sidebar-border bg-sidebar px-4 py-3 md:hidden">
-            <p className="mb-2 text-xs text-sidebar-foreground/60">
-              Olá, <strong className="text-sidebar-foreground">{primeiroNome}</strong>
+        <SidebarInset>
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/85 px-4 backdrop-blur">
+            <SidebarTrigger />
+            <Separator orientation="vertical" className="h-6" />
+            <p className="truncate font-display text-sm font-semibold">
+              {tituloAtual}
             </p>
-            <ul className="space-y-0.5">
-              {navPortal.map((item) => {
-                const Icon = item.icon;
-                const ativo = pathname === item.to;
-                const mostrarBadge = item.to === "/portal/documentos" && pendenciaDocumentos;
-                return (
-                  <li key={item.to}>
-                    <Link
-                      to={item.to as never}
-                      onClick={() => setMenuAberto(false)}
-                      className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium ${
-                        ativo
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <span className="flex-1">{item.label}</span>
-                      {mostrarBadge && (
-                        <span
-                          className={`h-2 w-2 shrink-0 rounded-full ${
-                            pendenciaDocumentos === "urgente" ? "bg-red-500" : "bg-yellow-500"
-                          }`}
-                          aria-label={pendenciaDocumentos === "urgente" ? "Pendência urgente" : "Pendência"}
-                        />
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-            <div className="mt-2 border-t border-sidebar-border pt-2">
-              <button
-                type="button"
-                onClick={handleSair}
-                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-              >
-                <LogOut className="h-4 w-4" />
-                Sair
-              </button>
-            </div>
-          </div>
-        )}
+          </header>
 
-        <main className="flex-1 overflow-y-auto">
-          <Outlet />
-        </main>
+          <main className="flex-1 overflow-y-auto">
+            <Outlet />
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
+
 function handleMaskedChange(
   e: React.ChangeEvent<HTMLInputElement>,
   formatarFn: (v: string) => string,
@@ -265,13 +145,11 @@ function handleMaskedChange(
   const valorAntigo = input.value;
   const selecaoStart = input.selectionStart || 0;
 
-  // Conta quantos números havia antes do cursor antes de formatar
   const digitosAntesDoCursor = valorAntigo.slice(0, selecaoStart).replace(/\D/g, "").length;
 
   const valorFormatado = formatarFn(valorAntigo);
   setEstado(valorFormatado);
 
-  // Ajusta a posição do cursor após o React atualizar o DOM
   setTimeout(() => {
     let novaPosicao = 0;
     let digitosEncontrados = 0;
@@ -286,6 +164,7 @@ function handleMaskedChange(
     input.setSelectionRange(novaPosicao, novaPosicao);
   }, 0);
 }
+
 function formatarTelefone(valor: string) {
   const n = valor.replace(/\D/g, "").slice(0, 11);
   if (n.length <= 2) return n;
@@ -302,10 +181,6 @@ function formatarCPF(valor: string) {
   return `${n.slice(0, 3)}.${n.slice(3, 6)}.${n.slice(6, 9)}-${n.slice(9)}`;
 }
 
-// Máscara de digitação: a pessoa só digita números (ex.: 04081958) e o
-// campo já vai formatando sozinho como 04/08/1958 — evita o calendário
-// nativo do navegador, que é confuso pra quem tem pouca prática com
-// celular (ter que "voltar mês" dezenas de vezes até achar o ano certo).
 function formatarDataNascimento(valor: string) {
   const n = valor.replace(/\D/g, "").slice(0, 8);
   if (n.length <= 2) return n;
@@ -313,9 +188,6 @@ function formatarDataNascimento(valor: string) {
   return `${n.slice(0, 2)}/${n.slice(2, 4)}/${n.slice(4)}`;
 }
 
-// Converte DD/MM/AAAA pro formato AAAA-MM-DD que fica salvo no banco
-// (é o mesmo formato que o <input type="date"> antigo já entregava).
-// Retorna null se a data estiver incompleta ou não fizer sentido.
 function dataNascimentoParaISO(valor: string): string | null {
   const n = valor.replace(/\D/g, "");
   if (n.length !== 8) return null;
@@ -342,11 +214,6 @@ function LoginAluno() {
   const [telefone, setTelefone] = useState("");
   const [entrando, setEntrando] = useState(false);
 
-  // Portal do aluno não tem senha — CPF+nascimento+telefone é a segurança
-  // inteira. Bloqueio mais curto que o do admin porque tem muito mais
-  // gente usando (idosos, celular) e é normal errar um número de vez em
-  // quando; mesmo assim, 5 tentativas a cada 5 min já inviabiliza
-  // adivinhação por tentativa e erro.
   const MAX_TENTATIVAS_ALUNO = 5;
   const BLOQUEIO_ALUNO_MS = 5 * 60 * 1000;
 
@@ -426,12 +293,12 @@ function LoginAluno() {
           </div>
           <div className="max-w-xl space-y-4 pt-6">
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-white/65">Portal do Aluno</p>
-            <h2 className="font-display text-4xl font-semibold leading-tight">
-              Acompanhe sua turma, faltas e situação cadastral.
-            </h2>
-            <p className="max-w-md text-sm leading-relaxed text-white/85">
-              Acesse com seus dados cadastrados na secretaria para consultar suas informações.
-            </p>
+<h2 className="font-display text-4xl font-semibold leading-tight">
+  Acompanhe sua jornada na natação, em um só lugar.
+</h2>
+<p className="max-w-md text-sm leading-relaxed text-white/85">
+  Presenças, faltas, sua turma, documentos (atestado e PAR-Q) e avisos da secretaria.
+</p>
           </div>
           <p className="text-xs text-white/70">
             © {new Date().getFullYear()} Hidro e Natação Monsenhor — Portal do Aluno.
@@ -452,38 +319,38 @@ function LoginAluno() {
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">CPF do Aluno</label>
                 <Input
-  value={cpf}
-  onChange={(e) => handleMaskedChange(e, formatarCPF, setCpf)}
-  placeholder="000.000.000-00"
-  maxLength={14}
-  disabled={entrando}
-  inputMode="numeric"
-  autoComplete="off"
-/>
+                  value={cpf}
+                  onChange={(e) => handleMaskedChange(e, formatarCPF, setCpf)}
+                  placeholder="000.000.000-00"
+                  maxLength={14}
+                  disabled={entrando}
+                  inputMode="numeric"
+                  autoComplete="off"
+                />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Data de Nascimento</label>
                 <Input
-  value={nascimento}
-  onChange={(e) => handleMaskedChange(e, formatarDataNascimento, setNascimento)}
-  placeholder="DD/MM/AAAA"
-  maxLength={10}
-  disabled={entrando}
-  inputMode="numeric"
-  autoComplete="off"
-/>
+                  value={nascimento}
+                  onChange={(e) => handleMaskedChange(e, formatarDataNascimento, setNascimento)}
+                  placeholder="DD/MM/AAAA"
+                  maxLength={10}
+                  disabled={entrando}
+                  inputMode="numeric"
+                  autoComplete="off"
+                />
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-medium">Telefone Cadastrado</label>
                 <Input
-  value={telefone}
-  onChange={(e) => handleMaskedChange(e, formatarTelefone, setTelefone)}
-  placeholder="(24) 99999-0000"
-  disabled={entrando}
-  inputMode="numeric"
-  autoComplete="off"
-  type="tel"
-/>
+                  value={telefone}
+                  onChange={(e) => handleMaskedChange(e, formatarTelefone, setTelefone)}
+                  placeholder="(24) 99999-0000"
+                  disabled={entrando}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  type="tel"
+                />
                 <p className="text-xs text-muted-foreground">
                   Digite seu telefone celular ou fixo com DDD. Somente números.
                 </p>

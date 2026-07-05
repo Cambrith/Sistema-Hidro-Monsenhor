@@ -760,7 +760,7 @@ function AvisoDialog({
               <div>
                 <Label className="text-sm">Portal do aluno</Label>
                 <p className="text-xs text-muted-foreground">
-                  Aparece pros alunos logados no portal.
+                  Aparece para os alunos logados no portal.
                 </p>
               </div>
               <Switch
