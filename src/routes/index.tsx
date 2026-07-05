@@ -405,13 +405,13 @@ function Home() {
             <div className="mt-6 flex flex-wrap gap-3">
   <Link to="/acesso">
     <Button size="lg" className="bg-[#1D4ED8] text-white shadow-sm hover:bg-[#1E40AF]">
-      Acessar minha conta
+      Acessar Minha Conta
       <ArrowRight className="ml-2 h-4 w-4" />
     </Button>
   </Link>
   <Link to="/pre-cadastro">
     <Button size="lg" variant="outline" className="border-[#1D4ED8] bg-white text-[#1D4ED8] hover:bg-[#EFF6FF]">
-      Como se inscrever
+      Como se Inscrever
     </Button>
   </Link>
 </div>
