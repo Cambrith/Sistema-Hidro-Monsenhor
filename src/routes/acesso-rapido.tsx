@@ -75,9 +75,7 @@ function AcessoRapido() {
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Tem vaga disponível?</h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  As vagas abrem no 1º dia útil do mês e costumam ser poucas (geralmente
-                  1 ou 2 por modalidade), já que o atendimento é gratuito e a procura é
-                  alta. A forma mais rápida de confirmar é ligando ou chamando a
+                  As vagas abrem no primeiro dia útil do mês e costumam ser poucas, já que o atendimento é gratuito. A forma mais rápida de confirmar é ligando ou contatando a
                   secretaria antes de se deslocar.
                 </p>
               </div>
