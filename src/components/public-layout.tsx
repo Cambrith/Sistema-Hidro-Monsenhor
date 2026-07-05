@@ -56,7 +56,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
   to="/acesso"
   className="ml-2 rounded-full bg-primary/80 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary"
 >
-  Minha conta
+  Minha Conta
 </Link>
           </nav>
 
