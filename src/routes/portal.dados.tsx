@@ -82,13 +82,12 @@ function PortalDados() {
   async function carregarDados() {
     if (!sessao) return;
     setCarregando(true);
-    const { data, error } = await supabase
-      .from("alunos")
-      .select("nome_completo, nascimento, idade, modalidade, turma, responsavel, nome_pai, nome_mae, telefone, telefone_fixo, whatsapp, email, cpf, endereco, complemento, bairro, cep, criado_em, ativo")
-      .eq("id", sessao.id)
-      .maybeSingle();
-    if (error || !data) { toast.error("Erro ao carregar seus dados."); setCarregando(false); return; }
-    setAluno(data as DadosAluno);
+    const { data, error } = await supabase.rpc("portal_meus_dados", {
+      p_aluno_id: sessao.id,
+    });
+    const alunoData = data?.[0];
+    if (error || !alunoData) { toast.error("Erro ao carregar seus dados."); setCarregando(false); return; }
+    setAluno(alunoData as DadosAluno);
     setCarregando(false);
   }
 

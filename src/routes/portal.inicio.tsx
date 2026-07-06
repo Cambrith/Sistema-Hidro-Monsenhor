@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, CalendarDays, CheckCircle2, ExternalLink, FileText, Users, XCircle } from "lucide-react";
 import { toast } from "sonner";
-
+import { statusValidade } from "@/lib/validade";
 export const Route = createFileRoute("/portal/inicio")({
   head: () => ({ meta: [{ title: "Início – Portal do Aluno" }] }),
   component: PortalInicio,
@@ -53,14 +53,6 @@ function mesAtual() {
   return { inicio: `${ano}-${mes}-01`, fim: `${ano}-${mes}-31`, label };
 }
 
-function statusValidade(validade?: string | null) {
-  if (!validade) return "ausente";
-  const diff = (new Date(validade).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
-  if (diff < 0) return "vencido";
-  if (diff <= 30) return "vencendo";
-  return "ok";
-}
-
 function PortalInicio() {
   const sessao = getSessaoAluno();
   const [aluno, setAluno] = useState<DadosAluno | null>(null);
@@ -70,33 +62,29 @@ function PortalInicio() {
 
   useEffect(() => { if (sessao) carregarDados(); }, []);
 
-  async function carregarDados() {
+ async function carregarDados() {
     if (!sessao) return;
     setCarregando(true);
 
-    const { data, error } = await supabase
-      .from("alunos")
-      .select("id, nome_completo, modalidade, turma, atestado_validade, parq_validade, ativo")
-      .eq("id", sessao.id)
-      .maybeSingle();
-    if (error || !data) { toast.error("Erro ao carregar seus dados."); setCarregando(false); return; }
-    setAluno(data as DadosAluno);
+    const { data, error } = await supabase.rpc("portal_dados_inicio", {
+      p_aluno_id: sessao.id,
+    });
+    const alunoData = data?.[0];
+    if (error || !alunoData) { toast.error("Erro ao carregar seus dados."); setCarregando(false); return; }
+    setAluno(alunoData as DadosAluno);
 
     const { inicio, fim } = mesAtual();
-    const { data: dp } = await supabase
-      .from("presencas").select("id, data, status")
-      .eq("aluno_id", sessao.id).gte("data", inicio).lte("data", fim)
-      .order("data", { ascending: false });
+    const { data: dp } = await supabase.rpc("portal_presencas_mes", {
+      p_aluno_id: sessao.id,
+      p_inicio: inicio,
+      p_fim: fim,
+    });
     setPresencas((dp ?? []) as Presenca[]);
 
-    const { data: dt } = await supabase
-      .from("alunos_turmas")
-      .select("turmas(nome, modalidade, dia_semana, horario_inicio, horario_fim, professor)")
-      .eq("aluno_id", sessao.id)
-      .eq("ativo", true)
-      .maybeSingle();
-    const turmaVinculo = (dt as { turmas: TurmaInfo | null } | null)?.turmas ?? null;
-    setTurmaInfo(turmaVinculo);
+    const { data: dt } = await supabase.rpc("portal_turma_atual", {
+      p_aluno_id: sessao.id,
+    });
+    setTurmaInfo((dt?.[0] ?? null) as TurmaInfo | null);
 
     setCarregando(false);
   }

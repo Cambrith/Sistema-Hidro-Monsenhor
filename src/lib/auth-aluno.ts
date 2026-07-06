@@ -54,24 +54,14 @@ export async function loginAluno(
     return null;
   }
 
-  const { data: aluno, error } = await supabase
-    .from("alunos")
-    .select("id, nome_completo, cpf, nascimento, whatsapp, telefone, telefone_fixo")
-    .eq("cpf", cpfNorm)
-    .eq("nascimento", nascimento)
-    .eq("ativo", true)
-    .maybeSingle();
+  const { data: alunos, error } = await supabase.rpc("verificar_login_aluno", {
+    p_cpf: cpfNorm,
+    p_nascimento: nascimento,
+    p_telefone: telefoneNorm,
+  });
 
+  const aluno = alunos?.[0];
   if (error || !aluno) return null;
-
-  const telefonesAluno = [
-    normalizarNumero(aluno.whatsapp ?? ""),
-    normalizarNumero(aluno.telefone ?? ""),
-    normalizarNumero(aluno.telefone_fixo ?? ""),
-  ].filter(Boolean);
-
-  const telefoneValido = telefonesAluno.some((t) => t === telefoneNorm);
-  if (!telefoneValido) return null;
 
   const sessao: SessaoAluno = {
     id: aluno.id,

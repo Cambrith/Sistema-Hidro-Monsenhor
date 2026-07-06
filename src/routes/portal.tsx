@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessaoAluno, loginAluno, sairAluno } from "@/lib/auth-aluno";
 import { statusBloqueio, registrarTentativaFalha, limparTentativas } from "@/lib/rate-limit";
+import { statusValidade } from "@/lib/validade";
 import {
   Card,
   CardContent,
@@ -47,14 +48,6 @@ export const Route = createFileRoute("/portal")({
   component: PortalRoot,
 });
 
-function statusValidade(validade?: string | null) {
-  if (!validade) return "ausente";
-  const diff = (new Date(validade).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
-  if (diff < 0) return "vencido";
-  if (diff <= 30) return "vencendo";
-  return "ok";
-}
-
 function PortalRoot() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   if (pathname === "/portal") return <LoginAluno />;
@@ -83,15 +76,14 @@ function PortalLayout() {
 
   async function carregarPendenciaDocumentos() {
     if (!sessao) return;
-    const { data } = await supabase
-      .from("alunos")
-      .select("atestado_validade, parq_validade")
-      .eq("id", sessao.id)
-      .maybeSingle();
-    if (!data) return;
+    const { data } = await supabase.rpc("portal_dados_inicio", {
+      p_aluno_id: sessao.id,
+    });
+    const alunoData = data?.[0];
+    if (!alunoData) return;
 
-    const statusAtestado = statusValidade(data.atestado_validade);
-    const statusParq = statusValidade(data.parq_validade);
+    const statusAtestado = statusValidade(alunoData.atestado_validade);
+    const statusParq = statusValidade(alunoData.parq_validade);
     const grave =
       statusAtestado === "vencido" || statusAtestado === "ausente" ||
       statusParq === "vencido" || statusParq === "ausente";

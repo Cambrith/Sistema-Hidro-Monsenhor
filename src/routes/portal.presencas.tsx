@@ -43,12 +43,11 @@ function PortalPresencas() {
     if (!sessao) return;
     setCarregando(true);
     const mesStr = String(mes).padStart(2, "0");
-    const { data, error } = await supabase
-      .from("presencas").select("id, data, status")
-      .eq("aluno_id", sessao.id)
-      .gte("data", `${ano}-${mesStr}-01`)
-      .lte("data", `${ano}-${mesStr}-31`)
-      .order("data", { ascending: false });
+    const { data, error } = await supabase.rpc("portal_presencas_mes", {
+      p_aluno_id: sessao.id,
+      p_inicio: `${ano}-${mesStr}-01`,
+      p_fim: `${ano}-${mesStr}-31`,
+    });
     if (error) toast.error("Erro ao carregar presenças.");
     setPresencas((data ?? []) as Presenca[]);
     setCarregando(false);

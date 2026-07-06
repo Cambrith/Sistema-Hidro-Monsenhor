@@ -31,7 +31,6 @@ import {
 import {
   CheckCircle2,
   Clock,
-  Download,
   Eye,
   FileText,
   RefreshCw,
@@ -48,24 +47,12 @@ type Documento = {
   id: string;
   aluno_id: string;
   tipo: string;
-  nome_arquivo: string;
-  url: string;
+  nome_arquivo: string[] | null;
+  url: string[] | null;
   status: string;
   observacao: string | null;
   criado_em: string;
   aluno_nome: string;
-};
-
-type DocumentoRaw = {
-  id: string;
-  aluno_id: string;
-  tipo: string;
-  nome_arquivo: string;
-  url: string;
-  status: string;
-  observacao: string | null;
-  criado_em: string;
-  alunos: { nome_completo: string }[] | null;
 };
 
 const statusCfg: Record<string, { label: string; badge: string; icon: typeof CheckCircle2 }> = {
@@ -76,7 +63,7 @@ const statusCfg: Record<string, { label: string; badge: string; icon: typeof Che
 
 const tipoCfg: Record<string, string> = {
   atestado: "Atestado médico",
-  parq:     "PAR-Q",
+  par_q:    "PAR-Q",
 };
 
 function formatarDataHora(data?: string | null) {
@@ -92,6 +79,7 @@ function DocumentosAdmin() {
   const podeAnalizar = perfil === "Administrador" || perfil === "Recepção";
 
   const [documentos, setDocumentos] = useState<Documento[]>([]);
+  const [urlsAssinadas, setUrlsAssinadas] = useState<Record<string, string>>({});
   const [carregando, setCarregando] = useState(true);
   const [filtroStatus, setFiltroStatus] = useState<"todos" | "pendente" | "aprovado" | "rejeitado">("pendente");
   const [analisando, setAnalisando] = useState<Documento | null>(null);
@@ -99,10 +87,7 @@ function DocumentosAdmin() {
   async function carregarDocumentos() {
     setCarregando(true);
 
-    const { data, error } = await supabase
-      .from("documentos_aluno")
-      .select("id, aluno_id, tipo, nome_arquivo, url, status, observacao, criado_em, alunos(nome_completo)")
-      .order("criado_em", { ascending: false });
+    const { data, error } = await supabase.rpc("admin_listar_documentos");
 
     if (error) {
       toast.error("Erro ao carregar documentos.");
@@ -111,12 +96,26 @@ function DocumentosAdmin() {
       return;
     }
 
-    const docs = ((data ?? []) as DocumentoRaw[]).map((d) => ({
-      ...d,
-      aluno_nome: d.alunos?.[0]?.nome_completo ?? "Aluno não encontrado",
-    }));
-
+    const docs = (data ?? []) as Documento[];
     setDocumentos(docs);
+
+    // "url" guarda só o caminho no Storage (bucket privado) — gera
+    // URLs assinadas para poder visualizar/baixar.
+    const todosCaminhos = docs.flatMap((d) => d.url ?? []);
+    if (todosCaminhos.length > 0) {
+      const { data: assinadas, error: erroAssinadas } = await supabase.storage
+        .from("documentos-aluno")
+        .createSignedUrls(todosCaminhos, 60 * 10);
+
+      if (!erroAssinadas && assinadas) {
+        const mapa: Record<string, string> = {};
+        assinadas.forEach((item, i) => {
+          if (item.signedUrl) mapa[todosCaminhos[i]] = item.signedUrl;
+        });
+        setUrlsAssinadas(mapa);
+      }
+    }
+
     setCarregando(false);
   }
 
@@ -218,7 +217,7 @@ function DocumentosAdmin() {
                       </TableCell>
                       <TableCell>
                         <p className="max-w-[180px] truncate text-sm text-muted-foreground">
-                          {doc.nome_arquivo}
+                          {(doc.nome_arquivo ?? []).join(", ") || "—"}
                         </p>
                       </TableCell>
                       <TableCell>{formatarDataHora(doc.criado_em)}</TableCell>
@@ -230,16 +229,23 @@ function DocumentosAdmin() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <a href={doc.url} target="_blank" rel="noreferrer">
-                            <Button size="icon" variant="ghost" title="Abrir arquivo">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </a>
-                          <a href={doc.url} download={doc.nome_arquivo} target="_blank" rel="noreferrer">
-                            <Button size="icon" variant="ghost" title="Baixar arquivo">
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </a>
+                          {(doc.url ?? []).map((caminho, i) => (
+                            
+                              <a key={caminho}
+                              href={urlsAssinadas[caminho]}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                title={`Abrir ${doc.nome_arquivo?.[i] ?? "arquivo"}`}
+                                disabled={!urlsAssinadas[caminho]}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </a>
+                          ))}
                           {podeAnalizar && doc.status === "pendente" && (
                             <Button
                               size="sm"
@@ -270,6 +276,7 @@ function DocumentosAdmin() {
       {analisando && (
         <AnalisarDialog
           doc={analisando}
+          urlsAssinadas={urlsAssinadas}
           open={!!analisando}
           onOpenChange={(open) => { if (!open) setAnalisando(null); }}
           onSaved={() => { setAnalisando(null); carregarDocumentos(); }}
@@ -281,11 +288,13 @@ function DocumentosAdmin() {
 
 function AnalisarDialog({
   doc,
+  urlsAssinadas,
   open,
   onOpenChange,
   onSaved,
 }: {
   doc: Documento;
+  urlsAssinadas: Record<string, string>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved: () => void;
@@ -293,8 +302,6 @@ function AnalisarDialog({
   const [observacao, setObservacao] = useState("");
   const [validade, setValidade] = useState("");
   const [salvando, setSalvando] = useState(false);
-
-  const campoValidade = doc.tipo === "parq" ? "parq_validade" : "atestado_validade";
 
   async function atualizar(novoStatus: "aprovado" | "rejeitado") {
     if (novoStatus === "rejeitado" && !observacao.trim()) {
@@ -308,35 +315,18 @@ function AnalisarDialog({
 
     setSalvando(true);
 
-    const { error } = await supabase
-      .from("documentos_aluno")
-      .update({ status: novoStatus, observacao: observacao.trim() || null })
-      .eq("id", doc.id);
+    const { error } = await supabase.rpc("admin_atualizar_documento", {
+      p_documento_id: doc.id,
+      p_status: novoStatus,
+      p_observacao: observacao.trim() || null,
+      p_validade: novoStatus === "aprovado" ? validade : null,
+    });
 
     if (error) {
       toast.error("Erro ao atualizar o documento.");
       console.error(error);
       setSalvando(false);
       return;
-    }
-
-    // Ao aprovar, grava a validade direto no cadastro do aluno,
-    // fechando o loop que antes exigia editar o aluno manualmente.
-    if (novoStatus === "aprovado") {
-      const { error: alunoError } = await supabase
-        .from("alunos")
-        .update({ [campoValidade]: validade })
-        .eq("id", doc.aluno_id);
-
-      if (alunoError) {
-        console.error(alunoError);
-        toast.error(
-          "Documento aprovado, mas houve erro ao atualizar a validade no cadastro do aluno. Atualize manualmente em Alunos."
-        );
-        setSalvando(false);
-        onSaved();
-        return;
-      }
     }
 
     toast.success(
@@ -359,15 +349,24 @@ function AnalisarDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Preview / link do arquivo */}
-          <div className="flex items-center justify-between rounded-lg border border-border bg-accent/20 px-3 py-2.5">
-            <p className="truncate text-sm text-muted-foreground">{doc.nome_arquivo}</p>
-            <a href={doc.url} target="_blank" rel="noreferrer">
-              <Button size="sm" variant="outline">
-                <Eye className="mr-2 h-4 w-4" />
-                Abrir
-              </Button>
-            </a>
+          {/* Preview / link dos arquivos (pode ter mais de 1, ex: PAR-Q) */}
+          <div className="space-y-2">
+            {(doc.url ?? []).map((caminho, i) => (
+              <div
+                key={caminho}
+                className="flex items-center justify-between rounded-lg border border-border bg-accent/20 px-3 py-2.5"
+              >
+                <p className="truncate text-sm text-muted-foreground">
+                  {doc.nome_arquivo?.[i] ?? `Arquivo ${i + 1}`}
+                </p>
+                <a href={urlsAssinadas[caminho]} target="_blank" rel="noreferrer">
+                  <Button size="sm" variant="outline" disabled={!urlsAssinadas[caminho]}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Abrir
+                  </Button>
+                </a>
+              </div>
+            ))}
           </div>
 
           {/* Validade (obrigatória para aprovar) */}

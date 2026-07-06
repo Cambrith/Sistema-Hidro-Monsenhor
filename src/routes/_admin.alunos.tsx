@@ -278,7 +278,8 @@ function AlunosAdmin() {
     const { data, error } = await supabase
       .from("alunos")
       .select("*")
-      .order("criado_em", { ascending: false });
+      .order("criado_em", { ascending: false })
+      .limit(1000);
     if (error) {
       console.error(error);
       toast.error(`Erro ao carregar alunos: ${error.message}`);
