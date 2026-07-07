@@ -298,7 +298,7 @@ function LoginAluno() {
           <div className="max-w-xl space-y-4 pt-6">
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-white/65">Portal do Aluno</p>
 <h2 className="font-display text-4xl font-semibold leading-tight">
-  Acompanhe sua jornada na natação, em um só lugar.
+  Acompanhe sua jornada aquática, em um só lugar.
 </h2>
 <p className="max-w-md text-sm leading-relaxed text-white/85">
   Presenças, faltas, sua turma, documentos (atestado e PAR-Q) e avisos da secretaria.
