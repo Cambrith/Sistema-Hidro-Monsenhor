@@ -115,7 +115,9 @@ export const Route = createRootRouteWithContext<{
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { name: "apple-mobile-web-app-title", content: "Hidro Monsenhor" },
+      // apple-mobile-web-app-title fica por conta de cada layout (portal,
+      // admin, login) — cada um instala como um "app" com nome diferente.
+      // Ver nota sobre manifest logo abaixo.
     ],
 
     links: [
@@ -134,7 +136,11 @@ export const Route = createRootRouteWithContext<{
         rel: "apple-touch-icon",
         href: "/icons/apple-touch-icon.png",
       },
-      { rel: "manifest", href: "/manifest.json" },
+      // Sem <link rel="manifest"> aqui de propósito: existem dois apps
+      // instaláveis (Portal do Aluno e Painel administrativo), cada um com
+      // seu próprio manifest.json e escopo. Declarar um manifest fixo aqui
+      // faria ele "vazar" pra área errada. Cada layout (portal.tsx,
+      // _admin.tsx, login.tsx) declara o seu via head().
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {

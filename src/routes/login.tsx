@@ -34,7 +34,13 @@ export const Route = createFileRoute("/login")({
         content:
           "Acesso ao painel administrativo do Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira.",
       },
+      { name: "apple-mobile-web-app-title", content: "Painel Monsenhor" },
     ],
+    // /login fica fora da árvore de rotas do _admin (é uma rota pública,
+    // fora do guard), então precisa declarar o manifest do painel de novo
+    // aqui — senão quem tentar instalar direto da tela de login (antes de
+    // logar) não teria manifest nenhum nessa página.
+    links: [{ rel: "manifest", href: "/manifest-admin.json" }],
   }),
   component: LoginPage,
 });

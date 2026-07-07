@@ -4,15 +4,25 @@ import { Card } from "@/components/ui/card";
 import { useInstallPrompt } from "@/hooks/use-install-prompt";
 import logo from "@/assets/logo-simbolo.png";
 
+interface PwaInstallBannerProps {
+  /** Qual dos dois apps instaláveis este banner representa. */
+  app?: "portal" | "admin";
+  /** Título exibido no banner. Default cobre o caso do Portal do Aluno. */
+  titulo?: string;
+}
+
 /**
- * Banner de instalação do Portal do Aluno como app.
+ * Banner de instalação do app (Portal do Aluno ou Painel administrativo).
  *
  * Fica visível e simples de propósito — parte do público do centro é mais
  * velha, então não dá pra confiar só no navegador oferecer a instalação
  * sozinho (esse comportamento varia muito e costuma ser discreto demais).
  */
-export function PwaInstallBanner() {
-  const { plataforma, podeMostrar, instalar, dispensar } = useInstallPrompt();
+export function PwaInstallBanner({
+  app = "portal",
+  titulo = "Instale o app do Portal",
+}: PwaInstallBannerProps) {
+  const { plataforma, podeMostrar, instalar, dispensar } = useInstallPrompt(app);
 
   if (!podeMostrar || !plataforma) return null;
 
@@ -24,7 +34,7 @@ export function PwaInstallBanner() {
 
       <div className="flex-1">
         <p className="font-display text-sm font-semibold text-foreground">
-          Instale o app do Portal
+          {titulo}
         </p>
         {plataforma === "android" ? (
           <p className="mt-0.5 text-sm text-muted-foreground">

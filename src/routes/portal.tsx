@@ -33,7 +33,13 @@ import { toast } from "sonner";
 import logo from "@/assets/logo-simbolo.png";
 
 export const Route = createFileRoute("/portal")({
-  head: () => ({ meta: [{ title: "Portal do Aluno" }] }),
+  head: () => ({
+    meta: [
+      { title: "Portal do Aluno" },
+      { name: "apple-mobile-web-app-title", content: "Portal do Aluno" },
+    ],
+    links: [{ rel: "manifest", href: "/manifest.json" }],
+  }),
 
   beforeLoad: async ({ location }) => {
     if (typeof window === "undefined") return;

@@ -1,0 +1,268 @@
+diff -ruN '--exclude=node_modules' '--exclude=.output' '--exclude=.git' a/public/manifest-admin.json b/public/manifest-admin.json
+--- a/public/manifest-admin.json	1970-01-01 00:00:00.000000000 +0000
++++ b/public/manifest-admin.json	2026-07-07 23:04:33.189821599 +0000
+@@ -0,0 +1,40 @@
++{
++  "name": "Painel Hidro Monsenhor",
++  "short_name": "Painel Monsenhor",
++  "description": "Painel administrativo do Centro Esportivo e Cultural Profª Marta Regina de Carvalho Ferreira — turmas, presença, alunos, avisos e relatórios.",
++  "start_url": "/painel",
++  "scope": "/",
++  "id": "/painel",
++  "display": "standalone",
++  "orientation": "portrait-primary",
++  "background_color": "#ffffff",
++  "theme_color": "#004094",
++  "lang": "pt-BR",
++  "dir": "ltr",
++  "icons": [
++    {
++      "src": "/icons/icon-192.png",
++      "sizes": "192x192",
++      "type": "image/png",
++      "purpose": "any"
++    },
++    {
++      "src": "/icons/icon-512.png",
++      "sizes": "512x512",
++      "type": "image/png",
++      "purpose": "any"
++    },
++    {
++      "src": "/icons/icon-maskable-192.png",
++      "sizes": "192x192",
++      "type": "image/png",
++      "purpose": "maskable"
++    },
++    {
++      "src": "/icons/icon-maskable-512.png",
++      "sizes": "512x512",
++      "type": "image/png",
++      "purpose": "maskable"
++    }
++  ]
++}
+diff -ruN '--exclude=node_modules' '--exclude=.output' '--exclude=.git' a/public/service-worker.js b/public/service-worker.js
+--- a/public/service-worker.js	2026-07-07 23:00:49.000000000 +0000
++++ b/public/service-worker.js	2026-07-07 23:06:36.030293836 +0000
+@@ -9,16 +9,18 @@
+ // do app), troque o valor de CACHE_VERSION abaixo. Isso força o navegador a
+ // criar um cache novo e descartar o antigo — sem isso, o celular do usuário
+ // pode ficar "preso" numa versão antiga do app.
+-const CACHE_VERSION = "v1";
++const CACHE_VERSION = "v2";
+ const STATIC_CACHE = `hidro-monsenhor-static-${CACHE_VERSION}`;
+ const RUNTIME_CACHE = `hidro-monsenhor-runtime-${CACHE_VERSION}`;
+ 
+ const CACHE_ATUAL = [STATIC_CACHE, RUNTIME_CACHE];
+ 
+ // Arquivos essenciais, cacheados assim que o service worker instala.
++// v2: adicionado manifest-admin.json (Fase 2 / Opção B — painel instalável).
+ const PRECACHE_URLS = [
+   "/offline.html",
+   "/manifest.json",
++  "/manifest-admin.json",
+   "/icons/icon-192.png",
+   "/icons/icon-512.png",
+ ];
+diff -ruN '--exclude=node_modules' '--exclude=.output' '--exclude=.git' a/src/components/pwa-install-banner.tsx b/src/components/pwa-install-banner.tsx
+--- a/src/components/pwa-install-banner.tsx	2026-07-07 23:00:49.000000000 +0000
++++ b/src/components/pwa-install-banner.tsx	2026-07-07 23:06:20.720236453 +0000
+@@ -4,15 +4,25 @@
+ import { useInstallPrompt } from "@/hooks/use-install-prompt";
+ import logo from "@/assets/logo-simbolo.png";
+ 
++interface PwaInstallBannerProps {
++  /** Qual dos dois apps instaláveis este banner representa. */
++  app?: "portal" | "admin";
++  /** Título exibido no banner. Default cobre o caso do Portal do Aluno. */
++  titulo?: string;
++}
++
+ /**
+- * Banner de instalação do Portal do Aluno como app.
++ * Banner de instalação do app (Portal do Aluno ou Painel administrativo).
+  *
+  * Fica visível e simples de propósito — parte do público do centro é mais
+  * velha, então não dá pra confiar só no navegador oferecer a instalação
+  * sozinho (esse comportamento varia muito e costuma ser discreto demais).
+  */
+-export function PwaInstallBanner() {
+-  const { plataforma, podeMostrar, instalar, dispensar } = useInstallPrompt();
++export function PwaInstallBanner({
++  app = "portal",
++  titulo = "Instale o app do Portal",
++}: PwaInstallBannerProps) {
++  const { plataforma, podeMostrar, instalar, dispensar } = useInstallPrompt(app);
+ 
+   if (!podeMostrar || !plataforma) return null;
+ 
+@@ -24,7 +34,7 @@
+ 
+       <div className="flex-1">
+         <p className="font-display text-sm font-semibold text-foreground">
+-          Instale o app do Portal
++          {titulo}
+         </p>
+         {plataforma === "android" ? (
+           <p className="mt-0.5 text-sm text-muted-foreground">
+diff -ruN '--exclude=node_modules' '--exclude=.output' '--exclude=.git' a/src/hooks/use-install-prompt.ts b/src/hooks/use-install-prompt.ts
+--- a/src/hooks/use-install-prompt.ts	2026-07-07 23:00:49.000000000 +0000
++++ b/src/hooks/use-install-prompt.ts	2026-07-07 23:06:12.607470877 +0000
+@@ -1,6 +1,5 @@
+ import * as React from "react";
+ 
+-const CHAVE_DISPENSADO = "hidro-monsenhor:install-dispensado-em";
+ const DIAS_ATE_REAPARECER = 14;
+ 
+ interface BeforeInstallPromptEvent extends Event {
+@@ -28,9 +27,9 @@
+   return isIOSDevice || isIPadOSDisfarcado;
+ }
+ 
+-function foiDispensadoRecentemente(): boolean {
++function foiDispensadoRecentemente(chaveDispensado: string): boolean {
+   try {
+-    const valor = localStorage.getItem(CHAVE_DISPENSADO);
++    const valor = localStorage.getItem(chaveDispensado);
+     if (!valor) return false;
+     const dispensadoEm = Number(valor);
+     const diasPassados = (Date.now() - dispensadoEm) / (1000 * 60 * 60 * 24);
+@@ -51,8 +50,14 @@
+  *   "Adicionar à Tela de Início").
+  * - Se o app já estiver instalado (rodando em modo standalone), ou se o
+  *   usuário já dispensou o banner recentemente, o banner fica oculto.
++ *
++ * @param app - Existem dois apps instaláveis (portal do aluno e painel
++ * administrativo). Cada um guarda sua própria dispensa em localStorage, pra
++ * dispensar um não esconder o outro.
+  */
+-export function useInstallPrompt() {
++export function useInstallPrompt(app: "portal" | "admin" = "portal") {
++  const chaveDispensado = `hidro-monsenhor:install-dispensado-em:${app}`;
++
+   const [plataforma, setPlataforma] = React.useState<PlataformaInstalacao>(null);
+   const [podeMostrar, setPodeMostrar] = React.useState(false);
+   const deferredPromptRef = React.useRef<BeforeInstallPromptEvent | null>(null);
+@@ -60,7 +65,7 @@
+   React.useEffect(() => {
+     if (typeof window === "undefined") return;
+     if (estaEmModoStandalone()) return;
+-    if (foiDispensadoRecentemente()) return;
++    if (foiDispensadoRecentemente(chaveDispensado)) return;
+ 
+     if (detectarIOS()) {
+       setPlataforma("ios");
+@@ -87,7 +92,7 @@
+       window.removeEventListener("beforeinstallprompt", aoCapturarPrompt);
+       window.removeEventListener("appinstalled", aoInstalar);
+     };
+-  }, []);
++  }, [chaveDispensado]);
+ 
+   async function instalar() {
+     const prompt = deferredPromptRef.current;
+@@ -101,7 +106,7 @@
+ 
+   function dispensar() {
+     try {
+-      localStorage.setItem(CHAVE_DISPENSADO, String(Date.now()));
++      localStorage.setItem(chaveDispensado, String(Date.now()));
+     } catch {
+       // Sem problema se não conseguir salvar — o banner só reaparece na próxima visita.
+     }
+diff -ruN '--exclude=node_modules' '--exclude=.output' '--exclude=.git' a/src/routes/__root.tsx b/src/routes/__root.tsx
+--- a/src/routes/__root.tsx	2026-07-07 23:00:49.000000000 +0000
++++ b/src/routes/__root.tsx	2026-07-07 23:04:55.620130858 +0000
+@@ -115,7 +115,9 @@
+       { name: "mobile-web-app-capable", content: "yes" },
+       { name: "apple-mobile-web-app-capable", content: "yes" },
+       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+-      { name: "apple-mobile-web-app-title", content: "Hidro Monsenhor" },
++      // apple-mobile-web-app-title fica por conta de cada layout (portal,
++      // admin, login) — cada um instala como um "app" com nome diferente.
++      // Ver nota sobre manifest logo abaixo.
+     ],
+ 
+     links: [
+@@ -134,7 +136,11 @@
+         rel: "apple-touch-icon",
+         href: "/icons/apple-touch-icon.png",
+       },
+-      { rel: "manifest", href: "/manifest.json" },
++      // Sem <link rel="manifest"> aqui de propósito: existem dois apps
++      // instaláveis (Portal do Aluno e Painel administrativo), cada um com
++      // seu próprio manifest.json e escopo. Declarar um manifest fixo aqui
++      // faria ele "vazar" pra área errada. Cada layout (portal.tsx,
++      // _admin.tsx, login.tsx) declara o seu via head().
+       { rel: "stylesheet", href: appCss },
+       { rel: "preconnect", href: "https://fonts.googleapis.com" },
+       {
+diff -ruN '--exclude=node_modules' '--exclude=.output' '--exclude=.git' a/src/routes/_admin.tsx b/src/routes/_admin.tsx
+--- a/src/routes/_admin.tsx	2026-07-07 23:00:49.000000000 +0000
++++ b/src/routes/_admin.tsx	2026-07-07 23:06:28.458880699 +0000
+@@ -12,6 +12,7 @@
+   SidebarTrigger,
+ } from "@/components/ui/sidebar";
+ import { AdminSidebar } from "@/components/admin-sidebar";
++import { PwaInstallBanner } from "@/components/pwa-install-banner";
+ import {
+   getSessao,
+   permissoesPorPerfil,
+@@ -22,6 +23,10 @@
+ import { Badge } from "@/components/ui/badge";
+ 
+ export const Route = createFileRoute("/_admin")({
++  head: () => ({
++    meta: [{ name: "apple-mobile-web-app-title", content: "Painel Monsenhor" }],
++    links: [{ rel: "manifest", href: "/manifest-admin.json" }],
++  }),
+   beforeLoad: ({ location }) => {
+     if (typeof window === "undefined") return;
+ 
+@@ -213,6 +218,10 @@
+             </div>
+           </header>
+ 
++          <div className="print:hidden">
++            <PwaInstallBanner app="admin" titulo="Instale o app do Painel" />
++          </div>
++
+           <main className="flex-1 px-4 py-6 md:px-6 print:p-0">
+             <Outlet />
+           </main>
+diff -ruN '--exclude=node_modules' '--exclude=.output' '--exclude=.git' a/src/routes/login.tsx b/src/routes/login.tsx
+--- a/src/routes/login.tsx	2026-07-07 23:00:49.000000000 +0000
++++ b/src/routes/login.tsx	2026-07-07 23:05:09.790146780 +0000
+@@ -34,7 +34,13 @@
+         content:
+           "Acesso ao painel administrativo do Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira.",
+       },
++      { name: "apple-mobile-web-app-title", content: "Painel Monsenhor" },
+     ],
++    // /login fica fora da árvore de rotas do _admin (é uma rota pública,
++    // fora do guard), então precisa declarar o manifest do painel de novo
++    // aqui — senão quem tentar instalar direto da tela de login (antes de
++    // logar) não teria manifest nenhum nessa página.
++    links: [{ rel: "manifest", href: "/manifest-admin.json" }],
+   }),
+   component: LoginPage,
+ });
+diff -ruN '--exclude=node_modules' '--exclude=.output' '--exclude=.git' a/src/routes/portal.tsx b/src/routes/portal.tsx
+--- a/src/routes/portal.tsx	2026-07-07 23:00:49.000000000 +0000
++++ b/src/routes/portal.tsx	2026-07-07 23:04:59.687679213 +0000
+@@ -33,7 +33,13 @@
+ import logo from "@/assets/logo-simbolo.png";
+ 
+ export const Route = createFileRoute("/portal")({
+-  head: () => ({ meta: [{ title: "Portal do Aluno" }] }),
++  head: () => ({
++    meta: [
++      { title: "Portal do Aluno" },
++      { name: "apple-mobile-web-app-title", content: "Portal do Aluno" },
++    ],
++    links: [{ rel: "manifest", href: "/manifest.json" }],
++  }),
+ 
+   beforeLoad: async ({ location }) => {
+     if (typeof window === "undefined") return;

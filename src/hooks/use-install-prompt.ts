@@ -1,6 +1,5 @@
 import * as React from "react";
 
-const CHAVE_DISPENSADO = "hidro-monsenhor:install-dispensado-em";
 const DIAS_ATE_REAPARECER = 14;
 
 interface BeforeInstallPromptEvent extends Event {
@@ -28,9 +27,9 @@ function detectarIOS(): boolean {
   return isIOSDevice || isIPadOSDisfarcado;
 }
 
-function foiDispensadoRecentemente(): boolean {
+function foiDispensadoRecentemente(chaveDispensado: string): boolean {
   try {
-    const valor = localStorage.getItem(CHAVE_DISPENSADO);
+    const valor = localStorage.getItem(chaveDispensado);
     if (!valor) return false;
     const dispensadoEm = Number(valor);
     const diasPassados = (Date.now() - dispensadoEm) / (1000 * 60 * 60 * 24);
@@ -51,8 +50,14 @@ function foiDispensadoRecentemente(): boolean {
  *   "Adicionar à Tela de Início").
  * - Se o app já estiver instalado (rodando em modo standalone), ou se o
  *   usuário já dispensou o banner recentemente, o banner fica oculto.
+ *
+ * @param app - Existem dois apps instaláveis (portal do aluno e painel
+ * administrativo). Cada um guarda sua própria dispensa em localStorage, pra
+ * dispensar um não esconder o outro.
  */
-export function useInstallPrompt() {
+export function useInstallPrompt(app: "portal" | "admin" = "portal") {
+  const chaveDispensado = `hidro-monsenhor:install-dispensado-em:${app}`;
+
   const [plataforma, setPlataforma] = React.useState<PlataformaInstalacao>(null);
   const [podeMostrar, setPodeMostrar] = React.useState(false);
   const deferredPromptRef = React.useRef<BeforeInstallPromptEvent | null>(null);
@@ -60,7 +65,7 @@ export function useInstallPrompt() {
   React.useEffect(() => {
     if (typeof window === "undefined") return;
     if (estaEmModoStandalone()) return;
-    if (foiDispensadoRecentemente()) return;
+    if (foiDispensadoRecentemente(chaveDispensado)) return;
 
     if (detectarIOS()) {
       setPlataforma("ios");
@@ -87,7 +92,7 @@ export function useInstallPrompt() {
       window.removeEventListener("beforeinstallprompt", aoCapturarPrompt);
       window.removeEventListener("appinstalled", aoInstalar);
     };
-  }, []);
+  }, [chaveDispensado]);
 
   async function instalar() {
     const prompt = deferredPromptRef.current;
@@ -101,7 +106,7 @@ export function useInstallPrompt() {
 
   function dispensar() {
     try {
-      localStorage.setItem(CHAVE_DISPENSADO, String(Date.now()));
+      localStorage.setItem(chaveDispensado, String(Date.now()));
     } catch {
       // Sem problema se não conseguir salvar — o banner só reaparece na próxima visita.
     }

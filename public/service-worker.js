@@ -9,16 +9,18 @@
 // do app), troque o valor de CACHE_VERSION abaixo. Isso força o navegador a
 // criar um cache novo e descartar o antigo — sem isso, o celular do usuário
 // pode ficar "preso" numa versão antiga do app.
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const STATIC_CACHE = `hidro-monsenhor-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `hidro-monsenhor-runtime-${CACHE_VERSION}`;
 
 const CACHE_ATUAL = [STATIC_CACHE, RUNTIME_CACHE];
 
 // Arquivos essenciais, cacheados assim que o service worker instala.
+// v2: adicionado manifest-admin.json (Fase 2 / Opção B — painel instalável).
 const PRECACHE_URLS = [
   "/offline.html",
   "/manifest.json",
+  "/manifest-admin.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
 ];

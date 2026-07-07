@@ -12,6 +12,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin-sidebar";
+import { PwaInstallBanner } from "@/components/pwa-install-banner";
 import {
   getSessao,
   permissoesPorPerfil,
@@ -22,6 +23,10 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_admin")({
+  head: () => ({
+    meta: [{ name: "apple-mobile-web-app-title", content: "Painel Monsenhor" }],
+    links: [{ rel: "manifest", href: "/manifest-admin.json" }],
+  }),
   beforeLoad: ({ location }) => {
     if (typeof window === "undefined") return;
 
@@ -212,6 +217,10 @@ function AdminLayout() {
               </Badge>
             </div>
           </header>
+
+          <div className="print:hidden">
+            <PwaInstallBanner app="admin" titulo="Instale o app do Painel" />
+          </div>
 
           <main className="flex-1 px-4 py-6 md:px-6 print:p-0">
             <Outlet />
