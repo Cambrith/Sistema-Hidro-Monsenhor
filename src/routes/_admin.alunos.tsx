@@ -741,11 +741,18 @@ function InfoLinha({ label, value }: { label: string; value: ReactNode }) {
 function NovoAlunoDialog({ open, onOpenChange, onSaved, turmas }: {
   open: boolean; onOpenChange: (open: boolean) => void; onSaved: () => void; turmas: Turma[];
 }) {
+  function dataDaquiUmAno(): string {
+    const data = new Date();
+    data.setFullYear(data.getFullYear() + 1);
+    return data.toISOString().slice(0, 10);
+  }
+
   const estadoInicial = {
     nome_completo: "", nascimento: "", modalidade: "Natação Infantil" as Modalidade,
     turma_id: SEM_TURMA, responsavel: "", telefone: "", telefone_fixo: "",
     whatsapp: "", email: "", cpf: "", endereco: "", complemento: "",
-    bairro: "", cep: "", nome_pai: "", nome_mae: "", atestado_validade: "", parq_validade: "",
+    bairro: "", cep: "", nome_pai: "", nome_mae: "",
+    atestado_validade: dataDaquiUmAno(), parq_validade: dataDaquiUmAno(),
     nivel: "" as Nivel | "",
     observacoes: "", ativo: true,
   };
@@ -825,6 +832,7 @@ function NovoAlunoDialog({ open, onOpenChange, onSaved, turmas }: {
             </Field>
             <Field label="Validade do atestado médico">
               <Input type="date" value={f.atestado_validade} onChange={(e) => setF((a) => ({ ...a, atestado_validade: e.target.value }))} />
+              <span className="text-xs font-normal text-muted-foreground">Sugestão: 1 ano a partir de hoje. Ajuste se o atestado indicar outra data.</span>
             </Field>
           </div>
 <div className="grid gap-3 sm:grid-cols-2">
