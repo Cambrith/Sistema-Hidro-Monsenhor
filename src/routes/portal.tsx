@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { PortalSidebar, type PendenciaDocumentos } from "@/components/portal-sidebar";
+import { PwaInstallBanner } from "@/components/pwa-install-banner";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/logo-simbolo.png";
@@ -120,6 +121,8 @@ function PortalLayout() {
               {tituloAtual}
             </p>
           </header>
+
+          <PwaInstallBanner />
 
           <main className="flex-1 overflow-y-auto">
             <Outlet />

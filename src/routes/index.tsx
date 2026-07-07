@@ -403,7 +403,7 @@ function Home() {
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
-  <Link to="/acesso">
+  <Link to="/portal">
     <Button size="lg" className="bg-[#1D4ED8] text-white shadow-sm hover:bg-[#1E40AF]">
       Acessar Minha Conta
       <ArrowRight className="ml-2 h-4 w-4" />

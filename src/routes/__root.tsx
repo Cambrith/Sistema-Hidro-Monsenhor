@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   Outlet,
   Link,
@@ -8,6 +9,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
+import { registrarServiceWorker } from "@/lib/pwa";
 
 import appCss from "../styles.css?url";
 
@@ -109,6 +111,11 @@ export const Route = createRootRouteWithContext<{
           "Sistema institucional do Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira — natação e hidroginástica em Petrópolis/RJ.",
       },
       { name: "twitter:card", content: "summary" },
+      { name: "theme-color", content: "#004094" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "Hidro Monsenhor" },
     ],
 
     links: [
@@ -125,8 +132,9 @@ export const Route = createRootRouteWithContext<{
       },
       {
         rel: "apple-touch-icon",
-        href: faviconPath,
+        href: "/icons/apple-touch-icon.png",
       },
+      { rel: "manifest", href: "/manifest.json" },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
@@ -165,6 +173,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    registrarServiceWorker();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
