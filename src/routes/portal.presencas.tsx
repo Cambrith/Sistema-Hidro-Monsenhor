@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { getSessaoAluno } from "@/lib/auth-aluno";
+import { getSessaoAluno, type SessaoAluno } from "@/lib/auth-aluno";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
@@ -30,14 +30,15 @@ function nomeMes(ano: number, mes: number) {
 }
 
 function PortalPresencas() {
-  const sessao = getSessaoAluno();
+  const [sessao, setSessao] = useState<SessaoAluno | null>(null);
   const hoje = new Date();
   const [ano, setAno] = useState(hoje.getFullYear());
   const [mes, setMes] = useState(hoje.getMonth() + 1);
   const [presencas, setPresencas] = useState<Presenca[]>([]);
   const [carregando, setCarregando] = useState(true);
 
-  useEffect(() => { if (sessao) carregarPresencas(); }, [ano, mes]);
+  useEffect(() => { getSessaoAluno().then(setSessao); }, []);
+  useEffect(() => { if (sessao) carregarPresencas(); }, [sessao, ano, mes]);
 
   async function carregarPresencas() {
     if (!sessao) return;

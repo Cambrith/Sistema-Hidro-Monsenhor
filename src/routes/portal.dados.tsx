@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { getSessaoAluno } from "@/lib/auth-aluno";
+import { getSessaoAluno, sairAluno, type SessaoAluno } from "@/lib/auth-aluno";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, ExternalLink, MapPin, Phone, User } from "lucide-react";
@@ -73,11 +73,13 @@ function InfoLinha({ label, value }: { label: string; value: React.ReactNode }) 
 }
 
 function PortalDados() {
-  const sessao = getSessaoAluno();
+  const [sessao, setSessao] = useState<SessaoAluno | null>(null);
+  const navigate = useNavigate();
   const [aluno, setAluno] = useState<DadosAluno | null>(null);
   const [carregando, setCarregando] = useState(true);
 
-  useEffect(() => { if (sessao) carregarDados(); }, []);
+  useEffect(() => { getSessaoAluno().then(setSessao); }, []);
+  useEffect(() => { if (sessao) carregarDados(); }, [sessao]);
 
   async function carregarDados() {
     if (!sessao) return;
@@ -86,7 +88,16 @@ function PortalDados() {
       p_aluno_id: sessao.id,
     });
     const alunoData = data?.[0];
-    if (error || !alunoData) { toast.error("Erro ao carregar seus dados."); setCarregando(false); return; }
+
+    if (error) { toast.error("Erro ao carregar seus dados."); setCarregando(false); return; }
+
+    if (!alunoData) {
+      toast.error("Sua sessão expirou. Faça login novamente.");
+      sairAluno();
+      navigate({ to: "/login" });
+      return;
+    }
+
     setAluno(alunoData as DadosAluno);
     setCarregando(false);
   }

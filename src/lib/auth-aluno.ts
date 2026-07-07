@@ -1,43 +1,32 @@
 import { supabase } from "@/lib/supabase";
 
-const KEY = "hidro-monsenhor-aluno-session";
-const TRINTA_DIAS_MS = 30 * 24 * 60 * 60 * 1000;
-
 export type SessaoAluno = {
   id: string;
   nome: string;
   cpf: string;
-  expiresAt: number;
 };
 
 function normalizarNumero(valor: string): string {
   return valor.replace(/\D/g, "");
 }
 
-export function getSessaoAluno(): SessaoAluno | null {
-  if (typeof window === "undefined") return null;
+async function senhaDerivada(cpf: string, nascimento: string, telefone: string) {
+  const encoder = new TextEncoder();
+  const dados = encoder.encode(`${cpf}|${nascimento}|${telefone}|atlas-salt-fixo`);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", dados);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
 
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return null;
+export async function getSessaoAluno(): Promise<SessaoAluno | null> {
+  const { data } = await supabase.auth.getSession();
+  const session = data.session;
+  if (!session) return null;
 
-    const sessao = JSON.parse(raw) as SessaoAluno;
+  const meta = session.user.user_metadata;
+  if (!meta?.aluno_id || !meta?.nome) return null;
 
-    if (!sessao?.id || !sessao?.nome || !sessao?.cpf) {
-      localStorage.removeItem(KEY);
-      return null;
-    }
-
-    if (sessao.expiresAt && Date.now() > sessao.expiresAt) {
-      localStorage.removeItem(KEY);
-      return null;
-    }
-
-    return sessao;
-  } catch {
-    localStorage.removeItem(KEY);
-    return null;
-  }
+  return { id: meta.aluno_id, nome: meta.nome, cpf: meta.cpf };
 }
 
 export async function loginAluno(
@@ -45,8 +34,6 @@ export async function loginAluno(
   nascimento: string,
   telefone: string,
 ): Promise<SessaoAluno | null> {
-  if (typeof window === "undefined") return null;
-
   const cpfNorm = normalizarNumero(cpf);
   const telefoneNorm = normalizarNumero(telefone);
 
@@ -54,31 +41,29 @@ export async function loginAluno(
     return null;
   }
 
-  const { data: alunos, error } = await supabase.rpc("verificar_login_aluno", {
-    p_cpf: cpfNorm,
-    p_nascimento: nascimento,
-    p_telefone: telefoneNorm,
+  const { data: garantia, error: erroGarantia } = await supabase.functions.invoke(
+    "garantir-usuario-aluno",
+    { body: { cpf: cpfNorm, nascimento, telefone: telefoneNorm } },
+  );
+
+  if (erroGarantia || !garantia?.ok) return null;
+
+  const senha = await senhaDerivada(cpfNorm, nascimento, telefoneNorm);
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: garantia.email,
+    password: senha,
   });
 
-  const aluno = alunos?.[0];
-  if (error || !aluno) return null;
+  if (error || !data.session) return null;
 
-  const sessao: SessaoAluno = {
-    id: aluno.id,
-    nome: aluno.nome_completo,
-    cpf: cpfNorm,
-    expiresAt: Date.now() + TRINTA_DIAS_MS,
-  };
-
-  localStorage.setItem(KEY, JSON.stringify(sessao));
-  return sessao;
+  const meta = data.session.user.user_metadata;
+  return { id: meta.aluno_id, nome: meta.nome, cpf: cpfNorm };
 }
 
-export function sairAluno(): void {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(KEY);
+export async function sairAluno(): Promise<void> {
+  await supabase.auth.signOut();
 }
 
-export function temSessaoAluno(): boolean {
-  return getSessaoAluno() !== null;
+export async function temSessaoAluno(): Promise<boolean> {
+  return (await getSessaoAluno()) !== null;
 }

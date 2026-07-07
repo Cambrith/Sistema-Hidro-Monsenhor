@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { getSessaoAluno } from "@/lib/auth-aluno";
+import { getSessaoAluno, type SessaoAluno } from "@/lib/auth-aluno";
 import {
   Card,
   CardContent,
@@ -99,7 +99,7 @@ function BadgeStatus({ status }: { status: StatusDoc }) {
 }
 
 function PortalDocumentos() {
-  const session = getSessaoAluno();
+  const [session, setSession] = useState<SessaoAluno | null>(null);
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [enviando, setEnviando] = useState<"atestado" | "par_q" | null>(null);
@@ -107,6 +107,7 @@ function PortalDocumentos() {
   const refAtestado = useRef<HTMLInputElement>(null);
   const refParq = useRef<HTMLInputElement>(null);
 
+  useEffect(() => { getSessaoAluno().then(setSession); }, []);
   useEffect(() => {
     if (session?.id) carregarDocumentos();
   }, [session?.id]);

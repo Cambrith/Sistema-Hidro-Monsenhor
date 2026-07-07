@@ -276,8 +276,8 @@ function TabelaHorarios() {
               Nenhum horário encontrado para os filtros selecionados.
             </div>
           ) : (
-            <div className="max-h-[340px] overflow-x-auto overflow-y-auto">
-              <table className="min-w-[500px] w-full text-sm">
+            <div className="max-h-85 overflow-x-auto overflow-y-auto">
+              <table className="min-w-125 w-full text-sm">
                 <thead className="sticky top-0 z-10 bg-background">
                   <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
                     <th className="px-4 py-3">Horário</th>
@@ -383,7 +383,7 @@ function Home() {
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-24 right-[-10%] h-[420px] w-[420px] rounded-full opacity-40"
+          className="pointer-events-none absolute -top-24 right-[-10%] h-105 w-105 rounded-full opacity-40"
           style={{ background: "radial-gradient(closest-side, #DBEAFE, transparent)" }}
         />
 
@@ -421,7 +421,7 @@ function Home() {
             <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:grid-cols-2">
              {[
   { icon: ShieldCheck, label: "Acesso", value: "Atividades 100% gratuitas" },
-  { icon: HeartPulse, label: "Alunos ativos", value: "Mais de 650 alunos matriculados" },
+  { icon: HeartPulse, label: "Alunos ativos", value: "Mais de 700 alunos matriculados" },
   { icon: CalendarClock, label: "Funcionando desde", value: "2005" },
   { icon: MapPin, label: "Localização", value: "Pedro do Rio, Petrópolis" },
 ].map((card) => {

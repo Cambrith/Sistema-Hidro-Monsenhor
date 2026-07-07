@@ -34,6 +34,9 @@ import {
   Eye,
   FileText,
   RefreshCw,
+  Search,
+  Trash2,
+  X,
   XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -73,24 +76,34 @@ function formatarDataHora(data?: string | null) {
   return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
+// Remove acentos e caixa para permitir busca tipo "joao" encontrar "João".
+function normalizar(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 function DocumentosAdmin() {
   const sessao = getSessao();
   const perfil = sessao?.perfil;
   const podeAnalizar = perfil === "Administrador" || perfil === "Recepção";
+  const podeExcluir = perfil === "Administrador";
 
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [urlsAssinadas, setUrlsAssinadas] = useState<Record<string, string>>({});
   const [carregando, setCarregando] = useState(true);
   const [filtroStatus, setFiltroStatus] = useState<"todos" | "pendente" | "aprovado" | "rejeitado">("pendente");
+  const [busca, setBusca] = useState("");
   const [analisando, setAnalisando] = useState<Documento | null>(null);
-
+  const [excluindo, setExcluindo] = useState<string | null>(null);
   async function carregarDocumentos() {
     setCarregando(true);
 
     const { data, error } = await supabase.rpc("admin_listar_documentos");
 
     if (error) {
-      toast.error("Erro ao carregar documentos.");
+      toast.error(error.message || "Erro ao carregar documentos.");
       console.error(error);
       setCarregando(false);
       return;
@@ -119,11 +132,43 @@ function DocumentosAdmin() {
     setCarregando(false);
   }
 
+  async function excluirDocumento(doc: Documento) {
+    const confirmar = window.confirm(
+      `Tem certeza que deseja excluir permanentemente o documento (${tipoCfg[doc.tipo] ?? doc.tipo}) de ${doc.aluno_nome}? Essa ação não pode ser desfeita e remove o arquivo do Storage também.`
+    );
+    if (!confirmar) return;
+
+    setExcluindo(doc.id);
+
+    try {
+      const { data, error } = await supabase.rpc("admin_excluir_documento", {
+        p_documento_id: doc.id,
+      });
+
+      if (error) throw error;
+
+      const urlsArquivos = data?.[0]?.url;
+      if (urlsArquivos?.length) {
+        await supabase.storage.from("documentos-aluno").remove(urlsArquivos);
+      }
+
+      toast.success("Documento excluído.");
+      await carregarDocumentos();
+    } catch (erro) {
+      toast.error(erro instanceof Error ? erro.message : "Erro ao excluir o documento.");
+      console.error(erro);
+    } finally {
+      setExcluindo(null);
+    }
+  }
+
   useEffect(() => { carregarDocumentos(); }, []);
 
-  const filtrados = documentos.filter((d) =>
-    filtroStatus === "todos" ? true : d.status === filtroStatus
-  );
+  const filtrados = documentos.filter((d) => {
+    const passaStatus = filtroStatus === "todos" ? true : d.status === filtroStatus;
+    const passaBusca = busca.trim() === "" || normalizar(d.aluno_nome).includes(normalizar(busca));
+    return passaStatus && passaBusca;
+  });
 
   const totalPendente = documentos.filter((d) => d.status === "pendente").length;
 
@@ -168,27 +213,49 @@ function DocumentosAdmin() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Filtro de status */}
-          <div className="flex flex-wrap gap-2">
-            {(["todos", "pendente", "aprovado", "rejeitado"] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setFiltroStatus(s)}
-                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                  filtroStatus === s
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
-                }`}
-              >
-                {s === "todos" ? "Todos" : statusCfg[s].label}
-                {s === "pendente" && totalPendente > 0 && (
-                  <span className="ml-1.5 rounded-full bg-yellow-500 px-1.5 py-0.5 text-[10px] text-white">
-                    {totalPendente}
-                  </span>
-                )}
-              </button>
-            ))}
+          {/* Filtro de status + busca por aluno */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-2">
+              {(["todos", "pendente", "aprovado", "rejeitado"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setFiltroStatus(s)}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    filtroStatus === s
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                  }`}
+                >
+                  {s === "todos" ? "Todos" : statusCfg[s].label}
+                  {s === "pendente" && totalPendente > 0 && (
+                    <span className="ml-1.5 rounded-full bg-yellow-500 px-1.5 py-0.5 text-[10px] text-white">
+                      {totalPendente}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative w-full sm:w-64">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                placeholder="Buscar por aluno..."
+                className="pl-9 pr-8"
+              />
+              {busca && (
+                <button
+                  type="button"
+                  onClick={() => setBusca("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  title="Limpar busca"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-md border border-border">
@@ -207,6 +274,7 @@ function DocumentosAdmin() {
                 {filtrados.map((doc) => {
                   const cfg = statusCfg[doc.status];
                   const Icon = cfg?.icon ?? FileText;
+                  const nomesArquivos = (doc.nome_arquivo ?? []).join(", ") || "—";
                   return (
                     <TableRow key={doc.id}>
                       <TableCell>
@@ -216,8 +284,11 @@ function DocumentosAdmin() {
                         {tipoCfg[doc.tipo] ?? doc.tipo}
                       </TableCell>
                       <TableCell>
-                        <p className="max-w-[180px] truncate text-sm text-muted-foreground">
-                          {(doc.nome_arquivo ?? []).join(", ") || "—"}
+                        <p
+                          className="max-w-45 truncate text-sm text-muted-foreground"
+                          title={nomesArquivos}
+                        >
+                          {nomesArquivos}
                         </p>
                       </TableCell>
                       <TableCell>{formatarDataHora(doc.criado_em)}</TableCell>
@@ -246,13 +317,25 @@ function DocumentosAdmin() {
                               </Button>
                             </a>
                           ))}
-                          {podeAnalizar && doc.status === "pendente" && (
+                         {podeAnalizar && doc.status === "pendente" && (
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => setAnalisando(doc)}
                             >
                               Analisar
+                            </Button>
+                          )}
+                          {podeExcluir && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                              onClick={() => excluirDocumento(doc)}
+                              disabled={excluindo === doc.id}
+                              title="Excluir documento (apenas administração)"
+                            >
+                              <Trash2 className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
@@ -263,7 +346,11 @@ function DocumentosAdmin() {
                 {filtrados.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                      {carregando ? "Carregando documentos..." : "Nenhum documento encontrado."}
+                      {carregando
+                        ? "Carregando documentos..."
+                        : busca.trim()
+                          ? `Nenhum resultado para "${busca}".`
+                          : "Nenhum documento encontrado."}
                     </TableCell>
                   </TableRow>
                 )}
@@ -323,7 +410,7 @@ function AnalisarDialog({
     });
 
     if (error) {
-      toast.error("Erro ao atualizar o documento.");
+      toast.error(error.message || "Erro ao atualizar o documento.");
       console.error(error);
       setSalvando(false);
       return;
@@ -351,22 +438,25 @@ function AnalisarDialog({
         <div className="space-y-4">
           {/* Preview / link dos arquivos (pode ter mais de 1, ex: PAR-Q) */}
           <div className="space-y-2">
-            {(doc.url ?? []).map((caminho, i) => (
-              <div
-                key={caminho}
-                className="flex items-center justify-between rounded-lg border border-border bg-accent/20 px-3 py-2.5"
-              >
-                <p className="truncate text-sm text-muted-foreground">
-                  {doc.nome_arquivo?.[i] ?? `Arquivo ${i + 1}`}
-                </p>
-                <a href={urlsAssinadas[caminho]} target="_blank" rel="noreferrer">
-                  <Button size="sm" variant="outline" disabled={!urlsAssinadas[caminho]}>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Abrir
-                  </Button>
-                </a>
-              </div>
-            ))}
+            {(doc.url ?? []).map((caminho, i) => {
+              const nome = doc.nome_arquivo?.[i] ?? `Arquivo ${i + 1}`;
+              return (
+                <div
+                  key={caminho}
+                  className="flex items-center gap-2 justify-between rounded-lg border border-border bg-accent/20 px-3 py-2.5"
+                >
+                  <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground" title={nome}>
+                    {nome}
+                  </p>
+                  <a href={urlsAssinadas[caminho]} target="_blank" rel="noreferrer" className="shrink-0">
+                    <Button size="sm" variant="outline" disabled={!urlsAssinadas[caminho]}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      Abrir
+                    </Button>
+                  </a>
+                </div>
+              );
+            })}
           </div>
 
           {/* Validade (obrigatória para aprovar) */}

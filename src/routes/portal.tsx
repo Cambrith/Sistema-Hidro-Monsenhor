@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { getSessaoAluno, loginAluno, sairAluno } from "@/lib/auth-aluno";
+import { getSessaoAluno, loginAluno, sairAluno, type SessaoAluno } from "@/lib/auth-aluno";
 import { statusBloqueio, registrarTentativaFalha, limparTentativas } from "@/lib/rate-limit";
 import { statusValidade } from "@/lib/validade";
 import {
@@ -34,9 +34,9 @@ import logo from "@/assets/logo-simbolo.png";
 export const Route = createFileRoute("/portal")({
   head: () => ({ meta: [{ title: "Portal do Aluno" }] }),
 
-  beforeLoad: ({ location }) => {
+  beforeLoad: async ({ location }) => {
     if (typeof window === "undefined") return;
-    const sessao = getSessaoAluno();
+    const sessao = await getSessaoAluno();
     if (sessao && location.pathname === "/portal") {
       throw redirect({ to: "/portal/inicio" });
     }
@@ -66,8 +66,10 @@ const titulosPortal: Record<string, string> = {
 function PortalLayout() {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const sessao = getSessaoAluno();
+  const [sessao, setSessao] = useState<SessaoAluno | null>(null);
   const [pendenciaDocumentos, setPendenciaDocumentos] = useState<PendenciaDocumentos>(null);
+
+  useEffect(() => { getSessaoAluno().then(setSessao); }, []);
 
   useEffect(() => {
     if (!sessao) return;
@@ -92,8 +94,8 @@ function PortalLayout() {
     setPendenciaDocumentos(grave ? "urgente" : atencao ? "atencao" : null);
   }
 
-  function handleSair() {
-    sairAluno();
+  async function handleSair() {
+    await sairAluno();
     toast.success("Você saiu do portal.");
     navigate({ to: "/portal" });
   }
@@ -257,7 +259,8 @@ function LoginAluno() {
       limparTentativas("aluno");
       toast.success(`Bem-vindo(a), ${sessao.nome.split(" ")[0]}!`);
       nav({ to: "/portal/inicio" });
-    } catch {
+    } catch (erro) {
+      console.error("ERRO LOGIN ALUNO:", erro);
       toast.error("Não foi possível acessar o portal. Tente novamente.");
     } finally {
       setEntrando(false);
@@ -278,7 +281,7 @@ function LoginAluno() {
             </span>
             <div className="min-w-0 leading-tight">
               <p className="font-display text-2xl font-semibold">Hidro e Natação Monsenhor</p>
-              <p className="mt-1 max-w-[430px] text-sm leading-snug text-white/80">
+              <p className="mt-1 max-w-107.5 text-sm leading-snug text-white/80">
                 Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira
               </p>
             </div>
