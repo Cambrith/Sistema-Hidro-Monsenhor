@@ -231,10 +231,10 @@ export function AdminSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Voltar ao Site">
-              <Link to="/">
+              <a href="/" target="_blank" rel="noopener noreferrer">
                 <Globe className="h-4 w-4" />
                 <span>Voltar ao Site</span>
-              </Link>
+              </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
 

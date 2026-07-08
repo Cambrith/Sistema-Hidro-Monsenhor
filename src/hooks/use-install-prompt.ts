@@ -7,14 +7,28 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-type PlataformaInstalacao = "android" | "ios" | null;
+type PlataformaInstalacao = "android" | "desktop" | "ios" | null;
 
-function estaEmModoStandalone(): boolean {
+export function estaEmModoStandalone(): boolean {
   if (typeof window === "undefined") return false;
   const standaloneMatch = window.matchMedia?.("(display-mode: standalone)").matches;
   // iOS Safari expõe isso via propriedade não-padrão em vez de display-mode.
   const iosStandalone = (window.navigator as { standalone?: boolean }).standalone === true;
   return !!standaloneMatch || iosStandalone;
+}
+
+export function useIsStandalone(): boolean {
+  const [standalone, setStandalone] = React.useState(false);
+
+  React.useEffect(() => {
+    setStandalone(estaEmModoStandalone());
+    const mql = window.matchMedia("(display-mode: standalone)");
+    const handler = () => setStandalone(estaEmModoStandalone());
+    mql.addEventListener?.("change", handler);
+    return () => mql.removeEventListener?.("change", handler);
+  }, []);
+
+  return standalone;
 }
 
 function detectarIOS(): boolean {
@@ -25,6 +39,10 @@ function detectarIOS(): boolean {
   const isIPadOSDisfarcado =
     ua.includes("Macintosh") && navigator.maxTouchPoints > 1;
   return isIOSDevice || isIPadOSDisfarcado;
+}
+function detectarAndroid(): boolean {
+  if (typeof window === "undefined") return false;
+  return /Android/i.test(window.navigator.userAgent);
 }
 
 function foiDispensadoRecentemente(chaveDispensado: string): boolean {
@@ -74,11 +92,11 @@ export function useInstallPrompt(app: "portal" | "admin" = "portal") {
     }
 
     function aoCapturarPrompt(event: Event) {
-      event.preventDefault();
-      deferredPromptRef.current = event as BeforeInstallPromptEvent;
-      setPlataforma("android");
-      setPodeMostrar(true);
-    }
+  event.preventDefault();
+  deferredPromptRef.current = event as BeforeInstallPromptEvent;
+  setPlataforma(detectarAndroid() ? "android" : "desktop");
+  setPodeMostrar(true);
+}
 
     window.addEventListener("beforeinstallprompt", aoCapturarPrompt);
 

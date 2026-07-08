@@ -372,10 +372,10 @@ function LoginAluno() {
               </a>
             </p>
             <div className="mt-6 text-center text-sm">
-              <Link to="/acesso" className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground">
-                <ArrowLeft className="mr-1 h-4 w-4" />
-                Voltar
-              </Link>
+              <a href="/acesso" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground">
+  <ArrowLeft className="mr-1 h-4 w-4" />
+  Voltar
+</a>
             </div>
           </CardContent>
         </Card>

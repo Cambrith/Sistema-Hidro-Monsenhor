@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useIsStandalone } from "@/hooks/use-install-prompt";
 import {
   Home,
   CalendarDays,
@@ -101,7 +102,7 @@ export function PortalSidebar({
   onSair: () => void;
 }) {
   const current = useRouterState({ select: (s) => s.location.pathname });
-
+const isStandalone = useIsStandalone();
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -150,14 +151,16 @@ export function PortalSidebar({
         </div>
 
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Voltar ao site">
-              <Link to="/">
-                <Globe className="h-4 w-4" />
-                <span>Voltar ao Site</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {!isStandalone && (
+  <SidebarMenuItem>
+    <SidebarMenuButton asChild tooltip="Voltar ao site">
+      <Link to="/">
+        <Globe className="h-4 w-4" />
+        <span>Voltar ao Site</span>
+      </Link>
+    </SidebarMenuButton>
+  </SidebarMenuItem>
+)}
 
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Sair" onClick={onSair}>
