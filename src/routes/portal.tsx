@@ -28,6 +28,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { PortalSidebar, type PendenciaDocumentos } from "@/components/portal-sidebar";
 import { PwaInstallBanner } from "@/components/pwa-install-banner";
+import { useIsStandalone } from "@/hooks/use-install-prompt";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import logo from "@/assets/logo-simbolo.png";
@@ -211,6 +212,7 @@ function dataNascimentoParaISO(valor: string): string | null {
 }
 
 function LoginAluno() {
+  const isStandalone = useIsStandalone();
   const nav = useNavigate();
   const [cpf, setCpf] = useState("");
   const [nascimento, setNascimento] = useState("");
@@ -371,12 +373,14 @@ function LoginAluno() {
                 Veja os canais de contato
               </a>
             </p>
-            <div className="mt-6 text-center text-sm">
-              <a href="/acesso" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground">
-  <ArrowLeft className="mr-1 h-4 w-4" />
-  Voltar
-</a>
-            </div>
+            {!isStandalone && (
+              <div className="mt-6 text-center text-sm">
+                <Link to="/acesso" className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground">
+                  <ArrowLeft className="mr-1 h-4 w-4" />
+                  Voltar
+                </Link>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

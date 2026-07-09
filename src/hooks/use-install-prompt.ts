@@ -57,7 +57,21 @@ function foiDispensadoRecentemente(chaveDispensado: string): boolean {
     return false;
   }
 }
+function foiInstaladoAnteriormente(chaveInstalado: string): boolean {
+  try {
+    return localStorage.getItem(chaveInstalado) === "1";
+  } catch {
+    return false;
+  }
+}
 
+function marcarComoInstalado(chaveInstalado: string): void {
+  try {
+    localStorage.setItem(chaveInstalado, "1");
+  } catch {
+    // Sem problema — na pior das hipóteses o banner volta a aparecer depois.
+  }
+}
 /**
  * Controla a exibição do banner de instalação do PWA.
  *
@@ -75,14 +89,19 @@ function foiDispensadoRecentemente(chaveDispensado: string): boolean {
  */
 export function useInstallPrompt(app: "portal" | "admin" = "portal") {
   const chaveDispensado = `hidro-monsenhor:install-dispensado-em:${app}`;
-
+const chaveInstalado = `hidro-monsenhor:ja-instalado:${app}`;
   const [plataforma, setPlataforma] = React.useState<PlataformaInstalacao>(null);
   const [podeMostrar, setPodeMostrar] = React.useState(false);
   const deferredPromptRef = React.useRef<BeforeInstallPromptEvent | null>(null);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
-    if (estaEmModoStandalone()) return;
+    if (estaEmModoStandalone()) {
+      marcarComoInstalado(chaveInstalado);
+      return;
+    }
+
+    if (foiInstaladoAnteriormente(chaveInstalado)) return;
     if (foiDispensadoRecentemente(chaveDispensado)) return;
 
     if (detectarIOS()) {
@@ -100,7 +119,8 @@ export function useInstallPrompt(app: "portal" | "admin" = "portal") {
 
     window.addEventListener("beforeinstallprompt", aoCapturarPrompt);
 
-    function aoInstalar() {
+   function aoInstalar() {
+      marcarComoInstalado(chaveInstalado);
       setPodeMostrar(false);
       deferredPromptRef.current = null;
     }
@@ -110,7 +130,7 @@ export function useInstallPrompt(app: "portal" | "admin" = "portal") {
       window.removeEventListener("beforeinstallprompt", aoCapturarPrompt);
       window.removeEventListener("appinstalled", aoInstalar);
     };
-  }, [chaveDispensado]);
+  }, [chaveDispensado, chaveInstalado]);
 
   async function instalar() {
     const prompt = deferredPromptRef.current;

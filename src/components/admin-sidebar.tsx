@@ -1,4 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useIsStandalone } from "@/hooks/use-install-prompt";
 import {
   LayoutDashboard,
   Users,
@@ -13,7 +14,6 @@ import {
   Hourglass,
   Globe,
 } from "lucide-react";
-
 import {
   Sidebar,
   SidebarContent,
@@ -159,6 +159,7 @@ export function AdminSidebar() {
   const navigate = useNavigate();
   const current = useRouterState({ select: (s) => s.location.pathname });
   const sessao = getSessao();
+  const isStandalone = useIsStandalone();
 
   const operacaoVisivel = operacao.filter((item) => podeAcessar(item.permissao));
   const sistemaVisivel = sistema.filter((item) => podeAcessar(item.permissao));
@@ -229,14 +230,16 @@ export function AdminSidebar() {
         </div>
 
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Voltar ao Site">
-              <a href="/" target="_blank" rel="noopener noreferrer">
-                <Globe className="h-4 w-4" />
-                <span>Voltar ao Site</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {!isStandalone && (
+  <SidebarMenuItem>
+    <SidebarMenuButton asChild tooltip="Voltar ao Site">
+      <Link to="/">
+        <Globe className="h-4 w-4" />
+        <span>Voltar ao Site</span>
+      </Link>
+    </SidebarMenuButton>
+  </SidebarMenuItem>
+)}
 
           <SidebarMenuItem>
             <SidebarMenuButton
