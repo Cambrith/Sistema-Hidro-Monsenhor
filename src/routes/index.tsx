@@ -438,57 +438,6 @@ function Home() {
           </div>
         </div>
       </section>
-
-      {avisosImportantes.length > 0 && (
-        <section id="avisos" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="font-display text-2xl font-semibold">Avisos importantes</h2>
-              <p className="text-sm text-muted-foreground">Comunicados de destaque publicados pela equipe responsável.</p>
-            </div>
-            <Link to="/avisos">
-              <Button variant="outline" size="sm">
-                Ver todos os avisos
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-
-          <div className={avisosImportantes.length === 1 ? "mt-5 max-w-2xl" : "mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3"}>
-            {avisosImportantes.map((aviso) => (
-              <button key={aviso.id} type="button" onClick={() => setAvisoAberto(aviso)} className="group w-full text-left">
-                <Card className="h-full border-border/80 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
-                  <CardHeader className="space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                        <Megaphone className="h-5 w-5" />
-                      </span>
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Importante</span>
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{aviso.titulo}</CardTitle>
-                      <CardDescription className="mt-1">{formatarData(aviso.data)}</CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm leading-relaxed text-muted-foreground">
-                      {aviso.resumo?.trim() ||
-                        (aviso.importante
-                          ? "Comunicado importante — toque para conferir todos os detalhes."
-                          : "Toque para conferir todos os detalhes deste comunicado.")}
-                    </p>
-                    <p className="mt-4 inline-flex items-center text-sm font-medium text-primary">
-                      Ler aviso completo
-                      <ArrowRight className="ml-1 h-3.5 w-3.5 opacity-70 transition-transform group-hover:translate-x-0.5" />
-                    </p>
-                  </CardContent>
-                </Card>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
       <section id="modalidades" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
         <div>
           <h2 className="font-display text-2xl font-semibold">Modalidades oferecidas</h2>
