@@ -10,14 +10,6 @@ function normalizarNumero(valor: string): string {
   return valor.replace(/\D/g, "");
 }
 
-async function senhaDerivada(cpf: string, nascimento: string, telefone: string) {
-  const encoder = new TextEncoder();
-  const dados = encoder.encode(`${cpf}|${nascimento}|${telefone}|atlas-salt-fixo`);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", dados);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
-}
-
 export async function getSessaoAluno(): Promise<SessaoAluno | null> {
   const { data } = await supabase.auth.getSession();
   const session = data.session;
@@ -46,12 +38,14 @@ export async function loginAluno(
     { body: { cpf: cpfNorm, nascimento, telefone: telefoneNorm } },
   );
 
-  if (erroGarantia || !garantia?.ok) return null;
+  if (erroGarantia || !garantia?.ok || !garantia?.token_hash) return null;
 
-  const senha = await senhaDerivada(cpfNorm, nascimento, telefoneNorm);
-  const { data, error } = await supabase.auth.signInWithPassword({
+  // O servidor já conferiu cpf+nascimento+telefone e devolveu um token de
+  // uso único — o navegador nunca calcula nem envia nenhuma senha.
+  const { data, error } = await supabase.auth.verifyOtp({
     email: garantia.email,
-    password: senha,
+    token_hash: garantia.token_hash,
+    type: "email",
   });
 
   if (error || !data.session) return null;
