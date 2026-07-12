@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessaoAluno, sairAluno, type SessaoAluno } from "@/lib/auth-aluno";
@@ -9,7 +9,10 @@ import { AlertTriangle, CalendarDays, CheckCircle2, ExternalLink, FileText, User
 import { toast } from "sonner";
 import { statusValidade } from "@/lib/validade";
 export const Route = createFileRoute("/portal/inicio")({
-  head: () => ({ meta: [{ title: "Início – Portal do Aluno" }] }),
+  beforeLoad: async () => {
+    if (!(await getSessaoAluno())) throw redirect({ to: "/portal" });
+  },
+  head: () => ({ meta: [{ title: "Início — Portal do Aluno" }] }),
   component: PortalInicio,
 });
 
@@ -80,7 +83,7 @@ function PortalInicio() {
     if (!alunoData) {
       toast.error("Sua sessão expirou. Faça login novamente.");
       sairAluno();
-      navigate({ to: "/login" });
+      navigate({ to: "/portal" });
       return;
     }
 

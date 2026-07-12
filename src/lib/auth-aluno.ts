@@ -42,8 +42,8 @@ export async function loginAluno(
 
   // O servidor já conferiu cpf+nascimento+telefone e devolveu um token de
   // uso único — o navegador nunca calcula nem envia nenhuma senha.
+  // (a API do Supabase exige só token_hash + type juntos, sem o email)
   const { data, error } = await supabase.auth.verifyOtp({
-    email: garantia.email,
     token_hash: garantia.token_hash,
     type: "email",
   });

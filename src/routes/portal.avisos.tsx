@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getSessaoAluno } from "@/lib/auth-aluno";
 import { AvisoMensagemHtml } from "@/lib/sanitizar-aviso";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,7 +14,10 @@ import {
 import { Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/portal/avisos")({
-  head: () => ({ meta: [{ title: "Avisos – Portal do Aluno" }] }),
+  beforeLoad: async () => {
+    if (!(await getSessaoAluno())) throw redirect({ to: "/portal" });
+  },
+  head: () => ({ meta: [{ title: "Avisos — Portal do Aluno" }] }),
   component: PortalAvisos,
 });
 

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessaoAluno, type SessaoAluno } from "@/lib/auth-aluno";
@@ -7,6 +7,9 @@ import { CalendarDays, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from "
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal/presencas")({
+  beforeLoad: async () => {
+    if (!(await getSessaoAluno())) throw redirect({ to: "/portal" });
+  },
   head: () => ({ meta: [{ title: "Presenças — Portal do Aluno" }] }),
   component: PortalPresencas,
 });

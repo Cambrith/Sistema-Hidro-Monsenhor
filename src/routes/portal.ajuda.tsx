@@ -1,10 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExternalLink, HelpCircle, ShieldCheck } from "lucide-react";
 import { regrasCentro } from "@/lib/regras-centro";
+import { getSessaoAluno } from "@/lib/auth-aluno";
 
 export const Route = createFileRoute("/portal/ajuda")({
-  head: () => ({ meta: [{ title: "Dúvidas – Portal do Aluno" }] }),
+  beforeLoad: async () => {
+    if (!(await getSessaoAluno())) throw redirect({ to: "/portal" });
+  },
+  head: () => ({ meta: [{ title: "Dúvidas — Portal do Aluno" }] }),
   component: PortalAjuda,
 });
 

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessao } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,7 @@ import {
   CheckCircle2,
   Clock,
   Eye,
+  FilePlus2,
   FileText,
   RefreshCw,
   Search,
@@ -56,6 +57,11 @@ type Documento = {
   observacao: string | null;
   criado_em: string;
   aluno_nome: string;
+};
+
+type AlunoBusca = {
+  id: string;
+  nome_completo: string;
 };
 
 const statusCfg: Record<string, { label: string; badge: string; icon: typeof CheckCircle2 }> = {
@@ -97,6 +103,8 @@ function DocumentosAdmin() {
   const [busca, setBusca] = useState("");
   const [analisando, setAnalisando] = useState<Documento | null>(null);
   const [excluindo, setExcluindo] = useState<string | null>(null);
+  const [registrando, setRegistrando] = useState(false);
+
   async function carregarDocumentos() {
     setCarregando(true);
 
@@ -202,13 +210,21 @@ function DocumentosAdmin() {
             <div>
               <CardTitle>Documentos enviados</CardTitle>
               <CardDescription>
-                Atestados médicos e formulários PAR-Q enviados pelos alunos pelo portal.
+                Atestados médicos e formulários PAR-Q enviados pelos alunos pelo portal, ou registrados manualmente pela secretaria.
               </CardDescription>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={carregarDocumentos} disabled={carregando}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Atualizar
-            </Button>
+            <div className="flex gap-2">
+              {podeAnalizar && (
+                <Button type="button" size="sm" onClick={() => setRegistrando(true)}>
+                  <FilePlus2 className="mr-2 h-4 w-4" />
+                  Registrar documento
+                </Button>
+              )}
+              <Button type="button" variant="outline" size="sm" onClick={carregarDocumentos} disabled={carregando}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Atualizar
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
@@ -369,6 +385,12 @@ function DocumentosAdmin() {
           onSaved={() => { setAnalisando(null); carregarDocumentos(); }}
         />
       )}
+
+      <RegistrarDialog
+        open={registrando}
+        onOpenChange={setRegistrando}
+        onSaved={carregarDocumentos}
+      />
     </div>
   );
 }
@@ -507,6 +529,260 @@ function AnalisarDialog({
               Aprovar
             </Button>
           </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function RegistrarDialog({
+  open,
+  onOpenChange,
+  onSaved,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaved: () => void;
+}) {
+  const [aluno, setAluno] = useState<AlunoBusca | null>(null);
+  const [buscaAluno, setBuscaAluno] = useState("");
+  const [resultadosAluno, setResultadosAluno] = useState<AlunoBusca[]>([]);
+  const [tipo, setTipo] = useState<"atestado" | "par_q">("atestado");
+  const [arquivos, setArquivos] = useState<File[]>([]);
+  const [validade, setValidade] = useState("");
+  const [observacao, setObservacao] = useState("");
+  const [salvando, setSalvando] = useState(false);
+  const refArquivo = useRef<HTMLInputElement>(null);
+
+  // Busca aluno por nome (debounced), só enquanto nenhum estiver selecionado.
+  useEffect(() => {
+    if (aluno) return;
+    if (buscaAluno.trim().length < 2) {
+      setResultadosAluno([]);
+      return;
+    }
+    const timeout = setTimeout(async () => {
+      const { data, error } = await supabase
+        .from("alunos")
+        .select("id, nome_completo")
+        .ilike("nome_completo", `%${buscaAluno.trim()}%`)
+        .order("nome_completo")
+        .limit(8);
+
+      if (!error) setResultadosAluno((data ?? []) as AlunoBusca[]);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [buscaAluno, aluno]);
+
+  function fechar() {
+    setAluno(null);
+    setBuscaAluno("");
+    setResultadosAluno([]);
+    setTipo("atestado");
+    setArquivos([]);
+    setValidade("");
+    setObservacao("");
+    onOpenChange(false);
+  }
+
+  async function salvar() {
+    if (!aluno) {
+      toast.error("Selecione o aluno.");
+      return;
+    }
+    if (arquivos.length === 0) {
+      toast.error("Anexe ao menos um arquivo (foto ou PDF do documento).");
+      return;
+    }
+    if (!validade) {
+      toast.error("Informe a data de validade.");
+      return;
+    }
+
+    setSalvando(true);
+
+    try {
+      const caminhos: string[] = [];
+      const nomes: string[] = [];
+
+      for (const arquivo of arquivos) {
+        const ext = arquivo.name.split(".").pop();
+        const caminho = `${aluno.id}/${tipo}-manual-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("documentos-aluno")
+          .upload(caminho, arquivo, { upsert: false });
+
+        if (uploadError) throw uploadError;
+
+        caminhos.push(caminho);
+        nomes.push(arquivo.name);
+      }
+
+      const { error } = await supabase.rpc("admin_registrar_documento", {
+        p_aluno_id: aluno.id,
+        p_tipo: tipo,
+        p_nomes_arquivo: nomes,
+        p_urls: caminhos,
+        p_validade: validade,
+        p_observacao: observacao.trim() || null,
+      });
+
+      if (error) throw error;
+
+      toast.success(`${tipoCfg[tipo]} registrado para ${aluno.nome_completo}.`);
+      fechar();
+      onSaved();
+    } catch (erro) {
+      toast.error(erro instanceof Error ? erro.message : "Erro ao registrar o documento.");
+      console.error(erro);
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) fechar(); }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FilePlus2 className="h-5 w-5 text-primary" />
+            Registrar documento manualmente
+          </DialogTitle>
+          <DialogDescription>
+            Use para documentos entregues em papel na secretaria (ex.: matrícula presencial). O documento já entra como aprovado.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {/* Aluno */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Aluno</label>
+            {aluno ? (
+              <div className="flex items-center justify-between rounded-lg border border-border bg-accent/20 px-3 py-2 text-sm">
+                <span className="font-medium">{aluno.nome_completo}</span>
+                <button
+                  type="button"
+                  onClick={() => { setAluno(null); setBuscaAluno(""); }}
+                  className="text-muted-foreground hover:text-foreground"
+                  title="Trocar aluno"
+                  disabled={salvando}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={buscaAluno}
+                  onChange={(e) => setBuscaAluno(e.target.value)}
+                  placeholder="Buscar aluno pelo nome..."
+                  className="pl-9"
+                  disabled={salvando}
+                />
+                {resultadosAluno.length > 0 && (
+                  <div className="absolute z-10 mt-1 w-full rounded-md border border-border bg-background shadow-md">
+                    {resultadosAluno.map((a) => (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => { setAluno(a); setResultadosAluno([]); }}
+                        className="block w-full px-3 py-2 text-left text-sm hover:bg-accent"
+                      >
+                        {a.nome_completo}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Tipo */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Tipo de documento</label>
+            <div className="flex gap-2">
+              {(["atestado", "par_q"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => { setTipo(t); setArquivos([]); }}
+                  disabled={salvando}
+                  className={`flex-1 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
+                    tipo === t
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  {tipoCfg[t]}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Arquivo */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Arquivo (foto ou PDF do documento)</label>
+            <input
+              ref={refArquivo}
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              multiple={tipo === "par_q"}
+              className="hidden"
+              onChange={(e) => setArquivos(Array.from(e.target.files ?? []))}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => refArquivo.current?.click()}
+              disabled={salvando}
+            >
+              {arquivos.length > 0
+                ? `${arquivos.length} arquivo(s) selecionado(s)`
+                : "Escolher arquivo"}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              PNG, JPG ou PDF.{tipo === "par_q" ? " Pode selecionar até 2 (frente e verso)." : ""}
+            </p>
+          </div>
+
+          {/* Validade */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">
+              Validade <span className="text-muted-foreground">(obrigatória)</span>
+            </label>
+            <Input
+              type="date"
+              value={validade}
+              onChange={(e) => setValidade(e.target.value)}
+              disabled={salvando}
+            />
+          </div>
+
+          {/* Observação */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">
+              Observação <span className="text-muted-foreground">(opcional)</span>
+            </label>
+            <Textarea
+              value={observacao}
+              onChange={(e) => setObservacao(e.target.value)}
+              placeholder="Ex.: Entregue na matrícula presencial em 12/07/2026."
+              disabled={salvando}
+            />
+          </div>
+
+          <Button
+            type="button"
+            className="w-full bg-green-700 hover:bg-green-800"
+            disabled={salvando}
+            onClick={salvar}
+          >
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+            {salvando ? "Registrando..." : "Registrar como aprovado"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessaoAluno, type SessaoAluno } from "@/lib/auth-aluno";
+import { statusValidade } from "@/lib/validade";
 import {
   Card,
   CardContent,
@@ -23,6 +24,9 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal/documentos")({
+  beforeLoad: async () => {
+    if (!(await getSessaoAluno())) throw redirect({ to: "/portal" });
+  },
   head: () => ({ meta: [{ title: "Documentos — Portal do Aluno" }] }),
   component: PortalDocumentos,
 });
@@ -66,6 +70,9 @@ function validarArquivo(arquivo: File): string | null {
 
 function mensagemErroEnvio(erro: unknown): string {
   const msg = erro instanceof Error ? erro.message : "";
+  if (msg.includes("ainda válido")) {
+    return "Esse documento ainda está válido. Não é necessário reenviar.";
+  }
   if (msg.includes("pendente desse tipo")) {
     return "Você já tem um envio pendente desse tipo. Cancele-o antes de enviar outro.";
   }
@@ -104,12 +111,19 @@ function PortalDocumentos() {
   const [carregando, setCarregando] = useState(true);
   const [enviando, setEnviando] = useState<"atestado" | "par_q" | null>(null);
   const [cancelando, setCancelando] = useState<string | null>(null);
+  const [validadeAtestado, setValidadeAtestado] = useState<string | null>(null);
+  const [validadeParq, setValidadeParq] = useState<string | null>(null);
+  const [forcarAtestado, setForcarAtestado] = useState(false);
+  const [forcarParq, setForcarParq] = useState(false);
   const refAtestado = useRef<HTMLInputElement>(null);
   const refParq = useRef<HTMLInputElement>(null);
 
   useEffect(() => { getSessaoAluno().then(setSession); }, []);
   useEffect(() => {
-    if (session?.id) carregarDocumentos();
+    if (session?.id) {
+      carregarDocumentos();
+      carregarValidade();
+    }
   }, [session?.id]);
 
   async function carregarDocumentos() {
@@ -124,6 +138,17 @@ function PortalDocumentos() {
       setDocumentos((data ?? []) as Documento[]);
     }
     setCarregando(false);
+  }
+
+  async function carregarValidade() {
+    const { data, error } = await supabase.rpc("portal_dados_inicio", {
+      p_aluno_id: session!.id,
+    });
+
+    if (!error && data?.[0]) {
+      setValidadeAtestado(data[0].atestado_validade ?? null);
+      setValidadeParq(data[0].parq_validade ?? null);
+    }
   }
 
   async function enviarDocumento(tipo: "atestado" | "par_q", arquivos: File[]) {
@@ -162,11 +187,14 @@ function PortalDocumentos() {
         nomes.push(arquivo.name);
       }
 
+      const forcar = tipo === "atestado" ? forcarAtestado : forcarParq;
+
       const { error: insertError } = await supabase.rpc("portal_enviar_documento", {
         p_aluno_id: session.id,
         p_tipo: tipo,
         p_nomes_arquivo: nomes,
         p_urls: caminhos,
+        p_forcar: forcar,
       });
 
       if (insertError) throw insertError;
@@ -177,7 +205,11 @@ function PortalDocumentos() {
           : "PAR-Q enviado! A secretaria analisará em breve.",
       );
 
+      if (tipo === "atestado") setForcarAtestado(false);
+      else setForcarParq(false);
+
       await carregarDocumentos();
+      await carregarValidade();
     } catch (erro) {
       toast.error(mensagemErroEnvio(erro));
     } finally {
@@ -221,6 +253,11 @@ function PortalDocumentos() {
   const ultimoParq = documentos.find((d) => d.tipo === "par_q");
   const temPendenteAtestado = ultimoAtestado?.status === "pendente";
   const temPendenteParq = ultimoParq?.status === "pendente";
+
+  const statusAtestado = statusValidade(validadeAtestado);
+  const statusParq = statusValidade(validadeParq);
+  const mostrarUploadAtestado = statusAtestado !== "ok" || forcarAtestado;
+  const mostrarUploadParq = statusParq !== "ok" || forcarParq;
 
   if (!session) return null;
 
@@ -287,45 +324,64 @@ function PortalDocumentos() {
             </p>
           )}
 
-          <input
-            ref={refParq}
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png"
-            multiple
-            className="hidden"
-            onChange={(e) => {
-              const arquivos = Array.from(e.target.files ?? []);
-              if (arquivos.length) enviarDocumento("par_q", arquivos);
-              e.target.value = "";
-            }}
-          />
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => refParq.current?.click()}
-              disabled={enviando !== null || temPendenteParq}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {enviando === "par_q" ? "Enviando..." : ultimoParq ? "Enviar novo PAR-Q" : "Enviar PAR-Q"}
-            </Button>
-
-            {temPendenteParq && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                onClick={() => cancelarDocumento(ultimoParq!)}
-                disabled={cancelando === ultimoParq!.id}
+          {statusParq === "ok" && !forcarParq ? (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-900">
+              <p className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 shrink-0" />
+                Válido até <strong>{formatarData(validadeParq)}</strong>. Não é
+                necessário reenviar.
+              </p>
+              <button
+                type="button"
+                onClick={() => setForcarParq(true)}
+                className="mt-1 text-xs text-green-800 underline underline-offset-2 hover:text-green-900"
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {cancelando === ultimoParq!.id ? "Cancelando..." : "Cancelar envio"}
-              </Button>
-            )}
-          </div>
+                Preciso atualizar mesmo assim
+              </button>
+            </div>
+          ) : (
+            <>
+              <input
+                ref={refParq}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  const arquivos = Array.from(e.target.files ?? []);
+                  if (arquivos.length) enviarDocumento("par_q", arquivos);
+                  e.target.value = "";
+                }}
+              />
 
-          <p className="text-xs text-muted-foreground">{TEXTO_RESTRICOES_PARQ}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => refParq.current?.click()}
+                  disabled={enviando !== null || temPendenteParq}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {enviando === "par_q" ? "Enviando..." : ultimoParq ? "Enviar novo PAR-Q" : "Enviar PAR-Q"}
+                </Button>
+
+                {temPendenteParq && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                    onClick={() => cancelarDocumento(ultimoParq!)}
+                    disabled={cancelando === ultimoParq!.id}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {cancelando === ultimoParq!.id ? "Cancelando..." : "Cancelar envio"}
+                  </Button>
+                )}
+              </div>
+
+              <p className="text-xs text-muted-foreground">{TEXTO_RESTRICOES_PARQ}</p>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -370,53 +426,72 @@ function PortalDocumentos() {
             </p>
           )}
 
-          <input
-            ref={refAtestado}
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png"
-            className="hidden"
-            onChange={(e) => {
-              const arquivos = Array.from(e.target.files ?? []);
-              if (arquivos.length > 1) {
-                toast.error("Selecione apenas um arquivo para o atestado.");
-                e.target.value = "";
-                return;
-              }
-              if (arquivos[0]) enviarDocumento("atestado", [arquivos[0]]);
-              e.target.value = "";
-            }}
-          />
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => refAtestado.current?.click()}
-              disabled={enviando !== null || temPendenteAtestado}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {enviando === "atestado"
-                ? "Enviando..."
-                : ultimoAtestado
-                  ? "Enviar novo atestado"
-                  : "Enviar atestado"}
-            </Button>
-
-            {temPendenteAtestado && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                onClick={() => cancelarDocumento(ultimoAtestado!)}
-                disabled={cancelando === ultimoAtestado!.id}
+          {statusAtestado === "ok" && !forcarAtestado ? (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-900">
+              <p className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 shrink-0" />
+                Válido até <strong>{formatarData(validadeAtestado)}</strong>. Não
+                é necessário reenviar.
+              </p>
+              <button
+                type="button"
+                onClick={() => setForcarAtestado(true)}
+                className="mt-1 text-xs text-green-800 underline underline-offset-2 hover:text-green-900"
               >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {cancelando === ultimoAtestado!.id ? "Cancelando..." : "Cancelar envio"}
-              </Button>
-            )}
-          </div>
+                Preciso atualizar mesmo assim
+              </button>
+            </div>
+          ) : (
+            <>
+              <input
+                ref={refAtestado}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                className="hidden"
+                onChange={(e) => {
+                  const arquivos = Array.from(e.target.files ?? []);
+                  if (arquivos.length > 1) {
+                    toast.error("Selecione apenas um arquivo para o atestado.");
+                    e.target.value = "";
+                    return;
+                  }
+                  if (arquivos[0]) enviarDocumento("atestado", [arquivos[0]]);
+                  e.target.value = "";
+                }}
+              />
 
-          <p className="text-xs text-muted-foreground">{TEXTO_RESTRICOES}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => refAtestado.current?.click()}
+                  disabled={enviando !== null || temPendenteAtestado}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {enviando === "atestado"
+                    ? "Enviando..."
+                    : ultimoAtestado
+                      ? "Enviar novo atestado"
+                      : "Enviar atestado"}
+                </Button>
+
+                {temPendenteAtestado && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                    onClick={() => cancelarDocumento(ultimoAtestado!)}
+                    disabled={cancelando === ultimoAtestado!.id}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {cancelando === ultimoAtestado!.id ? "Cancelando..." : "Cancelar envio"}
+                  </Button>
+                )}
+              </div>
+
+              <p className="text-xs text-muted-foreground">{TEXTO_RESTRICOES}</p>
+            </>
+          )}
         </CardContent>
       </Card>
 

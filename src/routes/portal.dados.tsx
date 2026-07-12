@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessaoAluno, sairAluno, type SessaoAluno } from "@/lib/auth-aluno";
@@ -8,6 +8,9 @@ import { ClipboardList, ExternalLink, MapPin, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal/dados")({
+  beforeLoad: async () => {
+    if (!(await getSessaoAluno())) throw redirect({ to: "/portal" });
+  },
   head: () => ({ meta: [{ title: "Meus dados — Portal do Aluno" }] }),
   component: PortalDados,
 });
@@ -94,7 +97,7 @@ function PortalDados() {
     if (!alunoData) {
       toast.error("Sua sessão expirou. Faça login novamente.");
       sairAluno();
-      navigate({ to: "/login" });
+      navigate({ to: "/portal" });
       return;
     }
 
@@ -125,7 +128,7 @@ function PortalDados() {
       <div>
         <h1 className="text-xl font-semibold">Meus dados</h1>
         <p className="text-sm text-muted-foreground">
-          Para atualizar qualquer informação, compareça à secretaria.
+          Para atualizar qualquer informação, contate a secretaria.
         </p>
       </div>
 
