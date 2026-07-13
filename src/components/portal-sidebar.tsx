@@ -63,11 +63,7 @@ function MenuLinkPortal({
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={isActivePath(current, item.to)}
-        tooltip={item.label}
-      >
+      <SidebarMenuButton asChild isActive={isActivePath(current, item.to)} tooltip={item.label}>
         <Link
           to={item.to as never}
           onClick={() => {
@@ -102,7 +98,7 @@ export function PortalSidebar({
   onSair: () => void;
 }) {
   const current = useRouterState({ select: (s) => s.location.pathname });
-const isStandalone = useIsStandalone();
+  const isStandalone = useIsStandalone();
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -152,15 +148,15 @@ const isStandalone = useIsStandalone();
 
         <SidebarMenu>
           {!isStandalone && (
-  <SidebarMenuItem>
-    <SidebarMenuButton asChild tooltip="Voltar ao site">
-      <Link to="/">
-        <Globe className="h-4 w-4" />
-        <span>Voltar ao Site</span>
-      </Link>
-    </SidebarMenuButton>
-  </SidebarMenuItem>
-)}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Voltar ao site">
+                <Link to="/">
+                  <Globe className="h-4 w-4" />
+                  <span>Voltar ao Site</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
 
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Sair" onClick={onSair}>

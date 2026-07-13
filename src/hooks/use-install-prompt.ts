@@ -36,8 +36,7 @@ function detectarIOS(): boolean {
   const ua = window.navigator.userAgent;
   const isIOSDevice = /iPad|iPhone|iPod/.test(ua);
   // iPadOS recente se identifica como Mac, mas tem suporte a touch — pega esse caso também.
-  const isIPadOSDisfarcado =
-    ua.includes("Macintosh") && navigator.maxTouchPoints > 1;
+  const isIPadOSDisfarcado = ua.includes("Macintosh") && navigator.maxTouchPoints > 1;
   return isIOSDevice || isIPadOSDisfarcado;
 }
 function detectarAndroid(): boolean {
@@ -89,7 +88,7 @@ function marcarComoInstalado(chaveInstalado: string): void {
  */
 export function useInstallPrompt(app: "portal" | "admin" = "portal") {
   const chaveDispensado = `hidro-monsenhor:install-dispensado-em:${app}`;
-const chaveInstalado = `hidro-monsenhor:ja-instalado:${app}`;
+  const chaveInstalado = `hidro-monsenhor:ja-instalado:${app}`;
   const [plataforma, setPlataforma] = React.useState<PlataformaInstalacao>(null);
   const [podeMostrar, setPodeMostrar] = React.useState(false);
   const deferredPromptRef = React.useRef<BeforeInstallPromptEvent | null>(null);
@@ -111,15 +110,15 @@ const chaveInstalado = `hidro-monsenhor:ja-instalado:${app}`;
     }
 
     function aoCapturarPrompt(event: Event) {
-  event.preventDefault();
-  deferredPromptRef.current = event as BeforeInstallPromptEvent;
-  setPlataforma(detectarAndroid() ? "android" : "desktop");
-  setPodeMostrar(true);
-}
+      event.preventDefault();
+      deferredPromptRef.current = event as BeforeInstallPromptEvent;
+      setPlataforma(detectarAndroid() ? "android" : "desktop");
+      setPodeMostrar(true);
+    }
 
     window.addEventListener("beforeinstallprompt", aoCapturarPrompt);
 
-   function aoInstalar() {
+    function aoInstalar() {
       marcarComoInstalado(chaveInstalado);
       setPodeMostrar(false);
       deferredPromptRef.current = null;

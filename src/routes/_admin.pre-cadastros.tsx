@@ -2,13 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessao } from "@/lib/auth";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,12 +56,7 @@ export const Route = createFileRoute("/_admin/pre-cadastros")({
 
 type Modalidade = "Natação Infantil" | "Natação Adulta" | "Hidroginástica";
 
-type StatusListaEspera =
-  | "pendente"
-  | "aprovado"
-  | "fila de espera"
-  | "recusado"
-  | "inativo";
+type StatusListaEspera = "pendente" | "aprovado" | "fila de espera" | "recusado" | "inativo";
 
 type ItemListaEspera = {
   id: string;
@@ -102,11 +91,7 @@ type Turma = {
 
 const SEM_TURMA = "__sem_turma__";
 
-const modalidades: Modalidade[] = [
-  "Natação Infantil",
-  "Natação Adulta",
-  "Hidroginástica",
-];
+const modalidades: Modalidade[] = ["Natação Infantil", "Natação Adulta", "Hidroginástica"];
 
 const statusStyle: Record<StatusListaEspera, string> = {
   pendente: "border border-yellow-300 bg-yellow-50 text-yellow-800",
@@ -363,20 +348,13 @@ function ListaEsperaAdmin() {
   const verItem = itens.find((item) => item.id === verId);
   const dadosEscolares = separarEscolaTurma(verItem?.escola_turma);
 
-  async function atualizarStatus(
-    id: string,
-    status: StatusListaEspera,
-    mensagem: string,
-  ) {
+  async function atualizarStatus(id: string, status: StatusListaEspera, mensagem: string) {
     if (!podeAnalisar) {
       toast.error("Seu perfil não tem permissão para alterar a lista de espera.");
       return false;
     }
 
-    const { error } = await supabase
-      .from("lista_espera")
-      .update({ status })
-      .eq("id", id);
+    const { error } = await supabase.from("lista_espera").update({ status }).eq("id", id);
 
     if (error) {
       console.error(error);
@@ -384,9 +362,7 @@ function ListaEsperaAdmin() {
       return false;
     }
 
-    setItens((lista) =>
-      lista.map((item) => (item.id === id ? { ...item, status } : item)),
-    );
+    setItens((lista) => lista.map((item) => (item.id === id ? { ...item, status } : item)));
 
     toast.success(mensagem);
     return true;
@@ -441,9 +417,7 @@ function ListaEsperaAdmin() {
       return;
     }
 
-    const confirmado = window.confirm(
-      `Deseja converter "${item.nome_aluno}" em aluno cadastrado?`,
-    );
+    const confirmado = window.confirm(`Deseja converter "${item.nome_aluno}" em aluno cadastrado?`);
 
     if (!confirmado) return;
 
@@ -600,8 +574,8 @@ function ListaEsperaAdmin() {
         <CardContent className="space-y-4">
           {apenasVisualiza && (
             <div className="rounded-md border border-dashed border-border bg-accent/30 px-3 py-2 text-sm text-muted-foreground">
-              Perfil de professor: lista de espera disponível apenas para consulta.
-              Alterações são restritas à Administração e à Recepção.
+              Perfil de professor: lista de espera disponível apenas para consulta. Alterações são
+              restritas à Administração e à Recepção.
             </div>
           )}
 
@@ -658,13 +632,9 @@ function ListaEsperaAdmin() {
 
                     <TableCell>
                       {item.responsavel ? (
-                        <p className="text-sm font-medium">
-                          Responsável: {item.responsavel}
-                        </p>
+                        <p className="text-sm font-medium">Responsável: {item.responsavel}</p>
                       ) : (
-                        <p className="text-sm font-medium">
-                          Participante maior de idade
-                        </p>
+                        <p className="text-sm font-medium">Participante maior de idade</p>
                       )}
 
                       <p className="text-xs text-muted-foreground">
@@ -729,11 +699,7 @@ function ListaEsperaAdmin() {
 
                               <DropdownMenuItem
                                 onClick={() =>
-                                  atualizarStatus(
-                                    item.id,
-                                    "recusado",
-                                    "Marcado como recusado.",
-                                  )
+                                  atualizarStatus(item.id, "recusado", "Marcado como recusado.")
                                 }
                               >
                                 <XCircle className="mr-2 h-4 w-4" />
@@ -742,11 +708,7 @@ function ListaEsperaAdmin() {
 
                               <DropdownMenuItem
                                 onClick={() =>
-                                  atualizarStatus(
-                                    item.id,
-                                    "inativo",
-                                    "Marcado como inativo.",
-                                  )
+                                  atualizarStatus(item.id, "inativo", "Marcado como inativo.")
                                 }
                               >
                                 <MinusCircle className="mr-2 h-4 w-4" />
@@ -825,17 +787,11 @@ function ListaEsperaAdmin() {
                   <Row k="Modalidade" v={verItem.modalidade} />
                   <Row k="Horário de interesse" v={verItem.horario_interesse || verItem.turno} />
 
-                  {dadosEscolares?.escola && (
-                    <Row k="Escola" v={dadosEscolares.escola} />
-                  )}
+                  {dadosEscolares?.escola && <Row k="Escola" v={dadosEscolares.escola} />}
 
-                  {dadosEscolares?.anoSerie && (
-                    <Row k="Ano/Série" v={dadosEscolares.anoSerie} />
-                  )}
+                  {dadosEscolares?.anoSerie && <Row k="Ano/Série" v={dadosEscolares.anoSerie} />}
 
-                  {dadosEscolares?.turma && (
-                    <Row k="Turma escolar" v={dadosEscolares.turma} />
-                  )}
+                  {dadosEscolares?.turma && <Row k="Turma escolar" v={dadosEscolares.turma} />}
 
                   {!dadosEscolares && verItem.escola_turma && (
                     <Row k="Escola/Turma" v={verItem.escola_turma} />
@@ -843,10 +799,7 @@ function ListaEsperaAdmin() {
                 </Section>
 
                 <Section title="Contato">
-                  <Row
-                    k="Responsável"
-                    v={verItem.responsavel || "Participante maior de idade"}
-                  />
+                  <Row k="Responsável" v={verItem.responsavel || "Participante maior de idade"} />
                   <Row k="WhatsApp" v={formatarTelefone(verItem.whatsapp)} />
                   <Row k="Telefone" v={formatarTelefone(verItem.telefone)} />
                   <Row k="E-mail" v={verItem.email || "—"} />
@@ -854,7 +807,10 @@ function ListaEsperaAdmin() {
 
                 <Section title="Situação">
                   <Row k="Status" v={verItem.status} />
-                  <Row k="Na lista desde" v={formatarData(verItem.criado_em || verItem.created_at)} />
+                  <Row
+                    k="Na lista desde"
+                    v={formatarData(verItem.criado_em || verItem.created_at)}
+                  />
                 </Section>
 
                 <Section title="Observações">
@@ -897,11 +853,7 @@ function ListaEsperaAdmin() {
                       type="button"
                       variant="outline"
                       onClick={() =>
-                        atualizarStatus(
-                          verItem.id,
-                          "recusado",
-                          "Marcado como recusado.",
-                        )
+                        atualizarStatus(verItem.id, "recusado", "Marcado como recusado.")
                       }
                     >
                       <XCircle className="mr-2 h-4 w-4" />
@@ -971,11 +923,21 @@ function NovoItemDialog({
   const turmasFiltradas = turmas.filter((t) => t.ativa && t.modalidade === f.modalidade);
 
   async function submit() {
-    if (!f.nome_aluno.trim()) { toast.error("Informe o nome completo."); return; }
-    if (!f.nascimento) { toast.error("Informe a data de nascimento."); return; }
-    if (!f.whatsapp.trim() || f.whatsapp.trim().length < 10) { toast.error("Informe um WhatsApp válido com DDD."); return; }
+    if (!f.nome_aluno.trim()) {
+      toast.error("Informe o nome completo.");
+      return;
+    }
+    if (!f.nascimento) {
+      toast.error("Informe a data de nascimento.");
+      return;
+    }
+    if (!f.whatsapp.trim() || f.whatsapp.trim().length < 10) {
+      toast.error("Informe um WhatsApp válido com DDD.");
+      return;
+    }
 
-    const turmaSelecionada = f.turma_id === SEM_TURMA ? null : turmas.find((t) => t.id === f.turma_id) ?? null;
+    const turmaSelecionada =
+      f.turma_id === SEM_TURMA ? null : (turmas.find((t) => t.id === f.turma_id) ?? null);
 
     setSalvando(true);
 
@@ -1014,7 +976,8 @@ function NovoItemDialog({
         <DialogHeader>
           <DialogTitle>Adicionar à lista de espera</DialogTitle>
           <DialogDescription>
-            Use quando não houver vaga disponível no momento do contato. Assim que abrir vaga, encontre a pessoa aqui pelo filtro "Aguardando".
+            Use quando não houver vaga disponível no momento do contato. Assim que abrir vaga,
+            encontre a pessoa aqui pelo filtro "Aguardando".
           </DialogDescription>
         </DialogHeader>
 
@@ -1040,11 +1003,21 @@ function NovoItemDialog({
             <Campo label="Modalidade">
               <select
                 value={f.modalidade}
-                onChange={(e) => setF((a) => ({ ...a, modalidade: e.target.value as Modalidade, turma_id: SEM_TURMA }))}
+                onChange={(e) =>
+                  setF((a) => ({
+                    ...a,
+                    modalidade: e.target.value as Modalidade,
+                    turma_id: SEM_TURMA,
+                  }))
+                }
                 className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                 disabled={salvando}
               >
-                {modalidades.map((m) => <option key={m} value={m}>{m}</option>)}
+                {modalidades.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
               </select>
             </Campo>
           </div>
@@ -1057,7 +1030,11 @@ function NovoItemDialog({
               disabled={salvando}
             >
               <option value={SEM_TURMA}>Sem preferência específica</option>
-              {turmasFiltradas.map((t) => <option key={t.id} value={t.id}>{labelTurma(t)}</option>)}
+              {turmasFiltradas.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {labelTurma(t)}
+                </option>
+              ))}
             </select>
           </Campo>
 
@@ -1112,7 +1089,12 @@ function NovoItemDialog({
           </Campo>
 
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={salvando}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={salvando}
+            >
               Cancelar
             </Button>
             <Button type="button" onClick={submit} disabled={salvando}>
@@ -1125,13 +1107,7 @@ function NovoItemDialog({
   );
 }
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="rounded-lg border border-border p-4">
       <h3 className="mb-3 text-sm font-semibold">{title}</h3>
@@ -1140,13 +1116,7 @@ function Section({
   );
 }
 
-function Row({
-  k,
-  v,
-}: {
-  k: string;
-  v?: ReactNode;
-}) {
+function Row({ k, v }: { k: string; v?: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <span className="text-muted-foreground">{k}</span>

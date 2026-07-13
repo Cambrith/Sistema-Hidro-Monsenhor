@@ -124,23 +124,13 @@ function descricaoPorPerfil(perfil?: string) {
   return "Acesso interno";
 }
 
-function MenuLink({
-  item,
-  current,
-}: {
-  item: MenuItem;
-  current: string;
-}) {
+function MenuLink({ item, current }: { item: MenuItem; current: string }) {
   const Icon = item.icon;
   const { isMobile, setOpenMobile } = useSidebar();
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={isActivePath(current, item.to)}
-        tooltip={item.label}
-      >
+      <SidebarMenuButton asChild isActive={isActivePath(current, item.to)} tooltip={item.label}>
         <Link
           to={item.to as never}
           onClick={() => {
@@ -170,7 +160,7 @@ export function AdminSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-       <div className="flex items-center gap-3 px-2 py-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
+        <div className="flex items-center gap-3 px-2 py-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
           <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-sm group-data-[collapsible=icon]:size-7 group-data-[collapsible=icon]:p-1">
             <img
               src={logo}
@@ -222,24 +212,22 @@ export function AdminSidebar() {
       <SidebarFooter className="border-t border-sidebar-border/50 pt-1">
         <div className="px-2 py-1 text-xs text-sidebar-foreground/80 group-data-[collapsible=icon]:hidden">
           <p className="truncate font-semibold text-sidebar-foreground">
-  {sessao?.nome?.split(" ")[0] ?? areaExibicao}
-</p>
-<p className="truncate text-[11px] text-sidebar-foreground/65">
-  {descricaoExibicao}
-</p>
+            {sessao?.nome?.split(" ")[0] ?? areaExibicao}
+          </p>
+          <p className="truncate text-[11px] text-sidebar-foreground/65">{descricaoExibicao}</p>
         </div>
 
         <SidebarMenu>
           {!isStandalone && (
-  <SidebarMenuItem>
-    <SidebarMenuButton asChild tooltip="Voltar ao Site">
-      <Link to="/">
-        <Globe className="h-4 w-4" />
-        <span>Voltar ao Site</span>
-      </Link>
-    </SidebarMenuButton>
-  </SidebarMenuItem>
-)}
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Voltar ao Site">
+                <Link to="/">
+                  <Globe className="h-4 w-4" />
+                  <span>Voltar ao Site</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
 
           <SidebarMenuItem>
             <SidebarMenuButton

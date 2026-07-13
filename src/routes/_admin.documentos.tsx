@@ -3,13 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessao } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,14 +59,22 @@ type AlunoBusca = {
 };
 
 const statusCfg: Record<string, { label: string; badge: string; icon: typeof CheckCircle2 }> = {
-  pendente:  { label: "Pendente",  badge: "border-yellow-300 bg-yellow-50 text-yellow-700", icon: Clock },
-  aprovado:  { label: "Aprovado",  badge: "border-green-300 bg-green-50 text-green-700",   icon: CheckCircle2 },
-  rejeitado: { label: "Rejeitado", badge: "border-red-300 bg-red-50 text-red-700",         icon: XCircle },
+  pendente: {
+    label: "Pendente",
+    badge: "border-yellow-300 bg-yellow-50 text-yellow-700",
+    icon: Clock,
+  },
+  aprovado: {
+    label: "Aprovado",
+    badge: "border-green-300 bg-green-50 text-green-700",
+    icon: CheckCircle2,
+  },
+  rejeitado: { label: "Rejeitado", badge: "border-red-300 bg-red-50 text-red-700", icon: XCircle },
 };
 
 const tipoCfg: Record<string, string> = {
   atestado: "Atestado médico",
-  par_q:    "PAR-Q",
+  par_q: "PAR-Q",
 };
 
 function formatarDataHora(data?: string | null) {
@@ -99,7 +101,9 @@ function DocumentosAdmin() {
   const [documentos, setDocumentos] = useState<Documento[]>([]);
   const [urlsAssinadas, setUrlsAssinadas] = useState<Record<string, string>>({});
   const [carregando, setCarregando] = useState(true);
-  const [filtroStatus, setFiltroStatus] = useState<"todos" | "pendente" | "aprovado" | "rejeitado">("pendente");
+  const [filtroStatus, setFiltroStatus] = useState<"todos" | "pendente" | "aprovado" | "rejeitado">(
+    "pendente",
+  );
   const [busca, setBusca] = useState("");
   const [analisando, setAnalisando] = useState<Documento | null>(null);
   const [excluindo, setExcluindo] = useState<string | null>(null);
@@ -142,7 +146,7 @@ function DocumentosAdmin() {
 
   async function excluirDocumento(doc: Documento) {
     const confirmar = window.confirm(
-      `Tem certeza que deseja excluir permanentemente o documento (${tipoCfg[doc.tipo] ?? doc.tipo}) de ${doc.aluno_nome}? Essa ação não pode ser desfeita e remove o arquivo do Storage também.`
+      `Tem certeza que deseja excluir permanentemente o documento (${tipoCfg[doc.tipo] ?? doc.tipo}) de ${doc.aluno_nome}? Essa ação não pode ser desfeita e remove o arquivo do Storage também.`,
     );
     if (!confirmar) return;
 
@@ -170,7 +174,9 @@ function DocumentosAdmin() {
     }
   }
 
-  useEffect(() => { carregarDocumentos(); }, []);
+  useEffect(() => {
+    carregarDocumentos();
+  }, []);
 
   const filtrados = documentos.filter((d) => {
     const passaStatus = filtroStatus === "todos" ? true : d.status === filtroStatus;
@@ -187,7 +193,9 @@ function DocumentosAdmin() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Pendentes</CardDescription>
-            <CardTitle className={totalPendente > 0 ? "text-yellow-700" : ""}>{totalPendente}</CardTitle>
+            <CardTitle className={totalPendente > 0 ? "text-yellow-700" : ""}>
+              {totalPendente}
+            </CardTitle>
           </CardHeader>
         </Card>
         <Card>
@@ -210,7 +218,8 @@ function DocumentosAdmin() {
             <div>
               <CardTitle>Documentos enviados</CardTitle>
               <CardDescription>
-                Atestados médicos e formulários PAR-Q enviados pelos alunos pelo portal, ou registrados manualmente pela secretaria.
+                Atestados médicos e formulários PAR-Q enviados pelos alunos pelo portal, ou
+                registrados manualmente pela secretaria.
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -220,7 +229,13 @@ function DocumentosAdmin() {
                   Registrar documento
                 </Button>
               )}
-              <Button type="button" variant="outline" size="sm" onClick={carregarDocumentos} disabled={carregando}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={carregarDocumentos}
+                disabled={carregando}
+              >
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Atualizar
               </Button>
@@ -296,9 +311,7 @@ function DocumentosAdmin() {
                       <TableCell>
                         <p className="font-medium">{doc.aluno_nome}</p>
                       </TableCell>
-                      <TableCell>
-                        {tipoCfg[doc.tipo] ?? doc.tipo}
-                      </TableCell>
+                      <TableCell>{tipoCfg[doc.tipo] ?? doc.tipo}</TableCell>
                       <TableCell>
                         <p
                           className="max-w-45 truncate text-sm text-muted-foreground"
@@ -309,7 +322,9 @@ function DocumentosAdmin() {
                       </TableCell>
                       <TableCell>{formatarDataHora(doc.criado_em)}</TableCell>
                       <TableCell>
-                        <Badge className={cfg?.badge ?? "border-border bg-muted text-muted-foreground"}>
+                        <Badge
+                          className={cfg?.badge ?? "border-border bg-muted text-muted-foreground"}
+                        >
                           <Icon className="mr-1 h-3 w-3" />
                           {cfg?.label ?? doc.status}
                         </Badge>
@@ -317,8 +332,8 @@ function DocumentosAdmin() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           {(doc.url ?? []).map((caminho, i) => (
-                            
-                              <a key={caminho}
+                            <a
+                              key={caminho}
                               href={urlsAssinadas[caminho]}
                               target="_blank"
                               rel="noreferrer"
@@ -333,12 +348,8 @@ function DocumentosAdmin() {
                               </Button>
                             </a>
                           ))}
-                         {podeAnalizar && doc.status === "pendente" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setAnalisando(doc)}
-                            >
+                          {podeAnalizar && doc.status === "pendente" && (
+                            <Button size="sm" variant="outline" onClick={() => setAnalisando(doc)}>
                               Analisar
                             </Button>
                           )}
@@ -361,7 +372,10 @@ function DocumentosAdmin() {
                 })}
                 {filtrados.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={6}
+                      className="py-10 text-center text-sm text-muted-foreground"
+                    >
                       {carregando
                         ? "Carregando documentos..."
                         : busca.trim()
@@ -381,8 +395,13 @@ function DocumentosAdmin() {
           doc={analisando}
           urlsAssinadas={urlsAssinadas}
           open={!!analisando}
-          onOpenChange={(open) => { if (!open) setAnalisando(null); }}
-          onSaved={() => { setAnalisando(null); carregarDocumentos(); }}
+          onOpenChange={(open) => {
+            if (!open) setAnalisando(null);
+          }}
+          onSaved={() => {
+            setAnalisando(null);
+            carregarDocumentos();
+          }}
         />
       )}
 
@@ -439,7 +458,9 @@ function AnalisarDialog({
     }
 
     toast.success(
-      novoStatus === "aprovado" ? "Documento aprovado e validade atualizada no cadastro." : "Documento rejeitado."
+      novoStatus === "aprovado"
+        ? "Documento aprovado e validade atualizada no cadastro."
+        : "Documento rejeitado.",
     );
     onSaved();
   }
@@ -470,7 +491,12 @@ function AnalisarDialog({
                   <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground" title={nome}>
                     {nome}
                   </p>
-                  <a href={urlsAssinadas[caminho]} target="_blank" rel="noreferrer" className="shrink-0">
+                  <a
+                    href={urlsAssinadas[caminho]}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0"
+                  >
                     <Button size="sm" variant="outline" disabled={!urlsAssinadas[caminho]}>
                       <Eye className="mr-2 h-4 w-4" />
                       Abrir
@@ -642,7 +668,12 @@ function RegistrarDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) fechar(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) fechar();
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -650,7 +681,8 @@ function RegistrarDialog({
             Registrar documento manualmente
           </DialogTitle>
           <DialogDescription>
-            Use para documentos entregues em papel na secretaria (ex.: matrícula presencial). O documento já entra como aprovado.
+            Use para documentos entregues em papel na secretaria (ex.: matrícula presencial). O
+            documento já entra como aprovado.
           </DialogDescription>
         </DialogHeader>
 
@@ -663,7 +695,10 @@ function RegistrarDialog({
                 <span className="font-medium">{aluno.nome_completo}</span>
                 <button
                   type="button"
-                  onClick={() => { setAluno(null); setBuscaAluno(""); }}
+                  onClick={() => {
+                    setAluno(null);
+                    setBuscaAluno("");
+                  }}
                   className="text-muted-foreground hover:text-foreground"
                   title="Trocar aluno"
                   disabled={salvando}
@@ -687,7 +722,10 @@ function RegistrarDialog({
                       <button
                         key={a.id}
                         type="button"
-                        onClick={() => { setAluno(a); setResultadosAluno([]); }}
+                        onClick={() => {
+                          setAluno(a);
+                          setResultadosAluno([]);
+                        }}
                         className="block w-full px-3 py-2 text-left text-sm hover:bg-accent"
                       >
                         {a.nome_completo}
@@ -707,7 +745,10 @@ function RegistrarDialog({
                 <button
                   key={t}
                   type="button"
-                  onClick={() => { setTipo(t); setArquivos([]); }}
+                  onClick={() => {
+                    setTipo(t);
+                    setArquivos([]);
+                  }}
                   disabled={salvando}
                   className={`flex-1 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
                     tipo === t

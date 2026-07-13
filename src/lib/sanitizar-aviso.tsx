@@ -30,7 +30,17 @@ export function sanitizarHtmlAviso(html?: string | null) {
   template.innerHTML = entrada;
 
   const tagsPermitidas = new Set([
-    "P", "DIV", "BR", "STRONG", "B", "EM", "I", "U", "UL", "OL", "LI",
+    "P",
+    "DIV",
+    "BR",
+    "STRONG",
+    "B",
+    "EM",
+    "I",
+    "U",
+    "UL",
+    "OL",
+    "LI",
   ]);
 
   const elementos = Array.from(template.content.querySelectorAll("*"));
@@ -61,7 +71,10 @@ export function sanitizarHtmlAviso(html?: string | null) {
 export function textoPlanoAviso(html?: string | null) {
   if (!html) return "";
   if (typeof window === "undefined") {
-    return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+    return html
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
   const div = document.createElement("div");
   div.innerHTML = sanitizarHtmlAviso(html);

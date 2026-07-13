@@ -1,11 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -15,12 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  UserCog,
-  CheckCircle2,
-  MinusCircle,
-  AlertTriangle,
-} from "lucide-react";
+import { UserCog, CheckCircle2, MinusCircle, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_admin/usuarios")({
   head: () => ({
@@ -100,9 +89,7 @@ function Usuarios() {
             <div key={p.nome} className="rounded-xl border border-border p-4">
               <Badge className={p.cor}>{p.nome}</Badge>
 
-              <p className="mt-3 text-sm leading-relaxed text-foreground/80">
-                {p.desc}
-              </p>
+              <p className="mt-3 text-sm leading-relaxed text-foreground/80">{p.desc}</p>
             </div>
           ))}
         </CardContent>
@@ -112,9 +99,7 @@ function Usuarios() {
         <CardHeader>
           <CardTitle>Matriz de permissões</CardTitle>
 
-          <CardDescription>
-            Visualização dos acessos liberados para cada perfil.
-          </CardDescription>
+          <CardDescription>Visualização dos acessos liberados para cada perfil.</CardDescription>
         </CardHeader>
 
         <CardContent className="overflow-x-auto">
@@ -167,9 +152,7 @@ function Usuarios() {
         <CardHeader>
           <CardTitle>Equipe autorizada</CardTitle>
 
-          <CardDescription>
-            Usuários internos com acesso ao painel administrativo.
-          </CardDescription>
+          <CardDescription>Usuários internos com acesso ao painel administrativo.</CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -186,9 +169,7 @@ function Usuarios() {
               {equipe.map((e) => (
                 <TableRow key={e.usuario}>
                   <TableCell className="font-medium">{e.nome}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {e.usuario}
-                  </TableCell>
+                  <TableCell className="text-muted-foreground">{e.usuario}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{e.perfil}</Badge>
                   </TableCell>

@@ -1,13 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -175,19 +169,18 @@ async function buscarTabela(nomeTabela: TabelaBackup) {
 }
 
 async function carregarResumo(): Promise<ResumoContagem> {
-  const [alunosAtivos, turmasAtivas, documentosPendentes, naListaDeEspera] =
-    await Promise.all([
-      supabase.from("alunos").select("id", { count: "exact", head: true }).eq("ativo", true),
-      supabase.from("turmas").select("id", { count: "exact", head: true }).eq("ativa", true),
-      supabase
-        .from("documentos_aluno")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "pendente"),
-      supabase
-        .from("lista_espera")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "fila de espera"),
-    ]);
+  const [alunosAtivos, turmasAtivas, documentosPendentes, naListaDeEspera] = await Promise.all([
+    supabase.from("alunos").select("id", { count: "exact", head: true }).eq("ativo", true),
+    supabase.from("turmas").select("id", { count: "exact", head: true }).eq("ativa", true),
+    supabase
+      .from("documentos_aluno")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pendente"),
+    supabase
+      .from("lista_espera")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "fila de espera"),
+  ]);
 
   return {
     alunosAtivos: alunosAtivos.count ?? null,
@@ -254,9 +247,7 @@ select public.eh_admin();
 }
 
 function encerrarSessao() {
-  const confirmado = window.confirm(
-    "Deseja encerrar a sessão administrativa neste navegador?",
-  );
+  const confirmado = window.confirm("Deseja encerrar a sessão administrativa neste navegador?");
 
   if (!confirmado) return;
 
@@ -322,8 +313,7 @@ function Seguranca() {
           {
             sistema: "Hidro e Natação Monsenhor",
             gerado_em: new Date().toISOString(),
-            observacao:
-              "Backup administrativo em JSON gerado pelo painel interno do sistema.",
+            observacao: "Backup administrativo em JSON gerado pelo painel interno do sistema.",
             tabelas: backup,
           },
           null,
@@ -333,8 +323,7 @@ function Seguranca() {
 
       toast.success("Backup geral exportado.");
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Erro desconhecido.";
+      const message = error instanceof Error ? error.message : "Erro desconhecido.";
 
       toast.error("Erro ao gerar backup.", {
         description: message,
@@ -372,8 +361,7 @@ function Seguranca() {
 
       toast.success(`Tabela "${labelTabela[nomeTabela]}" exportada.`);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Erro desconhecido.";
+      const message = error instanceof Error ? error.message : "Erro desconhecido.";
 
       toast.error(`Erro ao exportar ${labelTabela[nomeTabela]}.`, {
         description: message,
@@ -393,8 +381,7 @@ function Seguranca() {
           </CardTitle>
 
           <CardDescription>
-            Controle de acesso, proteção dos dados e exportação administrativa
-            do sistema.
+            Controle de acesso, proteção dos dados e exportação administrativa do sistema.
           </CardDescription>
         </CardHeader>
 
@@ -420,9 +407,7 @@ function Seguranca() {
 
                 <p className="mt-3 font-semibold">{item.title}</p>
 
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {item.desc}
-                </p>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
               </div>
             );
           })}
@@ -437,9 +422,7 @@ function Seguranca() {
                 <Server className="h-5 w-5 text-primary" />
                 Resumo do banco
               </CardTitle>
-              <CardDescription>
-                Números em tempo real, direto do Supabase.
-              </CardDescription>
+              <CardDescription>Números em tempo real, direto do Supabase.</CardDescription>
             </div>
             <Button
               type="button"
@@ -500,9 +483,8 @@ function Seguranca() {
             <div className="flex gap-2">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               <p>
-                Os arquivos exportados podem conter dados pessoais de alunos e
-                responsáveis. Armazene e compartilhe apenas com pessoas
-                autorizadas.
+                Os arquivos exportados podem conter dados pessoais de alunos e responsáveis.
+                Armazene e compartilhe apenas com pessoas autorizadas.
               </p>
             </div>
           </div>
@@ -605,25 +587,24 @@ function Seguranca() {
 
         <CardContent className="space-y-3 text-sm leading-relaxed text-foreground/80">
           <p>
-            1. O painel deve ser acessado apenas por usuários autorizados, com
-            permissões separadas por perfil: Administração, Recepção e Professor;
+            1. O painel deve ser acessado apenas por usuários autorizados, com permissões separadas
+            por perfil: Administração, Recepção e Professor;
           </p>
 
           <p>
-            2. As áreas de alunos, turmas, chamadas, presenças, avisos, documentos,
-            lista de espera, relatórios e segurança devem respeitar as permissões
-            definidas para cada perfil;
+            2. As áreas de alunos, turmas, chamadas, presenças, avisos, documentos, lista de espera,
+            relatórios e segurança devem respeitar as permissões definidas para cada perfil;
           </p>
 
           <p>
-            3. As políticas de RLS do Supabase devem permanecer ativas nas tabelas
-            principais para reduzir o risco de acesso indevido aos dados;
+            3. As políticas de RLS do Supabase devem permanecer ativas nas tabelas principais para
+            reduzir o risco de acesso indevido aos dados;
           </p>
 
           <p>
-            4. Os backups JSON gerados nesta tela servem como cópia administrativa
-            dos dados principais. O backup SQL completo deve ser feito pelo
-            painel do Supabase ou por uma ferramenta autorizada.
+            4. Os backups JSON gerados nesta tela servem como cópia administrativa dos dados
+            principais. O backup SQL completo deve ser feito pelo painel do Supabase ou por uma
+            ferramenta autorizada.
           </p>
         </CardContent>
       </Card>
@@ -632,32 +613,28 @@ function Seguranca() {
         <CardHeader>
           <CardTitle>Política interna de cuidado com dados</CardTitle>
 
-          <CardDescription>
-            Orientações básicas para uso responsável do painel.
-          </CardDescription>
+          <CardDescription>Orientações básicas para uso responsável do painel.</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-3 text-sm leading-relaxed text-foreground/80">
           <p>
-            1. O site público não deve exibir dados pessoais de alunos,
-            responsáveis, telefones, e-mails ou observações internas;
+            1. O site público não deve exibir dados pessoais de alunos, responsáveis, telefones,
+            e-mails ou observações internas;
           </p>
 
           <p>
-            2. Informações de lista de espera, alunos, presença, responsáveis,
-            documentos enviados e registros administrativos devem permanecer
-            restritas ao painel interno;
+            2. Informações de lista de espera, alunos, presença, responsáveis, documentos enviados e
+            registros administrativos devem permanecer restritas ao painel interno;
           </p>
 
           <p>
-            3. Arquivos exportados devem ser armazenados com cuidado e enviados
-            apenas para pessoas autorizadas da equipe;
+            3. Arquivos exportados devem ser armazenados com cuidado e enviados apenas para pessoas
+            autorizadas da equipe;
           </p>
 
           <p className="text-muted-foreground">
-            4. Recomenda-se manter autenticação real,
-            permissões por perfil, políticas de RLS ativas e rotina periódica de
-            backup.
+            4. Recomenda-se manter autenticação real, permissões por perfil, políticas de RLS ativas
+            e rotina periódica de backup.
           </p>
         </CardContent>
       </Card>
@@ -694,7 +671,7 @@ function ResumoCard({
         {carregando ? (
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         ) : (
-          valor ?? "—"
+          (valor ?? "—")
         )}
       </p>
       <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>

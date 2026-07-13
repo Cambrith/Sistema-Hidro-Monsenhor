@@ -33,26 +33,23 @@ export function PwaInstallBanner({
       </span>
 
       <div className="flex-1">
-        <p className="font-display text-sm font-semibold text-foreground">
-          {titulo}
-        </p>
+        <p className="font-display text-sm font-semibold text-foreground">{titulo}</p>
         {plataforma === "android" ? (
-  <p className="mt-0.5 text-sm text-muted-foreground">
-    Acesse mais rápido, direto da tela inicial do seu celular.
-  </p>
-) : plataforma === "desktop" ? (
-  <p className="mt-0.5 text-sm text-muted-foreground">
-    Acesse mais rápido, direto do seu computador, sem precisar abrir o navegador.
-  </p>
-) : (
-  <p className="mt-0.5 text-sm text-muted-foreground">
-    Toque em{" "}
-    <Share className="inline size-3.5 -translate-y-0.5" aria-hidden />{" "}
-    <strong className="font-medium text-foreground">Compartilhar</strong> e depois em{" "}
-    <SquarePlus className="inline size-3.5 -translate-y-0.5" aria-hidden />{" "}
-    <strong className="font-medium text-foreground">Adicionar à Tela de Início</strong>.
-  </p>
-)}
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Acesse mais rápido, direto da tela inicial do seu celular.
+          </p>
+        ) : plataforma === "desktop" ? (
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Acesse mais rápido, direto do seu computador, sem precisar abrir o navegador.
+          </p>
+        ) : (
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Toque em <Share className="inline size-3.5 -translate-y-0.5" aria-hidden />{" "}
+            <strong className="font-medium text-foreground">Compartilhar</strong> e depois em{" "}
+            <SquarePlus className="inline size-3.5 -translate-y-0.5" aria-hidden />{" "}
+            <strong className="font-medium text-foreground">Adicionar à Tela de Início</strong>.
+          </p>
+        )}
       </div>
 
       <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">

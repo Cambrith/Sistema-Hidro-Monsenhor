@@ -7,14 +7,8 @@ import {
   type ReactNode,
   type SVGProps,
 } from "react";
-import { supabase } from "@/lib/supabase";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { supabase, buscarTodasLinhas } from "@/lib/supabase";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -107,11 +101,7 @@ type Presenca = {
   criado_em: string;
 };
 
-const modalidades: Modalidade[] = [
-  "Natação Infantil",
-  "Natação Adulta",
-  "Hidroginástica",
-];
+const modalidades: Modalidade[] = ["Natação Infantil", "Natação Adulta", "Hidroginástica"];
 
 const LINHAS_INICIAIS = 10;
 
@@ -120,16 +110,9 @@ function nomeArquivo(base: string) {
   return `${base}-${hoje}.csv`;
 }
 
-function downloadCSV(
-  filename: string,
-  rows: Array<Array<string | number | null | undefined>>,
-) {
+function downloadCSV(filename: string, rows: Array<Array<string | number | null | undefined>>) {
   const csv = rows
-    .map((row) =>
-      row
-        .map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`)
-        .join(";"),
-    )
+    .map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(";"))
     .join("\n");
 
   const blob = new Blob(["\uFEFF" + csv], {
@@ -206,39 +189,56 @@ function Relatorios() {
   async function carregarDados() {
     setCarregando(true);
 
-    const [
-      alunosRes,
-      turmasRes,
-      alunosTurmasRes,
-      chamadasRes,
-      presencasRes,
-    ] = await Promise.all([
-      supabase
-        .from("alunos")
-        .select("id, nome_completo, nascimento, idade, modalidade, turma, responsavel, telefone, whatsapp, email, observacoes, ativo, criado_em")
-        .order("nome_completo", { ascending: true }),
+    const [alunosRes, turmasRes, alunosTurmasRes, chamadasRes, presencasRes] = await Promise.all([
+      buscarTodasLinhas<Aluno>(
+        "alunos",
+        "id, nome_completo, nascimento, idade, modalidade, turma, responsavel, telefone, whatsapp, email, observacoes, ativo, criado_em",
+        { ordenarPor: "nome_completo", ascendente: true },
+      ),
       supabase
         .from("turmas")
-        .select("id, nome, modalidade, dia_semana, horario_inicio, horario_fim, professor, vagas_total, ativa, criado_em")
+        .select(
+          "id, nome, modalidade, dia_semana, horario_inicio, horario_fim, professor, vagas_total, ativa, criado_em",
+        )
         .order("nome", { ascending: true }),
-      supabase
-        .from("alunos_turmas")
-        .select("id, aluno_id, turma_id, ativo")
-        .eq("ativo", true),
-      supabase
-        .from("chamadas")
-        .select("id, turma_id, data, observacoes, criado_em")
-        .order("data", { ascending: false }),
-      supabase
-        .from("presencas")
-        .select("id, chamada_id, aluno_id, turma_id, data, status, observacao, criado_em"),
+      buscarTodasLinhas<AlunoTurma>("alunos_turmas", "id, aluno_id, turma_id, ativo", {
+        aplicarFiltros: (q) => q.eq("ativo", true),
+      }),
+      buscarTodasLinhas<Chamada>("chamadas", "id, turma_id, data, observacoes, criado_em", {
+        ordenarPor: "data",
+        ascendente: false,
+      }),
+      buscarTodasLinhas<Presenca>(
+        "presencas",
+        "id, chamada_id, aluno_id, turma_id, data, status, observacao, criado_em",
+      ),
     ]);
 
-    if (alunosRes.error) { toast.error(`Erro ao carregar alunos: ${alunosRes.error.message}`); setCarregando(false); return; }
-    if (turmasRes.error) { toast.error(`Erro ao carregar turmas: ${turmasRes.error.message}`); setCarregando(false); return; }
-    if (alunosTurmasRes.error) { toast.error(`Erro ao carregar vínculos: ${alunosTurmasRes.error.message}`); setCarregando(false); return; }
-    if (chamadasRes.error) { toast.error(`Erro ao carregar chamadas: ${chamadasRes.error.message}`); setCarregando(false); return; }
-    if (presencasRes.error) { toast.error(`Erro ao carregar presenças: ${presencasRes.error.message}`); setCarregando(false); return; }
+    if (alunosRes.error) {
+      toast.error(`Erro ao carregar alunos: ${alunosRes.error.message}`);
+      setCarregando(false);
+      return;
+    }
+    if (turmasRes.error) {
+      toast.error(`Erro ao carregar turmas: ${turmasRes.error.message}`);
+      setCarregando(false);
+      return;
+    }
+    if (alunosTurmasRes.error) {
+      toast.error(`Erro ao carregar vínculos: ${alunosTurmasRes.error.message}`);
+      setCarregando(false);
+      return;
+    }
+    if (chamadasRes.error) {
+      toast.error(`Erro ao carregar chamadas: ${chamadasRes.error.message}`);
+      setCarregando(false);
+      return;
+    }
+    if (presencasRes.error) {
+      toast.error(`Erro ao carregar presenças: ${presencasRes.error.message}`);
+      setCarregando(false);
+      return;
+    }
 
     setAlunos((alunosRes.data ?? []) as Aluno[]);
     setTurmas((turmasRes.data ?? []) as Turma[]);
@@ -248,32 +248,28 @@ function Relatorios() {
     setCarregando(false);
   }
 
-  useEffect(() => { carregarDados(); }, []);
+  useEffect(() => {
+    carregarDados();
+  }, []);
 
   const relatorio = useMemo(() => {
     const alunosAtivos = alunos.filter((a) => a.ativo);
     const alunosAtivosIds = new Set(alunosAtivos.map((a) => a.id));
     const turmasAtivas = turmas.filter((t) => t.ativa);
-    const vinculosAtivos = alunosTurmas.filter(
-      (v) => v.ativo && alunosAtivosIds.has(v.aluno_id),
-    );
+    const vinculosAtivos = alunosTurmas.filter((v) => v.ativo && alunosAtivosIds.has(v.aluno_id));
 
     const vagasConfiguradasTotal = turmasAtivas.reduce((acc, t) => {
       return acc + Math.max(0, Number(t.vagas_total ?? 0));
     }, 0);
 
-    const turmasComCapacidade = turmasAtivas.filter(
-      (t) => Number(t.vagas_total ?? 0) > 0,
-    ).length;
+    const turmasComCapacidade = turmasAtivas.filter((t) => Number(t.vagas_total ?? 0) > 0).length;
 
     const porMod = modalidades.map((modalidade) => ({
       modalidade,
       total: alunosAtivos.filter((a) => a.modalidade === modalidade).length,
     }));
 
-    const outrasModalidades = alunosAtivos.filter(
-      (a) => !isModalidade(a.modalidade),
-    ).length;
+    const outrasModalidades = alunosAtivos.filter((a) => !isModalidade(a.modalidade)).length;
 
     const porTurma = turmasAtivas.map((turma) => {
       const inscritos = vinculosAtivos.filter((v) => v.turma_id === turma.id).length;
@@ -310,7 +306,10 @@ function Relatorios() {
       const turma = turmasMap.get(chamada.turma_id);
       const registros = presencasPorChamada.get(chamada.id) ?? [];
       const counts = registros.reduce(
-        (acc, r) => { acc[r.status] = (acc[r.status] ?? 0) + 1; return acc; },
+        (acc, r) => {
+          acc[r.status] = (acc[r.status] ?? 0) + 1;
+          return acc;
+        },
         { presente: 0, falta: 0, "falta justificada": 0 } as Record<StatusPresenca, number>,
       );
 
@@ -362,16 +361,16 @@ function Relatorios() {
     });
 
     const alunosEmRisco = alunosAtivos
-  .filter((a) => (faltasNoMesPorAluno.get(a.id) ?? 0) >= 3)
-  .map((a) => ({
-    id: a.id,
-    nome: a.nome_completo,
-    modalidade: a.modalidade || "—",
-    turma: a.turma || "—",
-    faltas: faltasNoMesPorAluno.get(a.id) ?? 0,
-    critico: (faltasNoMesPorAluno.get(a.id) ?? 0) >= 4,
-  }))
-  .sort((a, b) => b.faltas - a.faltas);
+      .filter((a) => (faltasNoMesPorAluno.get(a.id) ?? 0) >= 3)
+      .map((a) => ({
+        id: a.id,
+        nome: a.nome_completo,
+        modalidade: a.modalidade || "—",
+        turma: a.turma || "—",
+        faltas: faltasNoMesPorAluno.get(a.id) ?? 0,
+        critico: (faltasNoMesPorAluno.get(a.id) ?? 0) >= 4,
+      }))
+      .sort((a, b) => b.faltas - a.faltas);
 
     return {
       alunosAtivos,
@@ -409,8 +408,10 @@ function Relatorios() {
 
   const faltasFiltradas = useMemo(() => {
     return relatorio.faltasPorAluno.filter((item) => {
-      if (filtroFaltasModalidade !== "todos" && item.modalidade !== filtroFaltasModalidade) return false;
-      if (buscaFaltas.trim() && !item.aluno.toLowerCase().includes(buscaFaltas.toLowerCase())) return false;
+      if (filtroFaltasModalidade !== "todos" && item.modalidade !== filtroFaltasModalidade)
+        return false;
+      if (buscaFaltas.trim() && !item.aluno.toLowerCase().includes(buscaFaltas.toLowerCase()))
+        return false;
       return true;
     });
   }, [relatorio.faltasPorAluno, filtroFaltasModalidade, buscaFaltas]);
@@ -448,15 +449,49 @@ function Relatorios() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <ResumoCard title="Alunos ativos" value={relatorio.totalAlunosAtivos} description={`${relatorio.totalAlunos} cadastrados no total`} icon={Users} />
-        <ResumoCard title="Alunos inativos" value={relatorio.totalAlunosInativos} description="Registros mantidos no sistema" icon={Users} />
-        <ResumoCard title="Turmas ativas" value={relatorio.turmasAtivas.length} description="Turmas disponíveis no sistema" icon={BarChart3} />
-        <ResumoCard title="Turmas lotadas" value={relatorio.turmasLotadas} description={relatorio.turmasComCapacidade === 0 ? "Aguardando configuração de vagas" : "Turmas sem vagas restantes"} icon={DoorOpen} />
+        <ResumoCard
+          title="Alunos ativos"
+          value={relatorio.totalAlunosAtivos}
+          description={`${relatorio.totalAlunos} cadastrados no total`}
+          icon={Users}
+        />
+        <ResumoCard
+          title="Alunos inativos"
+          value={relatorio.totalAlunosInativos}
+          description="Registros mantidos no sistema"
+          icon={Users}
+        />
+        <ResumoCard
+          title="Turmas ativas"
+          value={relatorio.turmasAtivas.length}
+          description="Turmas disponíveis no sistema"
+          icon={BarChart3}
+        />
+        <ResumoCard
+          title="Turmas lotadas"
+          value={relatorio.turmasLotadas}
+          description={
+            relatorio.turmasComCapacidade === 0
+              ? "Aguardando configuração de vagas"
+              : "Turmas sem vagas restantes"
+          }
+          icon={DoorOpen}
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <ResumoCard title="Capacidade definida" value={relatorio.turmasComCapacidade} description={`${relatorio.vagasConfiguradasTotal} vaga(s) configurada(s)`} icon={DoorOpen} />
-        <ResumoCard title="Chamadas salvas" value={chamadas.length} description="Registros de presença lançados" icon={BarChart3} />
+        <ResumoCard
+          title="Capacidade definida"
+          value={relatorio.turmasComCapacidade}
+          description={`${relatorio.vagasConfiguradasTotal} vaga(s) configurada(s)`}
+          icon={DoorOpen}
+        />
+        <ResumoCard
+          title="Chamadas salvas"
+          value={chamadas.length}
+          description="Registros de presença lançados"
+          icon={BarChart3}
+        />
       </div>
 
       {(relatorio.alunosEmRisco.length > 0 || carregando) && (
@@ -465,10 +500,13 @@ function Relatorios() {
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
               <div>
-                <CardTitle className="text-base text-destructive">Alunos em risco de cancelamento</CardTitle>
+                <CardTitle className="text-base text-destructive">
+                  Alunos em risco de cancelamento
+                </CardTitle>
                 <CardDescription>
-  Alunos com 3 ou mais faltas sem justificativa no mês atual. A partir de 4 faltas, a vaga é cancelada automaticamente.
-</CardDescription>
+                  Alunos com 3 ou mais faltas sem justificativa no mês atual. A partir de 4 faltas,
+                  a vaga é cancelada automaticamente.
+                </CardDescription>
               </div>
             </div>
             <Button
@@ -478,7 +516,12 @@ function Relatorios() {
               onClick={() =>
                 downloadCSV(nomeArquivo("alunos-em-risco"), [
                   ["Aluno", "Modalidade", "Turma", "Faltas no mês"],
-                  ...relatorio.alunosEmRisco.map((item) => [item.nome, item.modalidade, item.turma, item.faltas]),
+                  ...relatorio.alunosEmRisco.map((item) => [
+                    item.nome,
+                    item.modalidade,
+                    item.turma,
+                    item.faltas,
+                  ]),
                 ])
               }
             >
@@ -502,19 +545,19 @@ function Relatorios() {
                 </TableHeader>
                 <TableBody>
                   {relatorio.alunosEmRisco.map((item) => (
-  <TableRow key={item.id}>
-    <TableCell>
-      <p className="font-medium">{item.nome}</p>
-      <p className="text-xs text-muted-foreground">{item.modalidade}</p>
-    </TableCell>
-    <TableCell>{item.turma}</TableCell>
-    <TableCell className="text-right">
-      <Badge variant={item.critico ? "destructive" : "outline"}>
-        {item.faltas} {item.critico ? "(desligado)" : "(alerta)"}
-      </Badge>
-    </TableCell>
-  </TableRow>
-))}
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <p className="font-medium">{item.nome}</p>
+                        <p className="text-xs text-muted-foreground">{item.modalidade}</p>
+                      </TableCell>
+                      <TableCell>{item.turma}</TableCell>
+                      <TableCell className="text-right">
+                        <Badge variant={item.critico ? "destructive" : "outline"}>
+                          {item.faltas} {item.critico ? "(desligado)" : "(alerta)"}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             )}
@@ -538,7 +581,11 @@ function Relatorios() {
         ) : (
           <div className="grid gap-3 md:grid-cols-3">
             {relatorio.porMod.map((item) => (
-              <ModalidadeResumo key={item.modalidade} modalidade={item.modalidade} total={item.total} />
+              <ModalidadeResumo
+                key={item.modalidade}
+                modalidade={item.modalidade}
+                total={item.total}
+              />
             ))}
           </div>
         )}
@@ -549,12 +596,29 @@ function Relatorios() {
         description="Relação das turmas ativas, alunos vinculados e capacidade configurada."
         onCSV={() =>
           downloadCSV(nomeArquivo("alunos-por-turma"), [
-            ["Turma", "Modalidade", "Horário", "Professor", "Inscritos", "Capacidade", "Disponíveis", "Situação"],
+            [
+              "Turma",
+              "Modalidade",
+              "Horário",
+              "Professor",
+              "Inscritos",
+              "Capacidade",
+              "Disponíveis",
+              "Situação",
+            ],
             ...relatorio.porTurma.map((item) => [
-              item.turma, item.modalidade, item.horario, item.professor, item.inscritos,
+              item.turma,
+              item.modalidade,
+              item.horario,
+              item.professor,
+              item.inscritos,
               item.capacidadeConfigurada ? item.vagas : "Não configurada",
-              item.capacidadeConfigurada ? item.disponiveis ?? 0 : "—",
-              item.capacidadeConfigurada ? (item.lotada ? "Lotada" : "Com vagas") : "Capacidade não configurada",
+              item.capacidadeConfigurada ? (item.disponiveis ?? 0) : "—",
+              item.capacidadeConfigurada
+                ? item.lotada
+                  ? "Lotada"
+                  : "Com vagas"
+                : "Capacidade não configurada",
             ]),
           ])
         }
@@ -575,38 +639,49 @@ function Relatorios() {
           <TableBody>
             {carregando && (
               <TableRow>
-                <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">Carregando relatório...</TableCell>
+                <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
+                  Carregando relatório...
+                </TableCell>
               </TableRow>
             )}
             {!carregando && relatorio.porTurma.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">Nenhuma turma ativa encontrada.</TableCell>
+                <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
+                  Nenhuma turma ativa encontrada.
+                </TableCell>
               </TableRow>
             )}
-            {!carregando && relatorio.porTurma.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.turma}</TableCell>
-                <TableCell>{item.modalidade}</TableCell>
-                <TableCell className="text-muted-foreground">{item.horario}</TableCell>
-                <TableCell>{item.professor}</TableCell>
-                <TableCell className="text-right">{item.inscritos}</TableCell>
-                <TableCell className="text-right">
-                  {item.capacidadeConfigurada ? item.vagas : <span className="text-muted-foreground">Não configurada</span>}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Badge variant="outline">{item.capacidadeConfigurada ? item.disponiveis : "—"}</Badge>
-                </TableCell>
-                <TableCell>
-                  {!item.capacidadeConfigurada ? (
-                    <Badge variant="outline">A configurar</Badge>
-                  ) : item.lotada ? (
-                    <Badge variant="destructive">Lotada</Badge>
-                  ) : (
-                    <Badge variant="outline">Com vagas</Badge>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
+            {!carregando &&
+              relatorio.porTurma.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.turma}</TableCell>
+                  <TableCell>{item.modalidade}</TableCell>
+                  <TableCell className="text-muted-foreground">{item.horario}</TableCell>
+                  <TableCell>{item.professor}</TableCell>
+                  <TableCell className="text-right">{item.inscritos}</TableCell>
+                  <TableCell className="text-right">
+                    {item.capacidadeConfigurada ? (
+                      item.vagas
+                    ) : (
+                      <span className="text-muted-foreground">Não configurada</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant="outline">
+                      {item.capacidadeConfigurada ? item.disponiveis : "—"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {!item.capacidadeConfigurada ? (
+                      <Badge variant="outline">A configurar</Badge>
+                    ) : item.lotada ? (
+                      <Badge variant="destructive">Lotada</Badge>
+                    ) : (
+                      <Badge variant="outline">Com vagas</Badge>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </ReportCard>
@@ -618,19 +693,32 @@ function Relatorios() {
           onCSV={() =>
             downloadCSV(nomeArquivo("presencas-por-periodo"), [
               ["Turma", "Modalidade", "Data", "Total", "Presentes", "Faltas", "Justificadas"],
-              ...presencaFiltrada.map((item) => [item.turma, item.modalidade, formatarData(item.data), item.total, item.presentes, item.faltas, item.justificadas]),
+              ...presencaFiltrada.map((item) => [
+                item.turma,
+                item.modalidade,
+                formatarData(item.data),
+                item.total,
+                item.presentes,
+                item.faltas,
+                item.justificadas,
+              ]),
             ])
           }
         >
           <div className="mb-3 no-print">
             <select
               value={filtroPresencaTurma}
-              onChange={(e) => { setFiltroPresencaTurma(e.target.value); setVerMaisPresenca(false); }}
+              onChange={(e) => {
+                setFiltroPresencaTurma(e.target.value);
+                setVerMaisPresenca(false);
+              }}
               className="w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               <option value="todos">Todas as turmas</option>
               {turmasUnicas.map((nome) => (
-                <option key={nome} value={nome}>{nome}</option>
+                <option key={nome} value={nome}>
+                  {nome}
+                </option>
               ))}
             </select>
           </div>
@@ -648,27 +736,32 @@ function Relatorios() {
             <TableBody>
               {carregando && (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">Carregando presenças...</TableCell>
+                  <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                    Carregando presenças...
+                  </TableCell>
                 </TableRow>
               )}
               {!carregando && presencaFiltrada.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">Nenhuma presença registrada ainda.</TableCell>
+                  <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                    Nenhuma presença registrada ainda.
+                  </TableCell>
                 </TableRow>
               )}
-              {!carregando && presencaExibida.map((item) => (
-                <TableRow key={item.chamadaId}>
-                  <TableCell className="text-sm">
-                    <p className="font-medium">{item.turma}</p>
-                    <p className="text-xs text-muted-foreground">{item.modalidade}</p>
-                  </TableCell>
-                  <TableCell>{formatarData(item.data)}</TableCell>
-                  <TableCell className="text-right">{item.total}</TableCell>
-                  <TableCell className="text-right">{item.presentes}</TableCell>
-                  <TableCell className="text-right">{item.faltas}</TableCell>
-                  <TableCell className="text-right">{item.justificadas}</TableCell>
-                </TableRow>
-              ))}
+              {!carregando &&
+                presencaExibida.map((item) => (
+                  <TableRow key={item.chamadaId}>
+                    <TableCell className="text-sm">
+                      <p className="font-medium">{item.turma}</p>
+                      <p className="text-xs text-muted-foreground">{item.modalidade}</p>
+                    </TableCell>
+                    <TableCell>{formatarData(item.data)}</TableCell>
+                    <TableCell className="text-right">{item.total}</TableCell>
+                    <TableCell className="text-right">{item.presentes}</TableCell>
+                    <TableCell className="text-right">{item.faltas}</TableCell>
+                    <TableCell className="text-right">{item.justificadas}</TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
           {!carregando && presencaFiltrada.length > LINHAS_INICIAIS && (
@@ -678,7 +771,9 @@ function Relatorios() {
                 onClick={() => setVerMaisPresenca((v) => !v)}
                 className="flex w-full items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${verMaisPresenca ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`h-3.5 w-3.5 transition-transform ${verMaisPresenca ? "rotate-180" : ""}`}
+                />
                 {verMaisPresenca
                   ? "Ver menos"
                   : `Ver mais ${presencaFiltrada.length - LINHAS_INICIAIS} registros`}
@@ -697,8 +792,24 @@ function Relatorios() {
           description="Alunos com faltas ou faltas justificadas registradas."
           onCSV={() =>
             downloadCSV(nomeArquivo("faltas-por-aluno"), [
-              ["Aluno", "Modalidade", "Turma", "Presentes", "Faltas", "Justificadas", "Total de registros"],
-              ...faltasFiltradas.map((item) => [item.aluno, item.modalidade, item.turma, item.presentes, item.faltas, item.justificadas, item.total]),
+              [
+                "Aluno",
+                "Modalidade",
+                "Turma",
+                "Presentes",
+                "Faltas",
+                "Justificadas",
+                "Total de registros",
+              ],
+              ...faltasFiltradas.map((item) => [
+                item.aluno,
+                item.modalidade,
+                item.turma,
+                item.presentes,
+                item.faltas,
+                item.justificadas,
+                item.total,
+              ]),
             ])
           }
         >
@@ -707,19 +818,27 @@ function Relatorios() {
               <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={buscaFaltas}
-                onChange={(e) => { setBuscaFaltas(e.target.value); setVerMaisFaltas(false); }}
+                onChange={(e) => {
+                  setBuscaFaltas(e.target.value);
+                  setVerMaisFaltas(false);
+                }}
                 placeholder="Buscar aluno..."
                 className="pl-8 text-sm h-9"
               />
             </div>
             <select
               value={filtroFaltasModalidade}
-              onChange={(e) => { setFiltroFaltasModalidade(e.target.value); setVerMaisFaltas(false); }}
+              onChange={(e) => {
+                setFiltroFaltasModalidade(e.target.value);
+                setVerMaisFaltas(false);
+              }}
               className="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               <option value="todos">Todas as modalidades</option>
               {modalidades.map((m) => (
-                <option key={m} value={m}>{m}</option>
+                <option key={m} value={m}>
+                  {m}
+                </option>
               ))}
             </select>
           </div>
@@ -736,7 +855,9 @@ function Relatorios() {
             <TableBody>
               {carregando && (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">Carregando faltas...</TableCell>
+                  <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                    Carregando faltas...
+                  </TableCell>
                 </TableRow>
               )}
               {!carregando && faltasFiltradas.length === 0 && (
@@ -748,22 +869,25 @@ function Relatorios() {
                   </TableCell>
                 </TableRow>
               )}
-              {!carregando && faltasExibidas.map((item) => (
-                <TableRow key={`${item.aluno}-${item.turma}`}>
-                  <TableCell>
-                    <p className="font-medium">{item.aluno}</p>
-                    <p className="text-xs text-muted-foreground">{item.modalidade}</p>
-                  </TableCell>
-                  <TableCell>{item.turma}</TableCell>
-                  <TableCell className="text-right">{item.presentes}</TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant={item.faltas > 0 ? "destructive" : "outline"}>{item.faltas}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant="outline">{item.justificadas}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {!carregando &&
+                faltasExibidas.map((item) => (
+                  <TableRow key={`${item.aluno}-${item.turma}`}>
+                    <TableCell>
+                      <p className="font-medium">{item.aluno}</p>
+                      <p className="text-xs text-muted-foreground">{item.modalidade}</p>
+                    </TableCell>
+                    <TableCell>{item.turma}</TableCell>
+                    <TableCell className="text-right">{item.presentes}</TableCell>
+                    <TableCell className="text-right">
+                      <Badge variant={item.faltas > 0 ? "destructive" : "outline"}>
+                        {item.faltas}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Badge variant="outline">{item.justificadas}</Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
           {!carregando && faltasFiltradas.length > LINHAS_INICIAIS && (
@@ -773,7 +897,9 @@ function Relatorios() {
                 onClick={() => setVerMaisFaltas((v) => !v)}
                 className="flex w-full items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${verMaisFaltas ? "rotate-180" : ""}`} />
+                <ChevronDown
+                  className={`h-3.5 w-3.5 transition-transform ${verMaisFaltas ? "rotate-180" : ""}`}
+                />
                 {verMaisFaltas
                   ? "Ver menos"
                   : `Ver mais ${faltasFiltradas.length - LINHAS_INICIAIS} alunos`}
@@ -822,9 +948,15 @@ function LoadingLine() {
 }
 
 function ResumoCard({
-  title, value, description, icon: Icon,
+  title,
+  value,
+  description,
+  icon: Icon,
 }: {
-  title: string; value: number; description: string; icon: LucideIcon;
+  title: string;
+  value: number;
+  description: string;
+  icon: LucideIcon;
 }) {
   return (
     <Card className="print-card">
@@ -844,7 +976,16 @@ function ResumoCard({
 
 function AdultSwimmingIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      {...props}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <circle cx="12" cy="6.5" r="2.2" />
       <path d="M8.3 14.4c.9-2.1 2.2-3.2 3.7-3.2s2.8 1.1 3.7 3.2" />
       <path d="M4 17.2c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1" />
@@ -854,10 +995,25 @@ function AdultSwimmingIcon(props: SVGProps<SVGSVGElement>) {
 }
 
 function ModalidadeResumo({ modalidade, total }: { modalidade: Modalidade; total: number }) {
-  const config: Record<Modalidade, { icon: ComponentType<{ className?: string }>; descricao: string; className: string }> = {
-    "Natação Infantil": { icon: PersonStanding, descricao: "7 a 17 anos", className: "bg-accent text-accent-foreground" },
-"Natação Adulta": { icon: UserRound, descricao: "18 anos ou mais", className: "bg-accent text-accent-foreground" },
-"Hidroginástica": { icon: HeartPulse, descricao: "18 anos ou mais", className: "bg-accent text-accent-foreground" },
+  const config: Record<
+    Modalidade,
+    { icon: ComponentType<{ className?: string }>; descricao: string; className: string }
+  > = {
+    "Natação Infantil": {
+      icon: PersonStanding,
+      descricao: "7 a 17 anos",
+      className: "bg-accent text-accent-foreground",
+    },
+    "Natação Adulta": {
+      icon: UserRound,
+      descricao: "18 anos ou mais",
+      className: "bg-accent text-accent-foreground",
+    },
+    Hidroginástica: {
+      icon: HeartPulse,
+      descricao: "18 anos ou mais",
+      className: "bg-accent text-accent-foreground",
+    },
   };
 
   const Icon = config[modalidade].icon;
@@ -865,7 +1021,9 @@ function ModalidadeResumo({ modalidade, total }: { modalidade: Modalidade; total
   return (
     <div className="flex items-center justify-between rounded-xl border border-border bg-background p-4">
       <div className="flex items-center gap-3">
-        <span className={`grid h-10 w-10 place-items-center rounded-xl ${config[modalidade].className}`}>
+        <span
+          className={`grid h-10 w-10 place-items-center rounded-xl ${config[modalidade].className}`}
+        >
           <Icon className="h-5 w-5" />
         </span>
         <div>
@@ -879,9 +1037,15 @@ function ModalidadeResumo({ modalidade, total }: { modalidade: Modalidade; total
 }
 
 function ReportCard({
-  title, description, children, onCSV,
+  title,
+  description,
+  children,
+  onCSV,
 }: {
-  title: string; description?: string; children: ReactNode; onCSV: () => void;
+  title: string;
+  description?: string;
+  children: ReactNode;
+  onCSV: () => void;
 }) {
   return (
     <Card className="print-card">

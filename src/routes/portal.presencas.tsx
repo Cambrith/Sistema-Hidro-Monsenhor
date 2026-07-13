@@ -28,7 +28,10 @@ function formatarData(data?: string | null) {
 }
 
 function nomeMes(ano: number, mes: number) {
-  const texto = new Date(ano, mes - 1, 1).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const texto = new Date(ano, mes - 1, 1).toLocaleDateString("pt-BR", {
+    month: "long",
+    year: "numeric",
+  });
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
@@ -40,8 +43,12 @@ function PortalPresencas() {
   const [presencas, setPresencas] = useState<Presenca[]>([]);
   const [carregando, setCarregando] = useState(true);
 
-  useEffect(() => { getSessaoAluno().then(setSessao); }, []);
-  useEffect(() => { if (sessao) carregarPresencas(); }, [sessao, ano, mes]);
+  useEffect(() => {
+    getSessaoAluno().then(setSessao);
+  }, []);
+  useEffect(() => {
+    if (sessao) carregarPresencas();
+  }, [sessao, ano, mes]);
 
   async function carregarPresencas() {
     if (!sessao) return;
@@ -58,15 +65,19 @@ function PortalPresencas() {
   }
 
   function mesAnterior() {
-    if (mes === 1) { setMes(12); setAno((a) => a - 1); }
-    else setMes((m) => m - 1);
+    if (mes === 1) {
+      setMes(12);
+      setAno((a) => a - 1);
+    } else setMes((m) => m - 1);
   }
 
   function mesSeguinte() {
     const agora = new Date();
     if (ano === agora.getFullYear() && mes >= agora.getMonth() + 1) return;
-    if (mes === 12) { setMes(1); setAno((a) => a + 1); }
-    else setMes((m) => m + 1);
+    if (mes === 12) {
+      setMes(1);
+      setAno((a) => a + 1);
+    } else setMes((m) => m + 1);
   }
 
   const eMesAtual = ano === hoje.getFullYear() && mes === hoje.getMonth() + 1;
@@ -86,7 +97,12 @@ function PortalPresencas() {
           <ChevronLeft className="h-5 w-5" />
         </button>
         <span className="text-sm font-medium">{nomeMes(ano, mes)}</span>
-        <button type="button" onClick={mesSeguinte} disabled={eMesAtual} className="rounded-md p-1 hover:bg-accent disabled:opacity-30">
+        <button
+          type="button"
+          onClick={mesSeguinte}
+          disabled={eMesAtual}
+          className="rounded-md p-1 hover:bg-accent disabled:opacity-30"
+        >
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
@@ -96,9 +112,19 @@ function PortalPresencas() {
           <p className="text-2xl font-bold">{totalPresentes}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">Presenças</p>
         </div>
-        <div className={`rounded-lg border p-3 text-center ${totalFaltas >= 4 ? "border-red-300 bg-red-50" : totalFaltas >= 2 ? "border-yellow-200 bg-yellow-50" : "border-border bg-accent/20"}`}>
-          <p className={`text-2xl font-bold ${totalFaltas >= 4 ? "text-red-700" : totalFaltas >= 2 ? "text-yellow-700" : "text-foreground"}`}>{totalFaltas}</p>
-          <p className={`mt-0.5 text-xs ${totalFaltas >= 4 ? "text-red-600" : totalFaltas >= 2 ? "text-yellow-600" : "text-muted-foreground"}`}>Faltas</p>
+        <div
+          className={`rounded-lg border p-3 text-center ${totalFaltas >= 4 ? "border-red-300 bg-red-50" : totalFaltas >= 2 ? "border-yellow-200 bg-yellow-50" : "border-border bg-accent/20"}`}
+        >
+          <p
+            className={`text-2xl font-bold ${totalFaltas >= 4 ? "text-red-700" : totalFaltas >= 2 ? "text-yellow-700" : "text-foreground"}`}
+          >
+            {totalFaltas}
+          </p>
+          <p
+            className={`mt-0.5 text-xs ${totalFaltas >= 4 ? "text-red-600" : totalFaltas >= 2 ? "text-yellow-600" : "text-muted-foreground"}`}
+          >
+            Faltas
+          </p>
         </div>
         <div className="rounded-lg border border-border bg-accent/20 p-3 text-center">
           <p className="text-2xl font-bold">{faltasJustificadas}</p>
@@ -118,7 +144,9 @@ function PortalPresencas() {
             <CalendarDays className="h-4 w-4 text-primary" />
             Registro do mês
           </CardTitle>
-          <CardDescription>Regra: 4 ou mais faltas sem justificativa anulam a vaga.</CardDescription>
+          <CardDescription>
+            Regra: 4 ou mais faltas sem justificativa anulam a vaga.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {carregando ? (
@@ -126,15 +154,30 @@ function PortalPresencas() {
               <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
             </div>
           ) : presencas.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Nenhuma aula registrada neste mês.</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Nenhuma aula registrada neste mês.
+            </p>
           ) : (
             <div className="space-y-2">
               {presencas.map((p) => (
-                <div key={p.id} className="flex items-center justify-between rounded-md border border-border px-3 py-2.5 text-sm">
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between rounded-md border border-border px-3 py-2.5 text-sm"
+                >
                   <span className="text-muted-foreground">{formatarData(p.data)}</span>
-                  <span className={`flex items-center gap-1.5 font-medium ${p.status === "presente" ? "text-green-700" : p.status === "falta justificada" ? "text-yellow-700" : "text-red-700"}`}>
-                    {p.status === "presente" ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
-                    {p.status === "presente" ? "Presente" : p.status === "falta justificada" ? "Justificada" : "Falta"}
+                  <span
+                    className={`flex items-center gap-1.5 font-medium ${p.status === "presente" ? "text-green-700" : p.status === "falta justificada" ? "text-yellow-700" : "text-red-700"}`}
+                  >
+                    {p.status === "presente" ? (
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    ) : (
+                      <XCircle className="h-3.5 w-3.5" />
+                    )}
+                    {p.status === "presente"
+                      ? "Presente"
+                      : p.status === "falta justificada"
+                        ? "Justificada"
+                        : "Falta"}
                   </span>
                 </div>
               ))}

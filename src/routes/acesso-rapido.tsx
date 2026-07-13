@@ -57,7 +57,6 @@ function AcessoRapido() {
   return (
     <PublicLayout>
       <section className="mx-auto w-full max-w-5xl px-4 py-10">
-
         <div className="mb-8">
           <h1 className="font-display text-3xl font-semibold">Central de Dúvidas</h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -75,7 +74,8 @@ function AcessoRapido() {
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Tem vaga disponível?</h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  As vagas abrem no primeiro dia útil do mês e costumam ser poucas, já que o atendimento é gratuito. A forma mais rápida de confirmar é ligando ou contatando a
+                  As vagas abrem no primeiro dia útil do mês e costumam ser poucas, já que o
+                  atendimento é gratuito. A forma mais rápida de confirmar é ligando ou contatando a
                   secretaria antes de se deslocar.
                 </p>
               </div>
@@ -139,9 +139,7 @@ function AcessoRapido() {
                       <span className="mb-4 grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground">
                         <Icon className="h-5 w-5" />
                       </span>
-                      <h3 className="text-sm font-semibold text-foreground">
-                        {regra.titulo}
-                      </h3>
+                      <h3 className="text-sm font-semibold text-foreground">{regra.titulo}</h3>
                       <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
                         {regra.texto}
                       </p>
@@ -181,9 +179,9 @@ function AcessoRapido() {
         </div>
 
         <p className="mt-10 text-center text-xs text-muted-foreground">
-          Esta página tem caráter informativo. Para informações atualizadas, entre em contato com a secretaria.
+          Esta página tem caráter informativo. Para informações atualizadas, entre em contato com a
+          secretaria.
         </p>
-
       </section>
     </PublicLayout>
   );

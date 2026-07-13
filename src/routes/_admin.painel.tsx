@@ -1,20 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase";
-import {
-  getSessao,
-  permissoesPorPerfil,
-  type Permissao,
-  type Sessao,
-} from "@/lib/auth";
+import { supabase, buscarTodasLinhas } from "@/lib/supabase";
+import { getSessao, permissoesPorPerfil, type Permissao, type Sessao } from "@/lib/auth";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -38,15 +27,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 export const Route = createFileRoute("/_admin/painel")({
   head: () => ({
@@ -360,12 +341,11 @@ function Painel() {
     }
 
     if (tem("alunos")) {
-      const { data, error } = await supabase
-        .from("alunos")
-        .select(
-          "id, nome_completo, nascimento, idade, modalidade, turma, ativo, criado_em",
-        )
-        .order("criado_em", { ascending: false });
+      const { data, error } = await buscarTodasLinhas<Aluno>(
+        "alunos",
+        "id, nome_completo, nascimento, idade, modalidade, turma, ativo, criado_em",
+        { ordenarPor: "criado_em", ascendente: false },
+      );
 
       if (error) {
         console.error(error);
@@ -399,10 +379,11 @@ function Painel() {
         turmasLista = (data ?? []) as Turma[];
       }
 
-      const { data: vinculos, error: vinculosError } = await supabase
-        .from("alunos_turmas")
-        .select("id, aluno_id, turma_id, ativo")
-        .eq("ativo", true);
+      const { data: vinculos, error: vinculosError } = await buscarTodasLinhas<AlunoTurma>(
+        "alunos_turmas",
+        "id, aluno_id, turma_id, ativo",
+        { aplicarFiltros: (q) => q.eq("ativo", true) },
+      );
 
       if (vinculosError) {
         console.error(vinculosError);
@@ -448,32 +429,23 @@ function Painel() {
     }, 0);
 
     const vagasOcupadas = vinculosAtivos.length;
-    const vagasDisponiveis =
-      totalVagas > 0 ? Math.max(0, totalVagas - vagasOcupadas) : 0;
+    const vagasDisponiveis = totalVagas > 0 ? Math.max(0, totalVagas - vagasOcupadas) : 0;
 
-    const ocupacaoNumero =
-      totalVagas > 0 ? Math.round((vagasOcupadas / totalVagas) * 100) : 0;
+    const ocupacaoNumero = totalVagas > 0 ? Math.round((vagasOcupadas / totalVagas) * 100) : 0;
 
-    const ocupacaoTexto = formatarPercentualOcupacao(
-      vagasOcupadas,
-      totalVagas,
-    );
+    const ocupacaoTexto = formatarPercentualOcupacao(vagasOcupadas, totalVagas);
 
     const ocupacaoBarra = larguraBarraOcupacao(vagasOcupadas, totalVagas);
 
     const alunosPorModalidade = modalidades.map((modalidade) => ({
       modalidade: modalidade.replace("Natação ", "Nat. "),
-      alunos: alunosAtivos.filter((aluno) => aluno.modalidade === modalidade)
-        .length,
+      alunos: alunosAtivos.filter((aluno) => aluno.modalidade === modalidade).length,
     }));
 
     const contagemPorTurma = new Map<string, number>();
 
     vinculosAtivos.forEach((vinculo) => {
-      contagemPorTurma.set(
-        vinculo.turma_id,
-        (contagemPorTurma.get(vinculo.turma_id) ?? 0) + 1,
-      );
+      contagemPorTurma.set(vinculo.turma_id, (contagemPorTurma.get(vinculo.turma_id) ?? 0) + 1);
     });
 
     const ocupacaoPorTurma = turmasAtivas
@@ -481,13 +453,10 @@ function Painel() {
         const inscritos = contagemPorTurma.get(turma.id) ?? 0;
         const vagas = Math.max(0, Number(turma.vagas_total ?? 0));
 
-        const percentual =
-          vagas > 0 ? Math.round((inscritos / vagas) * 100) : 0;
+        const percentual = vagas > 0 ? Math.round((inscritos / vagas) * 100) : 0;
 
         const larguraBarra =
-          vagas > 0 && inscritos > 0
-            ? Math.max(1, Math.min(100, (inscritos / vagas) * 100))
-            : 0;
+          vagas > 0 && inscritos > 0 ? Math.max(1, Math.min(100, (inscritos / vagas) * 100)) : 0;
 
         return {
           id: turma.id,
@@ -534,9 +503,7 @@ function Painel() {
 
         return minutos === null || minutos >= minutosAgora;
       })
-      .sort((a, b) =>
-        (a.horario_inicio ?? "").localeCompare(b.horario_inicio ?? ""),
-      )
+      .sort((a, b) => (a.horario_inicio ?? "").localeCompare(b.horario_inicio ?? ""))
       .slice(0, 10);
 
     return {
@@ -668,15 +635,11 @@ function Painel() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 rounded-md border border-dashed border-border bg-accent/30 px-3 py-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="font-medium text-foreground">
-            Painel interno – Hidro e Natação Monsenhor
-          </p>
+          <p className="font-medium text-foreground">Painel interno – Hidro e Natação Monsenhor</p>
 
           <p>
             Usuário:{" "}
-            <span className="font-medium text-foreground">
-              {areaPorPerfil(sessao?.perfil)}
-            </span>
+            <span className="font-medium text-foreground">{areaPorPerfil(sessao?.perfil)}</span>
             {" · "}
             {descricaoPainel(sessao?.perfil)}
           </p>
@@ -700,9 +663,7 @@ function Painel() {
 
       <section className="space-y-3">
         <div>
-          <h2 className="font-display text-xl font-semibold">
-            Indicadores gerais
-          </h2>
+          <h2 className="font-display text-xl font-semibold">Indicadores gerais</h2>
 
           <p className="text-sm text-muted-foreground">
             Resumo operacional com dados reais do sistema.
@@ -723,9 +684,7 @@ function Painel() {
                     <div>
                       <CardDescription>{card.title}</CardDescription>
 
-                      <CardTitle className="text-3xl">
-                        {carregando ? "..." : card.value}
-                      </CardTitle>
+                      <CardTitle className="text-3xl">{carregando ? "..." : card.value}</CardTitle>
                     </div>
 
                     <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent text-accent-foreground">
@@ -747,9 +706,7 @@ function Painel() {
       {cardsAtalhos.length > 0 && (
         <section className="space-y-3">
           <div>
-            <h2 className="font-display text-xl font-semibold">
-              Ações rápidas
-            </h2>
+            <h2 className="font-display text-xl font-semibold">Ações rápidas</h2>
 
             <p className="text-sm text-muted-foreground">
               Atalhos para rotinas administrativas mais usadas.
@@ -789,19 +746,15 @@ function Painel() {
         </section>
       )}
 
-      {cardsEstatisticas.length === 0 &&
-        cardsAtalhos.length === 0 &&
-        !carregando && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Nenhum recurso liberado</CardTitle>
+      {cardsEstatisticas.length === 0 && cardsAtalhos.length === 0 && !carregando && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Nenhum recurso liberado</CardTitle>
 
-              <CardDescription>
-                Este perfil ainda não possui permissões configuradas.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        )}
+            <CardDescription>Este perfil ainda não possui permissões configuradas.</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       {sessao?.perfil === "Professor" && (
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -841,9 +794,7 @@ function Painel() {
                 Rotina sugerida
               </CardTitle>
 
-              <CardDescription>
-                Sequência simples para uso em aula.
-              </CardDescription>
+              <CardDescription>Sequência simples para uso em aula.</CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-3 text-sm text-muted-foreground">
@@ -889,10 +840,7 @@ function Painel() {
                       left: 0,
                     }}
                   >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="var(--color-border)"
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
 
                     <XAxis
                       dataKey="modalidade"
@@ -914,11 +862,7 @@ function Painel() {
                       }}
                     />
 
-                    <Bar
-                      dataKey="alunos"
-                      fill="var(--color-primary)"
-                      radius={[6, 6, 0, 0]}
-                    />
+                    <Bar dataKey="alunos" fill="var(--color-primary)" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -957,16 +901,12 @@ function Painel() {
                   </div>
 
                   <div className="rounded-lg border border-border p-3">
-                    <p className="text-xl font-semibold">
-                      {dados.vagasOcupadas}
-                    </p>
+                    <p className="text-xl font-semibold">{dados.vagasOcupadas}</p>
                     <p className="text-xs text-muted-foreground">Ocupadas</p>
                   </div>
 
                   <div className="rounded-lg border border-border p-3">
-                    <p className="text-xl font-semibold">
-                      {dados.vagasDisponiveis}
-                    </p>
+                    <p className="text-xl font-semibold">{dados.vagasDisponiveis}</p>
                     <p className="text-xs text-muted-foreground">Livres</p>
                   </div>
                 </div>
@@ -993,9 +933,7 @@ function Painel() {
                   Próximas turmas
                 </CardTitle>
 
-                <CardDescription>
-                  {descricaoDiaReferencia(dados.diaReferencia)}
-                </CardDescription>
+                <CardDescription>{descricaoDiaReferencia(dados.diaReferencia)}</CardDescription>
               </CardHeader>
 
               <CardContent className="max-h-[340px] space-y-2 overflow-y-auto pr-1">
@@ -1035,9 +973,7 @@ function Painel() {
                   Aniversariantes do mês
                 </CardTitle>
 
-                <CardDescription>
-                  Alunos ativos com aniversário neste mês.
-                </CardDescription>
+                <CardDescription>Alunos ativos com aniversário neste mês.</CardDescription>
               </CardHeader>
 
               <CardContent className="max-h-[340px] space-y-2 overflow-y-auto pr-1">
@@ -1096,10 +1032,7 @@ function Painel() {
             )}
 
             {dados.ocupacaoPorTurma.map((turma) => (
-              <div
-                key={turma.id}
-                className="rounded-md border border-border p-3"
-              >
+              <div key={turma.id} className="rounded-md border border-border p-3">
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold">{turma.nome}</p>

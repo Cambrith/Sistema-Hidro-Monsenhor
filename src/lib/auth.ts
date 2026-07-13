@@ -41,15 +41,7 @@ export const permissoesPorPerfil: Record<Perfil, Permissao[]> = {
     "usuarios",
   ],
 
-  Recepção: [
-    "painel",
-    "pre-cadastros",
-    "alunos",
-    "turmas",
-    "presenca",
-    "avisos",
-    "relatorios",
-  ],
+  Recepção: ["painel", "pre-cadastros", "alunos", "turmas", "presenca", "avisos", "relatorios"],
 
   Professor: ["painel", "turmas", "presenca"],
 };
@@ -69,11 +61,7 @@ function loginParaEmail(usuario: string) {
     return usuario.trim().toLowerCase();
   }
 
-  if (
-    login === "administracao" ||
-    login === "admin" ||
-    login === "administrador"
-  ) {
+  if (login === "administracao" || login === "admin" || login === "administrador") {
     return "administracao@hidromonsenhor.com";
   }
 
@@ -97,11 +85,7 @@ function usuarioPorEmail(email: string) {
 }
 
 function perfilValido(valor: unknown): valor is Perfil {
-  return (
-    valor === "Administrador" ||
-    valor === "Recepção" ||
-    valor === "Professor"
-  );
+  return valor === "Administrador" || valor === "Recepção" || valor === "Professor";
 }
 
 export function getSessao(): Sessao | null {
@@ -114,12 +98,7 @@ export function getSessao(): Sessao | null {
 
     const sessao = JSON.parse(raw) as Sessao;
 
-    if (
-      !sessao?.usuario ||
-      !sessao?.perfil ||
-      !sessao?.email ||
-      !perfilValido(sessao.perfil)
-    ) {
+    if (!sessao?.usuario || !sessao?.perfil || !sessao?.email || !perfilValido(sessao.perfil)) {
       localStorage.removeItem(KEY);
       return null;
     }
@@ -136,10 +115,7 @@ export function getSessao(): Sessao | null {
   }
 }
 
-export async function entrar(
-  usuario: string,
-  senha: string,
-): Promise<Sessao | null> {
+export async function entrar(usuario: string, senha: string): Promise<Sessao | null> {
   if (typeof window === "undefined") return null;
 
   const email = loginParaEmail(usuario);
@@ -147,11 +123,10 @@ export async function entrar(
 
   if (!email || !password) return null;
 
-  const { data: authData, error: authError } =
-    await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (authError || !authData.user) {
     console.error(authError);

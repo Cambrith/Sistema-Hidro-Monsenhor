@@ -6,19 +6,10 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
-import {
-  SidebarProvider,
-  SidebarInset,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { PwaInstallBanner } from "@/components/pwa-install-banner";
-import {
-  getSessao,
-  permissoesPorPerfil,
-  type Permissao,
-  type Sessao,
-} from "@/lib/auth";
+import { getSessao, permissoesPorPerfil, type Permissao, type Sessao } from "@/lib/auth";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
@@ -200,21 +191,13 @@ function AdminLayout() {
             <Separator orientation="vertical" className="h-6" />
 
             <div className="min-w-0 flex-1 leading-tight">
-              <p className="truncate font-display text-sm font-semibold">
-                {meta.title}
-              </p>
+              <p className="truncate font-display text-sm font-semibold">{meta.title}</p>
 
-              {meta.sub && (
-                <p className="truncate text-xs text-muted-foreground">
-                  {meta.sub}
-                </p>
-              )}
+              {meta.sub && <p className="truncate text-xs text-muted-foreground">{meta.sub}</p>}
             </div>
 
             <div className="hidden items-center gap-2 sm:flex">
-              <Badge className={perfilClassName(sessao)}>
-                {sessao?.perfil ?? "Sem perfil"}
-              </Badge>
+              <Badge className={perfilClassName(sessao)}>{sessao?.perfil ?? "Sem perfil"}</Badge>
             </div>
           </header>
 

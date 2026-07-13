@@ -92,7 +92,12 @@ function PortalAvisos() {
       {!carregando && avisos.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2">
           {avisos.map((aviso) => (
-            <button key={aviso.id} type="button" onClick={() => setAvisoAberto(aviso)} className="group w-full text-left">
+            <button
+              key={aviso.id}
+              type="button"
+              onClick={() => setAvisoAberto(aviso)}
+              className="group w-full text-left"
+            >
               <Card className="h-full border-border/80 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
                 <CardHeader className="space-y-3">
                   <div className="flex items-start justify-between gap-3">

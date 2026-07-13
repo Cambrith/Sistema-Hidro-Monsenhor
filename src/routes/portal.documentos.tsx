@@ -3,24 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessaoAluno, type SessaoAluno } from "@/lib/auth-aluno";
 import { statusValidade } from "@/lib/validade";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  CheckCircle,
-  Clock,
-  ExternalLink,
-  FileText,
-  Trash2,
-  Upload,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle, Clock, ExternalLink, FileText, Trash2, Upload, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal/documentos")({
@@ -118,7 +104,9 @@ function PortalDocumentos() {
   const refAtestado = useRef<HTMLInputElement>(null);
   const refParq = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { getSessaoAluno().then(setSession); }, []);
+  useEffect(() => {
+    getSessaoAluno().then(setSession);
+  }, []);
   useEffect(() => {
     if (session?.id) {
       carregarDocumentos();
@@ -266,18 +254,17 @@ function PortalDocumentos() {
       <div>
         <h2 className="font-display text-xl font-semibold">Documentos</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Envie seus documentos de renovação anual sem precisar comparecer
-          presencialmente à secretaria. A equipe responsável analisará e
-          aprovará em breve.
+          Envie seus documentos de renovação anual sem precisar comparecer presencialmente à
+          secretaria. A equipe responsável analisará e aprovará em breve.
         </p>
       </div>
 
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-6 text-sm text-blue-900">
           <p>
-            <strong>Renovação anual obrigatória:</strong> o atestado médico e o
-            PAR-Q devem ser atualizados todo ano no 1º dia letivo. Use esta
-            página para enviar os documentos atualizados à secretaria.
+            <strong>Renovação anual obrigatória:</strong> o atestado médico e o PAR-Q devem ser
+            atualizados todo ano no 1º dia letivo. Use esta página para enviar os documentos
+            atualizados à secretaria.
           </p>
         </CardContent>
       </Card>
@@ -293,8 +280,8 @@ function PortalDocumentos() {
             {ultimoParq && <BadgeStatus status={ultimoParq.status} />}
           </div>
           <CardDescription>
-            Questionário de prontidão para atividade física. Deve ser
-            preenchido e assinado anualmente.
+            Questionário de prontidão para atividade física. Deve ser preenchido e assinado
+            anualmente.
           </CardDescription>
         </CardHeader>
 
@@ -319,17 +306,14 @@ function PortalDocumentos() {
               )}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Nenhum PAR-Q enviado ainda.
-            </p>
+            <p className="text-sm text-muted-foreground">Nenhum PAR-Q enviado ainda.</p>
           )}
 
           {statusParq === "ok" && !forcarParq ? (
             <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-900">
               <p className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 shrink-0" />
-                Válido até <strong>{formatarData(validadeParq)}</strong>. Não é
-                necessário reenviar.
+                Válido até <strong>{formatarData(validadeParq)}</strong>. Não é necessário reenviar.
               </p>
               <button
                 type="button"
@@ -362,7 +346,11 @@ function PortalDocumentos() {
                   disabled={enviando !== null || temPendenteParq}
                 >
                   <Upload className="mr-2 h-4 w-4" />
-                  {enviando === "par_q" ? "Enviando..." : ultimoParq ? "Enviar novo PAR-Q" : "Enviar PAR-Q"}
+                  {enviando === "par_q"
+                    ? "Enviando..."
+                    : ultimoParq
+                      ? "Enviar novo PAR-Q"
+                      : "Enviar PAR-Q"}
                 </Button>
 
                 {temPendenteParq && (
@@ -396,8 +384,8 @@ function PortalDocumentos() {
             {ultimoAtestado && <BadgeStatus status={ultimoAtestado.status} />}
           </div>
           <CardDescription>
-            Deve comprovar aptidão física para a modalidade praticada e
-            estar atualizado com data vigente.
+            Deve comprovar aptidão física para a modalidade praticada e estar atualizado com data
+            vigente.
           </CardDescription>
         </CardHeader>
 
@@ -405,13 +393,11 @@ function PortalDocumentos() {
           {ultimoAtestado ? (
             <div className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
               <p className="text-muted-foreground">
-                Último envio:{" "}
-                <strong>{formatarData(ultimoAtestado.criado_em)}</strong>
+                Último envio: <strong>{formatarData(ultimoAtestado.criado_em)}</strong>
               </p>
               {ultimoAtestado.observacao && (
                 <p className="mt-1 text-muted-foreground">
-                  Observação da equipe:{" "}
-                  <strong>{ultimoAtestado.observacao}</strong>
+                  Observação da equipe: <strong>{ultimoAtestado.observacao}</strong>
                 </p>
               )}
               {temPendenteAtestado && (
@@ -421,17 +407,15 @@ function PortalDocumentos() {
               )}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              Nenhum atestado enviado ainda.
-            </p>
+            <p className="text-sm text-muted-foreground">Nenhum atestado enviado ainda.</p>
           )}
 
           {statusAtestado === "ok" && !forcarAtestado ? (
             <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-900">
               <p className="flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 shrink-0" />
-                Válido até <strong>{formatarData(validadeAtestado)}</strong>. Não
-                é necessário reenviar.
+                Válido até <strong>{formatarData(validadeAtestado)}</strong>. Não é necessário
+                reenviar.
               </p>
               <button
                 type="button"
@@ -500,9 +484,7 @@ function PortalDocumentos() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Histórico de envios</CardTitle>
-            <CardDescription>
-              Todos os documentos enviados anteriormente.
-            </CardDescription>
+            <CardDescription>Todos os documentos enviados anteriormente.</CardDescription>
           </CardHeader>
           <CardContent>
             {carregando ? (

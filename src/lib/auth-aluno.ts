@@ -3,12 +3,28 @@ import { supabase } from "@/lib/supabase";
 export type SessaoAluno = {
   id: string;
   nome: string;
-  cpf: string;
 };
 
-function normalizarNumero(valor: string): string {
-  return valor.replace(/\D/g, "");
-}
+export type FatorLogin = "mae" | "endereco" | "manual";
+
+type RespostaFuncao = {
+  ok?: boolean;
+  erro?: string;
+  fator?: FatorLogin;
+  token_hash?: string;
+  bloqueado?: boolean;
+  segundosRestantes?: number;
+};
+
+export type ResultadoIdentificar =
+  | { ok: true; fator: FatorLogin }
+  | { ok: false; erro: string; bloqueado: boolean; segundosRestantes: number };
+
+export type ResultadoVerificar =
+  | { ok: true; sessao: SessaoAluno }
+  | { ok: false; erro: string; bloqueado: boolean; segundosRestantes: number };
+
+const ERRO_GENERICO = "Não foi possível verificar seus dados agora. Tente novamente.";
 
 export async function getSessaoAluno(): Promise<SessaoAluno | null> {
   const { data } = await supabase.auth.getSession();
@@ -18,40 +34,102 @@ export async function getSessaoAluno(): Promise<SessaoAluno | null> {
   const meta = session.user.user_metadata;
   if (!meta?.aluno_id || !meta?.nome) return null;
 
-  return { id: meta.aluno_id, nome: meta.nome, cpf: meta.cpf };
+  return { id: meta.aluno_id, nome: meta.nome };
 }
 
-export async function loginAluno(
-  cpf: string,
+// Etapa 1: manda nome + nascimento, servidor diz qual é o 3º dado a pedir
+// (nome da mãe, endereço, ou "manual" quando o aluno não tem nenhum dos
+// dois cadastrado). Por segurança contra descoberta de cadastro, o servidor
+// finge sucesso mesmo quando o aluno não existe — então esta etapa quase
+// sempre "passa"; o dado de verdade só é conferido na etapa 2.
+export async function identificarAluno(
+  nomeCompleto: string,
   nascimento: string,
-  telefone: string,
-): Promise<SessaoAluno | null> {
-  const cpfNorm = normalizarNumero(cpf);
-  const telefoneNorm = normalizarNumero(telefone);
-
-  if (!cpfNorm || cpfNorm.length < 11 || !nascimento || !telefoneNorm) {
-    return null;
-  }
-
-  const { data: garantia, error: erroGarantia } = await supabase.functions.invoke(
+): Promise<ResultadoIdentificar> {
+  const { data, error } = await supabase.functions.invoke<RespostaFuncao>(
     "garantir-usuario-aluno",
-    { body: { cpf: cpfNorm, nascimento, telefone: telefoneNorm } },
+    { body: { acao: "identificar", nome_completo: nomeCompleto, nascimento } },
   );
 
-  if (erroGarantia || !garantia?.ok || !garantia?.token_hash) return null;
+  if (error || !data) {
+    return { ok: false, erro: ERRO_GENERICO, bloqueado: false, segundosRestantes: 0 };
+  }
 
-  // O servidor já conferiu cpf+nascimento+telefone e devolveu um token de
+  if (data.bloqueado) {
+    return {
+      ok: false,
+      erro: data.erro ?? "Muitas tentativas.",
+      bloqueado: true,
+      segundosRestantes: data.segundosRestantes ?? 0,
+    };
+  }
+
+  if (!data.ok || !data.fator) {
+    return {
+      ok: false,
+      erro: data.erro ?? "Não foi possível identificar seus dados.",
+      bloqueado: false,
+      segundosRestantes: 0,
+    };
+  }
+
+  return { ok: true, fator: data.fator };
+}
+
+// Etapa 2: confirma o 3º dado (nome da mãe ou endereço, conforme o "fator"
+// devolvido na etapa 1) e, se bater, já volta com a sessão pronta.
+export async function verificarAluno(
+  nomeCompleto: string,
+  nascimento: string,
+  valorTerceiroFator: string,
+): Promise<ResultadoVerificar> {
+  const { data, error } = await supabase.functions.invoke<RespostaFuncao>(
+    "garantir-usuario-aluno",
+    {
+      body: {
+        acao: "verificar",
+        nome_completo: nomeCompleto,
+        nascimento,
+        valor_terceiro_fator: valorTerceiroFator,
+      },
+    },
+  );
+
+  if (error || !data) {
+    return { ok: false, erro: ERRO_GENERICO, bloqueado: false, segundosRestantes: 0 };
+  }
+
+  if (data.bloqueado) {
+    return {
+      ok: false,
+      erro: data.erro ?? "Muitas tentativas.",
+      bloqueado: true,
+      segundosRestantes: data.segundosRestantes ?? 0,
+    };
+  }
+
+  if (!data.ok || !data.token_hash) {
+    return {
+      ok: false,
+      erro: data.erro ?? "Dados não conferem.",
+      bloqueado: false,
+      segundosRestantes: 0,
+    };
+  }
+
+  // O servidor já conferiu nome+nascimento+3º fator e devolveu um token de
   // uso único — o navegador nunca calcula nem envia nenhuma senha.
-  // (a API do Supabase exige só token_hash + type juntos, sem o email)
-  const { data, error } = await supabase.auth.verifyOtp({
-    token_hash: garantia.token_hash,
+  const { data: sessionData, error: erroOtp } = await supabase.auth.verifyOtp({
+    token_hash: data.token_hash,
     type: "email",
   });
 
-  if (error || !data.session) return null;
+  if (erroOtp || !sessionData.session) {
+    return { ok: false, erro: ERRO_GENERICO, bloqueado: false, segundosRestantes: 0 };
+  }
 
-  const meta = data.session.user.user_metadata;
-  return { id: meta.aluno_id, nome: meta.nome, cpf: cpfNorm };
+  const meta = sessionData.session.user.user_metadata;
+  return { ok: true, sessao: { id: meta.aluno_id, nome: meta.nome } };
 }
 
 export async function sairAluno(): Promise<void> {

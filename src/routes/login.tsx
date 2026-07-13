@@ -1,11 +1,5 @@
 import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -72,17 +66,11 @@ function LoginPage() {
       const sessao = await entrar(usuario, senha);
 
       if (!sessao) {
-        const resultado = registrarTentativaFalha(
-          "admin",
-          MAX_TENTATIVAS_ADMIN,
-          BLOQUEIO_ADMIN_MS,
-        );
+        const resultado = registrarTentativaFalha("admin", MAX_TENTATIVAS_ADMIN, BLOQUEIO_ADMIN_MS);
 
         if (resultado.bloqueado) {
           const minutos = Math.ceil(resultado.segundosRestantes / 60);
-          toast.error(
-            `Muitas tentativas erradas. Acesso bloqueado por ${minutos} minutos.`,
-          );
+          toast.error(`Muitas tentativas erradas. Acesso bloqueado por ${minutos} minutos.`);
         } else {
           toast.error(
             `Usuário ou senha inválidos. Tentativas restantes: ${resultado.tentativasRestantes}.`,
@@ -118,18 +106,16 @@ function LoginPage() {
 
         <div className="relative flex h-full flex-col justify-between p-9 xl:p-10">
           <div className="flex items-center gap-5">
-        <span className="grid h-24 w-24 shrink-0 place-items-center rounded-3xl bg-white/95 shadow-sm">
-  <img
-    src={logo}
-    alt="Hidro e Natação Monsenhor"
-    className="h-full w-full object-contain"
-  />
-</span>
+            <span className="grid h-24 w-24 shrink-0 place-items-center rounded-3xl bg-white/95 shadow-sm">
+              <img
+                src={logo}
+                alt="Hidro e Natação Monsenhor"
+                className="h-full w-full object-contain"
+              />
+            </span>
 
             <div className="min-w-0 leading-tight">
-              <p className="font-display text-2xl font-semibold">
-                Hidro e Natação Monsenhor
-              </p>
+              <p className="font-display text-2xl font-semibold">Hidro e Natação Monsenhor</p>
 
               <p className="mt-1 max-w-[430px] text-sm leading-snug text-white/80">
                 Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira
@@ -147,13 +133,13 @@ function LoginPage() {
             </h2>
 
             <p className="max-w-md text-sm leading-relaxed text-white/85">
-              Área de trabalho para alunos, turmas, presença, documentos, lista de espera, avisos e relatórios do centro.
+              Área de trabalho para alunos, turmas, presença, documentos, lista de espera, avisos e
+              relatórios do centro.
             </p>
           </div>
 
           <p className="text-xs text-white/70">
-            © {new Date().getFullYear()} Hidro e Natação Monsenhor — Painel
-            administrativo interno.
+            © {new Date().getFullYear()} Hidro e Natação Monsenhor — Painel administrativo interno.
           </p>
         </div>
       </div>
@@ -199,21 +185,12 @@ function LoginPage() {
                     onClick={() => setMostrarSenha((valor) => !valor)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                   >
-                    {mostrarSenha ? (
-                      <Eye className="h-4 w-4" />
-                    ) : (
-                      <EyeOff className="h-4 w-4" />
-                    )}
+                    {mostrarSenha ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                size="lg"
-                disabled={entrando}
-              >
+              <Button type="submit" className="w-full" size="lg" disabled={entrando}>
                 {entrando ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -231,12 +208,12 @@ function LoginPage() {
 
             <div className="mt-6 text-center text-sm">
               <Link
-  to="/acesso"
-  className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
->
-  <ArrowLeft className="mr-1 h-4 w-4" />
-  Voltar
-</Link>
+                to="/acesso"
+                className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <ArrowLeft className="mr-1 h-4 w-4" />
+                Voltar
+              </Link>
             </div>
           </CardContent>
         </Card>

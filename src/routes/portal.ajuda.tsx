@@ -72,9 +72,7 @@ function PortalAjuda() {
                     <p className="text-sm font-medium">{r.titulo}</p>
                     <p className="mt-0.5 text-sm text-muted-foreground">{r.texto}</p>
                     {r.acaoPortal && (
-                      <p className="mt-1 text-sm font-medium text-primary">
-                        {r.acaoPortal}
-                      </p>
+                      <p className="mt-1 text-sm font-medium text-primary">{r.acaoPortal}</p>
                     )}
                   </div>
                 </div>

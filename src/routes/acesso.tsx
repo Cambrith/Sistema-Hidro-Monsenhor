@@ -47,7 +47,8 @@ function Acesso() {
                   Sou aluno
                 </h2>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                  Veja suas presenças, faltas, turma, documentos e avisos da secretaria. Acesse com CPF, data de nascimento e telefone cadastrados.
+                  Veja suas presenças, faltas, turma, documentos e avisos da secretaria. Acesse com
+                  CPF, data de nascimento e telefone cadastrados.
                 </p>
                 <span className="mt-6 inline-flex items-center text-sm font-semibold text-[#1D4ED8]">
                   Acessar minha conta
@@ -67,7 +68,8 @@ function Acesso() {
                   Sou da equipe
                 </h2>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
-                  Gerencie alunos, turmas, presença, documentos e avisos do centro. Acesso restrito para recepção, professores e administração, com usuário e senha.
+                  Gerencie alunos, turmas, presença, documentos e avisos do centro. Acesso restrito
+                  para recepção, professores e administração, com usuário e senha.
                 </p>
                 <span className="mt-6 inline-flex items-center text-sm font-semibold text-slate-600">
                   Acessar o painel
@@ -78,11 +80,11 @@ function Acesso() {
           </div>
 
           <p className="mt-10 text-center text-xs text-muted-foreground">
-  Dificuldades para acessar?{" "}
-  <a href="/#canais-oficiais" className="font-medium text-foreground/70 hover:underline">
-    Veja os canais de contato
-  </a>
-</p>
+            Dificuldades para acessar?{" "}
+            <a href="/#canais-oficiais" className="font-medium text-foreground/70 hover:underline">
+              Veja os canais de contato
+            </a>
+          </p>
         </div>
       </div>
     </PublicLayout>

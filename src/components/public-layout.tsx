@@ -44,20 +44,19 @@ export function PublicLayout({ children }: { children: ReactNode }) {
                 to={n.to}
                 className="rounded-md px-3 py-2 text-sm font-medium text-foreground/80 hover:bg-accent hover:text-foreground"
                 activeProps={{
-                  className:
-                    "rounded-md px-3 py-2 text-sm font-semibold text-primary bg-accent",
+                  className: "rounded-md px-3 py-2 text-sm font-semibold text-primary bg-accent",
                 }}
                 activeOptions={{ exact: n.to === "/" }}
               >
                 {n.label}
               </Link>
             ))}
-           <Link
-  to="/acesso"
-  className="ml-2 rounded-full bg-primary/80 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary"
->
-  Minha Conta
-</Link>
+            <Link
+              to="/acesso"
+              className="ml-2 rounded-full bg-primary/80 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary"
+            >
+              Minha Conta
+            </Link>
           </nav>
 
           <button
@@ -134,7 +133,8 @@ export function PublicLayout({ children }: { children: ReactNode }) {
         </div>
 
         <div className="border-t border-border px-4 py-3 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} Hidro e Natação Monsenhor — Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira
+          © {new Date().getFullYear()} Hidro e Natação Monsenhor — Centro Esportivo e Cultural
+          Professora Marta Regina de Carvalho Ferreira
         </div>
       </footer>
     </div>

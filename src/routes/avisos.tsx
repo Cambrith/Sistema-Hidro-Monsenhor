@@ -1,13 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PublicLayout } from "@/components/public-layout";
 import { AvisoMensagemHtml } from "@/lib/sanitizar-aviso";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { Megaphone } from "lucide-react";
@@ -69,32 +63,22 @@ function AvisosPublicos() {
     carregarAvisos();
   }, []);
 
- return (
-  <PublicLayout>
-    <section className="mx-auto w-full max-w-4xl px-4 py-10">
-      <h1 className="font-display text-3xl font-semibold">
-        Avisos
-      </h1>
+  return (
+    <PublicLayout>
+      <section className="mx-auto w-full max-w-4xl px-4 py-10">
+        <h1 className="font-display text-3xl font-semibold">Avisos</h1>
 
-      <p className="mt-1 text-sm text-muted-foreground">
-        Comunicados oficiais da administração do centro.
-      </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Comunicados oficiais da administração do centro.
+        </p>
 
-      <div className="mt-6 space-y-4">
-        {carregando && (
-          <p className="text-sm text-muted-foreground">
-            Carregando avisos...
-          </p>
-        )}
+        <div className="mt-6 space-y-4">
+          {carregando && <p className="text-sm text-muted-foreground">Carregando avisos...</p>}
 
-          {!carregando && erro && (
-            <p className="text-sm text-destructive">{erro}</p>
-          )}
+          {!carregando && erro && <p className="text-sm text-destructive">{erro}</p>}
 
           {!carregando && !erro && publicos.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Nenhum aviso publicado no momento.
-            </p>
+            <p className="text-sm text-muted-foreground">Nenhum aviso publicado no momento.</p>
           )}
 
           {!carregando &&
@@ -105,23 +89,19 @@ function AvisosPublicos() {
                   <div className="flex items-center gap-2">
                     <Megaphone className="h-4 w-4 text-primary" />
 
-                    {aviso.importante && (
-                      <Badge variant="destructive">Importante</Badge>
-                    )}
+                    {aviso.importante && <Badge variant="destructive">Importante</Badge>}
                   </div>
 
                   <CardTitle className="text-lg">{aviso.titulo}</CardTitle>
 
                   <CardDescription>
-                    {new Date(`${aviso.data}T00:00:00`).toLocaleDateString(
-                      "pt-BR",
-                    )}
+                    {new Date(`${aviso.data}T00:00:00`).toLocaleDateString("pt-BR")}
                   </CardDescription>
                 </CardHeader>
 
                 <CardContent>
-  <AvisoMensagemHtml mensagem={aviso.mensagem} className="text-foreground/80" />
-</CardContent>
+                  <AvisoMensagemHtml mensagem={aviso.mensagem} className="text-foreground/80" />
+                </CardContent>
               </Card>
             ))}
         </div>

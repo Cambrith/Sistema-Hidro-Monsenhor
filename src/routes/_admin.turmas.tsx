@@ -9,13 +9,7 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessao } from "@/lib/auth";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -217,10 +211,7 @@ function TurmasAdmin() {
       return;
     }
 
-    const { error } = await supabase
-      .from("turmas")
-      .update({ ativa })
-      .eq("id", turma.id);
+    const { error } = await supabase.from("turmas").update({ ativa }).eq("id", turma.id);
 
     if (error) {
       console.error(error);
@@ -228,9 +219,7 @@ function TurmasAdmin() {
       return;
     }
 
-    setTurmas((lista) =>
-      lista.map((t) => (t.id === turma.id ? { ...t, ativa } : t)),
-    );
+    setTurmas((lista) => lista.map((t) => (t.id === turma.id ? { ...t, ativa } : t)));
 
     toast.success(ativa ? "Turma ativada." : "Turma inativada.");
   }
@@ -244,9 +233,7 @@ function TurmasAdmin() {
     const inscritos = contagens[turma.id] ?? 0;
 
     if (inscritos > 0) {
-      toast.error(
-        "Não é recomendado excluir uma turma com alunos vinculados. Inative a turma.",
-      );
+      toast.error("Não é recomendado excluir uma turma com alunos vinculados. Inative a turma.");
       return;
     }
 
@@ -334,8 +321,8 @@ function TurmasAdmin() {
         <CardContent className="space-y-4">
           {perfil === "Professor" && (
             <div className="rounded-md border border-dashed border-border bg-accent/30 px-3 py-2 text-sm text-muted-foreground">
-              Perfil de professor: visualização das turmas disponível. Alterações
-              são restritas à Administração e à Recepção.
+              Perfil de professor: visualização das turmas disponível. Alterações são restritas à
+              Administração e à Recepção.
             </div>
           )}
 
@@ -350,27 +337,19 @@ function TurmasAdmin() {
               />
             </div>
 
-            <Select
-              value={mod}
-              onValueChange={(v) => setMod(v as "todas" | Modalidade)}
-            >
+            <Select value={mod} onValueChange={(v) => setMod(v as "todas" | Modalidade)}>
               <SelectTrigger>
                 <SelectValue placeholder="Modalidade" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todas">Todas as modalidades</SelectItem>
-                <SelectItem value="Natação Infantil">
-                  Natação Infantil
-                </SelectItem>
+                <SelectItem value="Natação Infantil">Natação Infantil</SelectItem>
                 <SelectItem value="Natação Adulta">Natação Adulta</SelectItem>
                 <SelectItem value="Hidroginástica">Hidroginástica</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select
-              value={st}
-              onValueChange={(v) => setSt(v as "todos" | StatusTurma)}
-            >
+            <Select value={st} onValueChange={(v) => setSt(v as "todos" | StatusTurma)}>
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -411,9 +390,7 @@ function TurmasAdmin() {
                       <TableCell className="font-medium">{t.nome}</TableCell>
                       <TableCell>{t.modalidade}</TableCell>
                       <TableCell>{t.dia_semana || "—"}</TableCell>
-                      <TableCell>
-                        {formatarHorario(t.horario_inicio, t.horario_fim)}
-                      </TableCell>
+                      <TableCell>{formatarHorario(t.horario_inicio, t.horario_fim)}</TableCell>
                       <TableCell>{t.professor || "—"}</TableCell>
 
                       <TableCell>
@@ -431,10 +408,7 @@ function TurmasAdmin() {
                       </TableCell>
 
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`capitalize ${statusColors[status]}`}
-                        >
+                        <Badge variant="outline" className={`capitalize ${statusColors[status]}`}>
                           {status}
                         </Badge>
                       </TableCell>
@@ -461,9 +435,7 @@ function TurmasAdmin() {
                                   {podeEditar && <DropdownMenuSeparator />}
 
                                   {t.ativa ? (
-                                    <DropdownMenuItem
-                                      onClick={() => alterarStatus(t, false)}
-                                    >
+                                    <DropdownMenuItem onClick={() => alterarStatus(t, false)}>
                                       <MinusCircle className="mr-2 h-4 w-4" />
                                       Inativar
                                     </DropdownMenuItem>
@@ -511,9 +483,7 @@ function TurmasAdmin() {
                       colSpan={9}
                       className="py-10 text-center text-sm text-muted-foreground"
                     >
-                      {carregando
-                        ? "Carregando turmas..."
-                        : "Nenhuma turma encontrada."}
+                      {carregando ? "Carregando turmas..." : "Nenhuma turma encontrada."}
                     </TableCell>
                   </TableRow>
                 )}
@@ -524,11 +494,7 @@ function TurmasAdmin() {
       </Card>
 
       {podeCriar && (
-        <NovaTurmaDialog
-          open={novoAberto}
-          onOpenChange={setNovoAberto}
-          onSaved={carregar}
-        />
+        <NovaTurmaDialog open={novoAberto} onOpenChange={setNovoAberto} onSaved={carregar} />
       )}
 
       {podeEditar && editando && (
@@ -686,21 +652,13 @@ function EditarTurmaDialog({
   );
 }
 
-function FormularioTurma({
-  f,
-  setF,
-}: {
-  f: FormTurma;
-  setF: Dispatch<SetStateAction<FormTurma>>;
-}) {
+function FormularioTurma({ f, setF }: { f: FormTurma; setF: Dispatch<SetStateAction<FormTurma>> }) {
   return (
     <div className="grid gap-3 md:grid-cols-2">
       <Fld label="Nome da turma *">
         <Input
           value={f.nome}
-          onChange={(e) =>
-            setF((atual) => ({ ...atual, nome: e.target.value }))
-          }
+          onChange={(e) => setF((atual) => ({ ...atual, nome: e.target.value }))}
           placeholder="Ex.: Infantil — Terça 08:00"
         />
       </Fld>
@@ -708,9 +666,7 @@ function FormularioTurma({
       <Fld label="Modalidade">
         <Select
           value={f.modalidade}
-          onValueChange={(v) =>
-            setF((atual) => ({ ...atual, modalidade: v as Modalidade }))
-          }
+          onValueChange={(v) => setF((atual) => ({ ...atual, modalidade: v as Modalidade }))}
         >
           <SelectTrigger>
             <SelectValue />
@@ -726,9 +682,7 @@ function FormularioTurma({
       <Fld label="Dia(s) da semana">
         <Input
           value={f.dia_semana}
-          onChange={(e) =>
-            setF((atual) => ({ ...atual, dia_semana: e.target.value }))
-          }
+          onChange={(e) => setF((atual) => ({ ...atual, dia_semana: e.target.value }))}
           placeholder="Ex.: Terças e quintas"
         />
       </Fld>
@@ -736,9 +690,7 @@ function FormularioTurma({
       <Fld label="Professor">
         <Input
           value={f.professor}
-          onChange={(e) =>
-            setF((atual) => ({ ...atual, professor: e.target.value }))
-          }
+          onChange={(e) => setF((atual) => ({ ...atual, professor: e.target.value }))}
           placeholder="Ex.: Equipe de Educação Física"
         />
       </Fld>
@@ -747,9 +699,7 @@ function FormularioTurma({
         <Input
           type="time"
           value={f.horario_inicio}
-          onChange={(e) =>
-            setF((atual) => ({ ...atual, horario_inicio: e.target.value }))
-          }
+          onChange={(e) => setF((atual) => ({ ...atual, horario_inicio: e.target.value }))}
         />
       </Fld>
 
@@ -757,9 +707,7 @@ function FormularioTurma({
         <Input
           type="time"
           value={f.horario_fim}
-          onChange={(e) =>
-            setF((atual) => ({ ...atual, horario_fim: e.target.value }))
-          }
+          onChange={(e) => setF((atual) => ({ ...atual, horario_fim: e.target.value }))}
         />
       </Fld>
 
@@ -780,9 +728,7 @@ function FormularioTurma({
       <Fld label="Status">
         <Select
           value={f.ativa ? "ativa" : "inativa"}
-          onValueChange={(v) =>
-            setF((atual) => ({ ...atual, ativa: v === "ativa" }))
-          }
+          onValueChange={(v) => setF((atual) => ({ ...atual, ativa: v === "ativa" }))}
         >
           <SelectTrigger>
             <SelectValue />

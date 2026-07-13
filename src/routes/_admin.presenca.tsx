@@ -1,13 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,11 +32,7 @@ export const Route = createFileRoute("/_admin/presenca")({
 });
 
 type StatusPresenca = "presente" | "falta" | "falta justificada";
-type FiltroModalidade =
-  | "todas"
-  | "Natação Infantil"
-  | "Natação Adulta"
-  | "Hidroginástica";
+type FiltroModalidade = "todas" | "Natação Infantil" | "Natação Adulta" | "Hidroginástica";
 
 type Turma = {
   id: string;
@@ -173,16 +163,14 @@ function PresencaAdmin() {
   const [carregandoTurmas, setCarregandoTurmas] = useState(true);
   const [carregandoChamada, setCarregandoChamada] = useState(false);
   const [salvando, setSalvando] = useState(false);
-  const [modalidadeFiltro, setModalidadeFiltro] =
-    useState<FiltroModalidade>("todas");
+  const [modalidadeFiltro, setModalidadeFiltro] = useState<FiltroModalidade>("todas");
   const [buscaTurma, setBuscaTurma] = useState("");
 
   const turmasFiltradas = useMemo(() => {
     const busca = buscaTurma.trim().toLowerCase();
 
     return turmas.filter((turma) => {
-      const passaModalidade =
-        modalidadeFiltro === "todas" || turma.modalidade === modalidadeFiltro;
+      const passaModalidade = modalidadeFiltro === "todas" || turma.modalidade === modalidadeFiltro;
 
       const passaBusca = !busca || textoBuscaTurma(turma).includes(busca);
 
@@ -267,9 +255,7 @@ function PresencaAdmin() {
       return;
     }
 
-    const alunoIds = (vinculos ?? [])
-      .map((vinculo) => vinculo.aluno_id)
-      .filter(Boolean);
+    const alunoIds = (vinculos ?? []).map((vinculo) => vinculo.aluno_id).filter(Boolean);
 
     let alunos: Aluno[] = [];
 
@@ -314,9 +300,7 @@ function PresencaAdmin() {
     if (chamada?.id) {
       const { data: presencasData, error: presencasError } = await supabase
         .from("presencas")
-        .select(
-          "id, chamada_id, aluno_id, turma_id, data, status, observacao, criado_em",
-        )
+        .select("id, chamada_id, aluno_id, turma_id, data, status, observacao, criado_em")
         .eq("chamada_id", chamada.id);
 
       if (presencasError) {
@@ -445,9 +429,7 @@ function PresencaAdmin() {
       observacao: null,
     }));
 
-    const { error: insertError } = await supabase
-      .from("presencas")
-      .insert(registros);
+    const { error: insertError } = await supabase.from("presencas").insert(registros);
 
     if (insertError) {
       console.error(insertError);
@@ -500,9 +482,7 @@ function PresencaAdmin() {
               <Label>Modalidade</Label>
               <Select
                 value={modalidadeFiltro}
-                onValueChange={(value) =>
-                  setModalidadeFiltro(value as FiltroModalidade)
-                }
+                onValueChange={(value) => setModalidadeFiltro(value as FiltroModalidade)}
                 disabled={carregandoTurmas || salvando}
               >
                 <SelectTrigger>
@@ -557,9 +537,8 @@ function PresencaAdmin() {
 
           {turmaSelecionadaForaDoFiltro && (
             <div className="rounded-md border border-dashed border-border bg-accent/30 px-3 py-2 text-sm text-muted-foreground">
-              A turma selecionada não aparece nos filtros atuais. Clique em
-              “Usar 1ª” para selecionar a primeira turma filtrada ou limpe os
-              filtros.
+              A turma selecionada não aparece nos filtros atuais. Clique em “Usar 1ª” para
+              selecionar a primeira turma filtrada ou limpe os filtros.
             </div>
           )}
 
@@ -632,9 +611,7 @@ function PresencaAdmin() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Presentes</CardDescription>
-            <CardTitle className="text-green-700">
-              {totais["presente"] ?? 0}
-            </CardTitle>
+            <CardTitle className="text-green-700">{totais["presente"] ?? 0}</CardTitle>
           </CardHeader>
         </Card>
 
@@ -648,9 +625,7 @@ function PresencaAdmin() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Justificadas</CardDescription>
-            <CardTitle className="text-yellow-700">
-              {totais["falta justificada"] ?? 0}
-            </CardTitle>
+            <CardTitle className="text-yellow-700">{totais["falta justificada"] ?? 0}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -702,8 +677,8 @@ function PresencaAdmin() {
             </div>
           ) : alunosTurma.length === 0 ? (
             <p className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-              Esta turma ainda não possui alunos ativos vinculados. Vá até a tela de
-              Alunos para fazer a vinculação.
+              Esta turma ainda não possui alunos ativos vinculados. Vá até a tela de Alunos para
+              fazer a vinculação.
             </p>
           ) : (
             <ul className="divide-y divide-border">
@@ -716,9 +691,7 @@ function PresencaAdmin() {
                     <p className="font-medium">{aluno.nome_completo}</p>
                     <p className="text-xs text-muted-foreground">
                       {aluno.idade ?? "—"} anos
-                      {aluno.responsavel
-                        ? ` · Responsável: ${aluno.responsavel}`
-                        : ""}
+                      {aluno.responsavel ? ` · Responsável: ${aluno.responsavel}` : ""}
                     </p>
                   </div>
 
@@ -737,10 +710,7 @@ function PresencaAdmin() {
                         key={opcao.v}
                         className="flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent"
                       >
-                        <RadioGroupItem
-                          value={opcao.v}
-                          id={`${aluno.id}-${opcao.v}`}
-                        />
+                        <RadioGroupItem value={opcao.v} id={`${aluno.id}-${opcao.v}`} />
                         <span className={opcao.className}>{opcao.label}</span>
                       </label>
                     ))}

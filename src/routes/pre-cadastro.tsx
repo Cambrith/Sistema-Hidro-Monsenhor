@@ -32,21 +32,24 @@ const documentos = [
   {
     icon: Stethoscope,
     titulo: "Atestado médico",
-    descricao: "Deve estar atualizado e com data vigente, além de comprovar aptidão física para a modalidade desejada.",
+    descricao:
+      "Deve estar atualizado e com data vigente, além de comprovar aptidão física para a modalidade desejada.",
     obrigatorio: true,
   },
   {
     icon: IdCard,
     titulo: "Documento de identificação",
-    descricao: "Registro Geral (RG) ou outro documento com foto. Para menores de idade, o responsável deve estar presente.",
+    descricao:
+      "Registro Geral (RG) ou outro documento com foto. Para menores de idade, o responsável deve estar presente.",
     obrigatorio: true,
   },
   {
-  icon: Home,
-  titulo: "Comprovante de residência",
-  descricao: "Auxilia a confirmar os dados de endereço no cadastro. Pode ser uma conta de água, de luz ou de telefone em nome do morador.",
-  obrigatorio: false,
-},
+    icon: Home,
+    titulo: "Comprovante de residência",
+    descricao:
+      "Auxilia a confirmar os dados de endereço no cadastro. Pode ser uma conta de água, de luz ou de telefone em nome do morador.",
+    obrigatorio: false,
+  },
 ];
 
 const atendimento = [
@@ -68,30 +71,28 @@ const passos = [
     descricao:
       "Vá pessoalmente durante o horário de atendimento levando o atestado médico e o documento de identificação. O cadastro é feito na hora.",
   },
- {
-  numero: "3",
-  titulo: "Conclua sua matrícula",
-  descricao:
-    "A secretaria conferirá os documentos, preencherá seu cadastro e registrará sua matrícula. Estando tudo correto, você poderá iniciar as aulas na turma e horário definidos.",
-},
+  {
+    numero: "3",
+    titulo: "Conclua sua matrícula",
+    descricao:
+      "A secretaria conferirá os documentos, preencherá seu cadastro e registrará sua matrícula. Estando tudo correto, você poderá iniciar as aulas na turma e horário definidos.",
+  },
 ];
 
 function ComoSeInscreverPage() {
   return (
     <PublicLayout>
       <section className="mx-auto w-full max-w-3xl px-4 py-10">
-
         {/* Cabeçalho */}
         <div className="mb-8 space-y-3">
           <h1 className="font-display text-3xl font-semibold">Como se inscrever</h1>
           <p className="text-sm leading-relaxed text-muted-foreground">
-  As inscrições para natação e hidroginástica são feitas presencialmente, na
-  secretaria. As turmas têm número limitado de alunos e a procura costuma ser
-  alta.{" "}
-  <strong className="text-foreground">
-    Recomendamos ligar antes de ir para confirmar se há vagas disponíveis.
-  </strong>
-</p>
+            As inscrições para natação e hidroginástica são feitas presencialmente, na secretaria.
+            As turmas têm número limitado de alunos e a procura costuma ser alta.{" "}
+            <strong className="text-foreground">
+              Recomendamos ligar antes de ir para confirmar se há vagas disponíveis.
+            </strong>
+          </p>
         </div>
 
         {/* Documentos necessários */}
@@ -102,25 +103,27 @@ function ComoSeInscreverPage() {
           </p>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
-  {documentos.map((d) => (
-    <Card key={d.titulo} className="h-full">
-      <CardContent className="flex h-full flex-col p-5">
-        <div className="mb-3 flex items-start justify-between gap-2">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-            <d.icon className="h-5 w-5" />
-          </span>
-          {!d.obrigatorio && (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-              Opcional
-            </span>
-          )}
-        </div>
-        <p className="mb-2 text-sm font-semibold text-foreground">{d.titulo}</p>
-        <p className="flex-1 text-sm leading-relaxed text-muted-foreground">{d.descricao}</p>
-      </CardContent>
-    </Card>
-  ))}
-</div>
+            {documentos.map((d) => (
+              <Card key={d.titulo} className="h-full">
+                <CardContent className="flex h-full flex-col p-5">
+                  <div className="mb-3 flex items-start justify-between gap-2">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                      <d.icon className="h-5 w-5" />
+                    </span>
+                    {!d.obrigatorio && (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                        Opcional
+                      </span>
+                    )}
+                  </div>
+                  <p className="mb-2 text-sm font-semibold text-foreground">{d.titulo}</p>
+                  <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
+                    {d.descricao}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
 
         {/* Passo a passo */}
@@ -143,25 +146,23 @@ function ComoSeInscreverPage() {
             </Card>
           ))}
         </div>
-<Card className="mb-8 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20">
-  <CardContent className="pt-6">
-    <div className="flex items-start gap-3">
-      <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-      <div>
-        <p className="font-medium text-foreground">
-          Mantenha seu cadastro atualizado
-        </p>
+        <Card className="mb-8 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+              <div>
+                <p className="font-medium text-foreground">Mantenha seu cadastro atualizado</p>
 
-        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Durante a matrícula serão registrados seus dados pessoais, endereço e
-          contatos. Sempre que houver alteração de telefone, endereço ou outras
-          informações cadastrais, informe a secretaria para manter seu cadastro
-          atualizado e garantir o recebimento de avisos e comunicados.
-        </p>
-      </div>
-    </div>
-  </CardContent>
-</Card>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  Durante a matrícula serão registrados seus dados pessoais, endereço e contatos.
+                  Sempre que houver alteração de telefone, endereço ou outras informações
+                  cadastrais, informe a secretaria para manter seu cadastro atualizado e garantir o
+                  recebimento de avisos e comunicados.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         {/* Horário e localização */}
         <div className="mb-10 grid gap-4 sm:grid-cols-2">
           <Card>
@@ -205,8 +206,8 @@ function ComoSeInscreverPage() {
                 <div className="space-y-1">
                   <p className="font-medium text-foreground">Ainda tem dúvidas?</p>
                   <p className="text-sm text-muted-foreground">
-                    Acompanhe os avisos da secretaria para se manter informado sobre
-                    cancelamentos, mudanças de horário e comunicados.
+                    Acompanhe os avisos da secretaria para se manter informado sobre cancelamentos,
+                    mudanças de horário e comunicados.
                   </p>
                   <Link to="/avisos">
                     <Button variant="link" size="sm" className="h-auto p-0 text-sm">

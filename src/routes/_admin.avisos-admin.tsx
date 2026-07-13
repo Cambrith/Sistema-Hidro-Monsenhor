@@ -1,21 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { useEffect, useMemo, useRef, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { getSessao } from "@/lib/auth";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -113,7 +100,17 @@ function sanitizarHtmlAviso(html?: string | null) {
   template.innerHTML = entrada;
 
   const tagsPermitidas = new Set([
-    "P", "DIV", "BR", "STRONG", "B", "EM", "I", "U", "UL", "OL", "LI",
+    "P",
+    "DIV",
+    "BR",
+    "STRONG",
+    "B",
+    "EM",
+    "I",
+    "U",
+    "UL",
+    "OL",
+    "LI",
   ]);
 
   const elementos = Array.from(template.content.querySelectorAll("*"));
@@ -148,7 +145,10 @@ function sanitizarHtmlAviso(html?: string | null) {
 function textoPlanoAviso(html?: string | null) {
   if (!html) return "";
   if (typeof window === "undefined") {
-    return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+    return html
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   const div = document.createElement("div");
@@ -157,13 +157,7 @@ function textoPlanoAviso(html?: string | null) {
   return (div.textContent ?? "").replace(/\s+/g, " ").trim();
 }
 
-function AvisoMensagemHtml({
-  mensagem,
-  className = "",
-}: {
-  mensagem: string;
-  className?: string;
-}) {
+function AvisoMensagemHtml({ mensagem, className = "" }: { mensagem: string; className?: string }) {
   return (
     <div
       className={`space-y-2 whitespace-normal text-sm leading-relaxed [&_div]:mb-2 [&_em]:italic [&_li]:ml-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:mb-2 [&_strong]:font-semibold [&_u]:underline [&_ul]:list-disc [&_ul]:pl-4 ${className}`}
@@ -220,15 +214,9 @@ function AvisosAdmin() {
   const [dialogAberto, setDialogAberto] = useState(false);
   const [avisoEditando, setAvisoEditando] = useState<Aviso | null>(null);
 
-  const avisosAtivos = useMemo(
-    () => avisos.filter((a) => a.ativo !== false),
-    [avisos],
-  );
+  const avisosAtivos = useMemo(() => avisos.filter((a) => a.ativo !== false), [avisos]);
 
-  const avisosInativos = useMemo(
-    () => avisos.filter((a) => a.ativo === false),
-    [avisos],
-  );
+  const avisosInativos = useMemo(() => avisos.filter((a) => a.ativo === false), [avisos]);
 
   const carregarAvisos = useCallback(async () => {
     setCarregando(true);
@@ -334,12 +322,9 @@ function AvisosAdmin() {
     <div className="space-y-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="font-display text-lg font-semibold">
-            Gestão de avisos
-          </h2>
+          <h2 className="font-display text-lg font-semibold">Gestão de avisos</h2>
           <p className="text-sm text-muted-foreground">
-            Crie comunicados públicos, internos e arquive avisos sem apagar o
-            histórico.
+            Crie comunicados públicos, internos e arquive avisos sem apagar o histórico.
           </p>
         </div>
 
@@ -366,9 +351,7 @@ function AvisosAdmin() {
         </Card>
       )}
 
-      {carregando && (
-        <p className="text-sm text-muted-foreground">Carregando avisos...</p>
-      )}
+      {carregando && <p className="text-sm text-muted-foreground">Carregando avisos...</p>}
 
       {!carregando && avisos.length === 0 && (
         <Card>
@@ -381,9 +364,7 @@ function AvisosAdmin() {
       {!carregando && avisosAtivos.length > 0 && (
         <section className="space-y-3">
           <div>
-            <h3 className="font-display text-base font-semibold">
-              Avisos ativos
-            </h3>
+            <h3 className="font-display text-base font-semibold">Avisos ativos</h3>
             <p className="text-sm text-muted-foreground">
               Avisos em uso no painel. Os públicos ativos aparecem no site.
             </p>
@@ -409,12 +390,10 @@ function AvisosAdmin() {
       {!carregando && avisosInativos.length > 0 && (
         <section className="space-y-3">
           <div>
-            <h3 className="font-display text-base font-semibold">
-              Avisos inativados
-            </h3>
+            <h3 className="font-display text-base font-semibold">Avisos inativados</h3>
             <p className="text-sm text-muted-foreground">
-              Avisos arquivados. Eles não aparecem ao público, mas continuam
-              salvos para consulta ou reativação.
+              Avisos arquivados. Eles não aparecem ao público, mas continuam salvos para consulta ou
+              reativação.
             </p>
           </div>
 
@@ -467,10 +446,7 @@ function AvisoCard({
   const ativo = aviso.ativo !== false;
 
   return (
-    <Card
-      className={!ativo ? "opacity-80" : ""}
-      style={{ boxShadow: "var(--shadow-card)" }}
-    >
+    <Card className={!ativo ? "opacity-80" : ""} style={{ boxShadow: "var(--shadow-card)" }}>
       <CardHeader>
         <div className="flex items-center justify-between gap-2">
           <Megaphone className="h-4 w-4 text-primary" />
@@ -544,11 +520,7 @@ function AvisoCard({
             )}
 
             {podeInativarReativar && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => onAlterarAtivo(aviso, !ativo)}
-              >
+              <Button size="sm" variant="outline" onClick={() => onAlterarAtivo(aviso, !ativo)}>
                 {ativo ? (
                   <>
                     <Archive className="mr-2 h-4 w-4" />
@@ -564,11 +536,7 @@ function AvisoCard({
             )}
 
             {podeExcluir && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => onExcluir(aviso.id)}
-              >
+              <Button size="sm" variant="ghost" onClick={() => onExcluir(aviso.id)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             )}
@@ -631,10 +599,7 @@ function AvisoDialog({
     };
 
     if (aviso) {
-      const { error } = await supabase
-        .from("avisos")
-        .update(payload)
-        .eq("id", aviso.id);
+      const { error } = await supabase.from("avisos").update(payload).eq("id", aviso.id);
 
       setSalvando(false);
 
@@ -646,9 +611,7 @@ function AvisoDialog({
 
       toast.success("Aviso atualizado.");
     } else {
-      const { error } = await supabase
-        .from("avisos")
-        .insert({ ...payload, ativo: true });
+      const { error } = await supabase.from("avisos").insert({ ...payload, ativo: true });
 
       setSalvando(false);
 
@@ -671,9 +634,8 @@ function AvisoDialog({
         <DialogHeader>
           <DialogTitle>{aviso ? "Editar aviso" : "Novo aviso"}</DialogTitle>
           <DialogDescription>
-            Defina se o comunicado será público no site ou interno para a
-            equipe. Use a barra de formatação para destacar informações
-            importantes.
+            Defina se o comunicado será público no site ou interno para a equipe. Use a barra de
+            formatação para destacar informações importantes.
           </DialogDescription>
         </DialogHeader>
 
@@ -681,9 +643,7 @@ function AvisoDialog({
           <Fld label="Título">
             <Input
               value={form.titulo}
-              onChange={(e) =>
-                setForm((atual) => ({ ...atual, titulo: e.target.value }))
-              }
+              onChange={(e) => setForm((atual) => ({ ...atual, titulo: e.target.value }))}
               placeholder="Manutenção da piscina"
               maxLength={200}
             />
@@ -693,9 +653,7 @@ function AvisoDialog({
             <RichTextEditor
               value={form.mensagem}
               open={open}
-              onChange={(valor) =>
-                setForm((atual) => ({ ...atual, mensagem: valor }))
-              }
+              onChange={(valor) => setForm((atual) => ({ ...atual, mensagem: valor }))}
             />
           </Fld>
 
@@ -709,7 +667,8 @@ function AvisoDialog({
               maxLength={140}
             />
             <p className="text-xs text-muted-foreground">
-              {form.resumo.length}/140 caracteres. Aparece no card, antes do aluno clicar em "Ler aviso completo". Se deixar em branco, um texto padrão é usado.
+              {form.resumo.length}/140 caracteres. Aparece no card, antes do aluno clicar em "Ler
+              aviso completo". Se deixar em branco, um texto padrão é usado.
             </p>
           </Fld>
 
@@ -718,24 +677,18 @@ function AvisoDialog({
               <Input
                 type="date"
                 value={form.data}
-                onChange={(e) =>
-                  setForm((atual) => ({ ...atual, data: e.target.value }))
-                }
+                onChange={(e) => setForm((atual) => ({ ...atual, data: e.target.value }))}
               />
             </Fld>
 
             <div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
               <div>
                 <Label className="text-sm">Importante</Label>
-                <p className="text-xs text-muted-foreground">
-                  Destaca o aviso visualmente.
-                </p>
+                <p className="text-xs text-muted-foreground">Destaca o aviso visualmente.</p>
               </div>
               <Switch
                 checked={form.importante}
-                onCheckedChange={(valor) =>
-                  setForm((atual) => ({ ...atual, importante: valor }))
-                }
+                onCheckedChange={(valor) => setForm((atual) => ({ ...atual, importante: valor }))}
               />
             </div>
           </div>
@@ -750,9 +703,7 @@ function AvisoDialog({
               </div>
               <Switch
                 checked={form.publico}
-                onCheckedChange={(valor) =>
-                  setForm((atual) => ({ ...atual, publico: valor }))
-                }
+                onCheckedChange={(valor) => setForm((atual) => ({ ...atual, publico: valor }))}
               />
             </div>
 
@@ -774,17 +725,14 @@ function AvisoDialog({
 
           {!form.publico && !form.visivel_portal && (
             <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-              Sem nenhuma das duas opções marcadas, este aviso fica visível só aqui no painel administrativo.
+              Sem nenhuma das duas opções marcadas, este aviso fica visível só aqui no painel
+              administrativo.
             </p>
           )}
         </div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={salvando}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={salvando}>
             Cancelar
           </Button>
           <Button onClick={save} disabled={salvando}>
@@ -943,8 +891,8 @@ function RichTextEditor({
       />
 
       <div className="border-t border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-        Selecione um trecho e clique nos botões para formatar. Atalhos: Ctrl+B
-        (negrito), Ctrl+I (itálico), Ctrl+U (sublinhado).
+        Selecione um trecho e clique nos botões para formatar. Atalhos: Ctrl+B (negrito), Ctrl+I
+        (itálico), Ctrl+U (sublinhado).
       </div>
     </div>
   );

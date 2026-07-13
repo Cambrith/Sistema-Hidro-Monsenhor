@@ -69,7 +69,9 @@ function formatarCEP(cep?: string | null) {
 function InfoLinha({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="grid gap-0.5">
-      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
       <span className="text-foreground">{value ?? "—"}</span>
     </div>
   );
@@ -81,8 +83,12 @@ function PortalDados() {
   const [aluno, setAluno] = useState<DadosAluno | null>(null);
   const [carregando, setCarregando] = useState(true);
 
-  useEffect(() => { getSessaoAluno().then(setSessao); }, []);
-  useEffect(() => { if (sessao) carregarDados(); }, [sessao]);
+  useEffect(() => {
+    getSessaoAluno().then(setSessao);
+  }, []);
+  useEffect(() => {
+    if (sessao) carregarDados();
+  }, [sessao]);
 
   async function carregarDados() {
     if (!sessao) return;
@@ -92,7 +98,11 @@ function PortalDados() {
     });
     const alunoData = data?.[0];
 
-    if (error) { toast.error("Erro ao carregar seus dados."); setCarregando(false); return; }
+    if (error) {
+      toast.error("Erro ao carregar seus dados.");
+      setCarregando(false);
+      return;
+    }
 
     if (!alunoData) {
       toast.error("Sua sessão expirou. Faça login novamente.");
@@ -105,23 +115,27 @@ function PortalDados() {
     setCarregando(false);
   }
 
-  if (carregando) return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-    </div>
-  );
-
-  if (!aluno) return (
-    <div className="flex min-h-[60vh] items-center justify-center px-4">
-      <div className="text-center">
-        <p className="text-sm text-muted-foreground">Não foi possível carregar seus dados.</p>
-        <Button className="mt-4" onClick={carregarDados}>Tentar novamente</Button>
+  if (carregando)
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
-    </div>
-  );
+    );
 
-  const enderecoCompleto = [aluno.endereco, aluno.complemento, aluno.bairro]
-    .filter(Boolean).join(", ") || null;
+  if (!aluno)
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">Não foi possível carregar seus dados.</p>
+          <Button className="mt-4" onClick={carregarDados}>
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    );
+
+  const enderecoCompleto =
+    [aluno.endereco, aluno.complemento, aluno.bairro].filter(Boolean).join(", ") || null;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-8 lg:p-10">
@@ -161,11 +175,16 @@ function PortalDados() {
         <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
           <InfoLinha label="Modalidade" value={aluno.modalidade} />
           <InfoLinha label="Turma" value={aluno.turma || "Sem turma"} />
-          <InfoLinha label="Situação" value={
-            <span className={`font-medium ${aluno.ativo ? "text-green-700" : "text-muted-foreground"}`}>
-              {aluno.ativo ? "Ativo" : "Inativo"}
-            </span>
-          } />
+          <InfoLinha
+            label="Situação"
+            value={
+              <span
+                className={`font-medium ${aluno.ativo ? "text-green-700" : "text-muted-foreground"}`}
+              >
+                {aluno.ativo ? "Ativo" : "Inativo"}
+              </span>
+            }
+          />
         </CardContent>
       </Card>
 
@@ -178,8 +197,12 @@ function PortalDados() {
         </CardHeader>
         <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
           <InfoLinha label="WhatsApp" value={formatarTelefone(aluno.whatsapp)} />
-          {aluno.telefone && <InfoLinha label="Telefone celular" value={formatarTelefone(aluno.telefone)} />}
-          {aluno.telefone_fixo && <InfoLinha label="Telefone fixo" value={formatarTelefone(aluno.telefone_fixo)} />}
+          {aluno.telefone && (
+            <InfoLinha label="Telefone celular" value={formatarTelefone(aluno.telefone)} />
+          )}
+          {aluno.telefone_fixo && (
+            <InfoLinha label="Telefone fixo" value={formatarTelefone(aluno.telefone_fixo)} />
+          )}
           {aluno.email && <InfoLinha label="E-mail" value={aluno.email} />}
         </CardContent>
       </Card>
@@ -198,19 +221,19 @@ function PortalDados() {
       </Card>
 
       <div className="rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-  <p>
-    Dados incorretos?{" "}
-    <Link
-      to="/"
-      hash="canais-oficiais"
-      className="font-medium text-primary underline underline-offset-2 inline-flex items-center gap-1"
-    >
-      Veja os canais de contato e fale com a secretaria
-      <ExternalLink className="h-3 w-3" />
-    </Link>
-    .
-  </p>
-</div>
+        <p>
+          Dados incorretos?{" "}
+          <Link
+            to="/"
+            hash="canais-oficiais"
+            className="font-medium text-primary underline underline-offset-2 inline-flex items-center gap-1"
+          >
+            Veja os canais de contato e fale com a secretaria
+            <ExternalLink className="h-3 w-3" />
+          </Link>
+          .
+        </p>
+      </div>
     </div>
   );
 }

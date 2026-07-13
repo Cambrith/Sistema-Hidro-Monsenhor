@@ -32,7 +32,7 @@ self.addEventListener("install", (event) => {
     caches
       .open(STATIC_CACHE)
       .then((cache) => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting())
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -42,12 +42,10 @@ self.addEventListener("activate", (event) => {
       .keys()
       .then((nomes) =>
         Promise.all(
-          nomes
-            .filter((nome) => !CACHE_ATUAL.includes(nome))
-            .map((nome) => caches.delete(nome))
-        )
+          nomes.filter((nome) => !CACHE_ATUAL.includes(nome)).map((nome) => caches.delete(nome)),
+        ),
       )
-      .then(() => self.clients.claim())
+      .then(() => self.clients.claim()),
   );
 });
 

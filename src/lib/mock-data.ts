@@ -2,12 +2,7 @@ import { useEffect, useState } from "react";
 
 export type Modalidade = "Natação Infantil" | "Natação Adulta" | "Hidroginástica";
 export type Turno = "Manhã" | "Tarde" | "Noite";
-export type StatusPreCadastro =
-  | "pendente"
-  | "aprovado"
-  | "fila de espera"
-  | "recusado"
-  | "inativo";
+export type StatusPreCadastro = "pendente" | "aprovado" | "fila de espera" | "recusado" | "inativo";
 export type StatusAluno = "ativo" | "inativo" | "fila de espera";
 export type StatusTurma = "ativa" | "encerrada" | "em formação";
 export type StatusPresenca = "presente" | "falta" | "falta justificada";
@@ -97,9 +92,7 @@ function horaFimDe(horaInicio: string): string {
 
 type ItemHorarioBase = { hora: string; modalidade: Modalidade };
 
-function comHoraFim(
-  lista: ItemHorarioBase[]
-): (ItemHorarioBase & { horaFim: string })[] {
+function comHoraFim(lista: ItemHorarioBase[]): (ItemHorarioBase & { horaFim: string })[] {
   return lista.map((item) => ({ ...item, horaFim: horaFimDe(item.hora) }));
 }
 
@@ -168,7 +161,7 @@ const vagasDe = (modalidade: Modalidade): number => {
 const gerarNomeTurma = (
   modalidade: Modalidade,
   hora: string,
-  contadores: Record<string, number>
+  contadores: Record<string, number>,
 ): string => {
   const turno = turnoDe(hora);
   const chave = `${modalidade}-${turno}`;
@@ -383,13 +376,11 @@ export const db = {
   salvarPresenca(
     turmaId: string,
     data: string,
-    registros: { alunoId: string; status: StatusPresenca }[]
+    registros: { alunoId: string; status: StatusPresenca }[],
   ) {
     const d = load();
 
-    const existing = d.presencas.find(
-      (p) => p.turmaId === turmaId && p.data === data
-    );
+    const existing = d.presencas.find((p) => p.turmaId === turmaId && p.data === data);
 
     if (existing) {
       existing.registros = registros;

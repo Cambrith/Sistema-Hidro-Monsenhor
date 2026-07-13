@@ -3,13 +3,7 @@ import { useEffect, useState } from "react";
 import { PublicLayout } from "@/components/public-layout";
 import { Button } from "@/components/ui/button";
 import { AvisoMensagemHtml } from "@/lib/sanitizar-aviso";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -66,10 +60,8 @@ type FiltroDia = "todos" | "seg-qui" | "ter-qua";
 type FiltroTurno = "todos" | "Manhã" | "Tarde" | "Noite";
 type FiltroModalidade = "todos" | Modalidade;
 
-const instagramUrl =
-  "https://www.instagram.com/hidro.monsenhor?igsh=MWZsOGhzYzMydmxnaA==";
-const facebookUrl =
-  "https://www.facebook.com/hidrojoaodedeus/?locale=pt_BR";
+const instagramUrl = "https://www.instagram.com/hidro.monsenhor?igsh=MWZsOGhzYzMydmxnaA==";
+const facebookUrl = "https://www.facebook.com/hidrojoaodedeus/?locale=pt_BR";
 const whatsappUrl =
   "https://wa.me/552422232857?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20a%20Hidro%20e%20Nata%C3%A7%C3%A3o%20Monsenhor.";
 
@@ -77,13 +69,13 @@ const modalidades = [
   {
     nome: "Natação Infantil",
     faixa: "7 a 17 anos",
-   desc: "As aulas focam em adaptação ao meio líquido, desenvolvimento das técnicas de nado, segurança na água e evolução progressiva conforme a faixa etária.",
+    desc: "As aulas focam em adaptação ao meio líquido, desenvolvimento das técnicas de nado, segurança na água e evolução progressiva conforme a faixa etária.",
     icon: PersonStanding,
   },
   {
     nome: "Natação Adulta",
     faixa: "A partir de 18 anos",
-   desc: "As aulas trabalham técnica, condicionamento físico e bem-estar, atendendo desde quem está aprendendo a nadar até quem busca aprimorar a prática.",
+    desc: "As aulas trabalham técnica, condicionamento físico e bem-estar, atendendo desde quem está aprendendo a nadar até quem busca aprimorar a prática.",
     icon: UserRound,
   },
   {
@@ -162,7 +154,7 @@ const todosHorarios: HorarioItem[] = [
 const badgeModalidade: Record<Modalidade, string> = {
   "Natação Infantil": "bg-blue-50 text-blue-700 border border-blue-200",
   "Natação Adulta": "bg-indigo-50 text-indigo-700 border border-indigo-200",
-  "Hidroginástica": "bg-teal-50 text-teal-700 border border-teal-200",
+  Hidroginástica: "bg-teal-50 text-teal-700 border border-teal-200",
 };
 
 function formatarData(data?: string | null) {
@@ -220,37 +212,73 @@ function TabelaHorarios() {
   return (
     <div className="mt-6 space-y-4">
       <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-4">
-
         <div className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Dia</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Dia
+          </span>
           <div className="flex flex-wrap gap-1.5">
-            <Chip ativo={filtroDia === "todos"} onClick={() => setFiltroDia("todos")}>Todos</Chip>
-            <Chip ativo={filtroDia === "seg-qui"} onClick={() => setFiltroDia("seg-qui")}>Segundas e Quartas</Chip>
-<Chip ativo={filtroDia === "ter-qua"} onClick={() => setFiltroDia("ter-qua")}>Terças e Quintas</Chip>
+            <Chip ativo={filtroDia === "todos"} onClick={() => setFiltroDia("todos")}>
+              Todos
+            </Chip>
+            <Chip ativo={filtroDia === "seg-qui"} onClick={() => setFiltroDia("seg-qui")}>
+              Segundas e Quartas
+            </Chip>
+            <Chip ativo={filtroDia === "ter-qua"} onClick={() => setFiltroDia("ter-qua")}>
+              Terças e Quintas
+            </Chip>
           </div>
         </div>
 
         <div className="h-px bg-border/50" />
 
         <div className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Turno</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Turno
+          </span>
           <div className="flex flex-wrap gap-1.5">
-            <Chip ativo={filtroTurno === "todos"} onClick={() => setFiltroTurno("todos")}>Todos</Chip>
-            <Chip ativo={filtroTurno === "Manhã"} onClick={() => setFiltroTurno("Manhã")}>Manhã</Chip>
-            <Chip ativo={filtroTurno === "Tarde"} onClick={() => setFiltroTurno("Tarde")}>Tarde</Chip>
-            <Chip ativo={filtroTurno === "Noite"} onClick={() => setFiltroTurno("Noite")}>Noite</Chip>
+            <Chip ativo={filtroTurno === "todos"} onClick={() => setFiltroTurno("todos")}>
+              Todos
+            </Chip>
+            <Chip ativo={filtroTurno === "Manhã"} onClick={() => setFiltroTurno("Manhã")}>
+              Manhã
+            </Chip>
+            <Chip ativo={filtroTurno === "Tarde"} onClick={() => setFiltroTurno("Tarde")}>
+              Tarde
+            </Chip>
+            <Chip ativo={filtroTurno === "Noite"} onClick={() => setFiltroTurno("Noite")}>
+              Noite
+            </Chip>
           </div>
         </div>
 
         <div className="h-px bg-border/50" />
 
         <div className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Modalidade</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Modalidade
+          </span>
           <div className="flex flex-wrap gap-1.5">
-            <Chip ativo={filtroModalidade === "todos"} onClick={() => setFiltroModalidade("todos")}>Todas</Chip>
-            <Chip ativo={filtroModalidade === "Natação Infantil"} onClick={() => setFiltroModalidade("Natação Infantil")}>Natação Infantil</Chip>
-            <Chip ativo={filtroModalidade === "Natação Adulta"} onClick={() => setFiltroModalidade("Natação Adulta")}>Natação Adulta</Chip>
-            <Chip ativo={filtroModalidade === "Hidroginástica"} onClick={() => setFiltroModalidade("Hidroginástica")}>Hidroginástica</Chip>
+            <Chip ativo={filtroModalidade === "todos"} onClick={() => setFiltroModalidade("todos")}>
+              Todas
+            </Chip>
+            <Chip
+              ativo={filtroModalidade === "Natação Infantil"}
+              onClick={() => setFiltroModalidade("Natação Infantil")}
+            >
+              Natação Infantil
+            </Chip>
+            <Chip
+              ativo={filtroModalidade === "Natação Adulta"}
+              onClick={() => setFiltroModalidade("Natação Adulta")}
+            >
+              Natação Adulta
+            </Chip>
+            <Chip
+              ativo={filtroModalidade === "Hidroginástica"}
+              onClick={() => setFiltroModalidade("Hidroginástica")}
+            >
+              Hidroginástica
+            </Chip>
           </div>
         </div>
 
@@ -298,7 +326,9 @@ function TabelaHorarios() {
                       </td>
                       <td className="px-4 py-2.5 text-foreground/70">{item.turno}</td>
                       <td className="px-4 py-2.5">
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeModalidade[item.modalidade]}`}>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeModalidade[item.modalidade]}`}
+                        >
                           {item.modalidade}
                         </span>
                       </td>
@@ -349,10 +379,7 @@ function Home() {
       const headerOffset = 104;
       const ajusteVisual = ajustePorSecao[scroll] ?? 48;
       const top =
-        element.getBoundingClientRect().top +
-        window.scrollY -
-        headerOffset +
-        ajusteVisual;
+        element.getBoundingClientRect().top + window.scrollY - headerOffset + ajusteVisual;
       window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
     }, 200);
   }, []);
@@ -393,44 +420,61 @@ function Home() {
               className="font-display text-4xl font-bold leading-tight sm:text-5xl md:text-6xl"
               style={{ color: "#0B1F3A" }}
             >
-              Hidro e Natação{" "}
-              <span style={{ color: "#1D4ED8" }}>Monsenhor</span>
+              Hidro e Natação <span style={{ color: "#1D4ED8" }}>Monsenhor</span>
             </h1>
 
             <p className="mt-4 max-w-xl text-base sm:text-lg" style={{ color: "#334155" }}>
-              Página de apoio à organização do Centro Esportivo e Cultural Professora
-              Marta Regina de Carvalho Ferreira.
+              Página de apoio à organização do Centro Esportivo e Cultural Professora Marta Regina
+              de Carvalho Ferreira.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
-  <Link to="/portal">
-    <Button size="lg" className="bg-[#1D4ED8] text-white shadow-sm hover:bg-[#1E40AF]">
-      Acessar Minha Conta
-      <ArrowRight className="ml-2 h-4 w-4" />
-    </Button>
-  </Link>
-  <Link to="/pre-cadastro">
-    <Button size="lg" variant="outline" className="border-[#1D4ED8] bg-white text-[#1D4ED8] hover:bg-[#EFF6FF]">
-      Como se Inscrever
-    </Button>
-  </Link>
-</div>
+              <Link to="/portal">
+                <Button size="lg" className="bg-[#1D4ED8] text-white shadow-sm hover:bg-[#1E40AF]">
+                  Acessar Minha Conta
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link to="/pre-cadastro">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-[#1D4ED8] bg-white text-[#1D4ED8] hover:bg-[#EFF6FF]"
+                >
+                  Como se Inscrever
+                </Button>
+              </Link>
+            </div>
           </div>
 
           <div className="hidden items-center justify-center md:flex">
             <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:grid-cols-2">
-             {[
-  { icon: ShieldCheck, label: "Acesso", value: "Atividades 100% gratuitas" },
-  { icon: HeartPulse, label: "Alunos ativos", value: "Mais de 700 alunos matriculados" },
-  { icon: CalendarClock, label: "Funcionando desde", value: "2005" },
-  { icon: MapPin, label: "Localização", value: "Pedro do Rio, Petrópolis" },
-].map((card) => {
+              {[
+                { icon: ShieldCheck, label: "Acesso", value: "Atividades 100% gratuitas" },
+                {
+                  icon: HeartPulse,
+                  label: "Alunos ativos",
+                  value: "Mais de 700 alunos matriculados",
+                },
+                { icon: CalendarClock, label: "Funcionando desde", value: "2005" },
+                { icon: MapPin, label: "Localização", value: "Pedro do Rio, Petrópolis" },
+              ].map((card) => {
                 const Icon = card.icon;
                 return (
-                  <div key={card.label} className="rounded-xl border border-[#DBEAFE] bg-white p-5 shadow-sm">
+                  <div
+                    key={card.label}
+                    className="rounded-xl border border-[#DBEAFE] bg-white p-5 shadow-sm"
+                  >
                     <Icon className="h-5 w-5" style={{ color: "#1D4ED8" }} />
-                    <p className="mt-3 text-xs uppercase tracking-wide" style={{ color: "#64748B" }}>{card.label}</p>
-                    <p className="text-sm font-semibold" style={{ color: "#0B1F3A" }}>{card.value}</p>
+                    <p
+                      className="mt-3 text-xs uppercase tracking-wide"
+                      style={{ color: "#64748B" }}
+                    >
+                      {card.label}
+                    </p>
+                    <p className="text-sm font-semibold" style={{ color: "#0B1F3A" }}>
+                      {card.value}
+                    </p>
                   </div>
                 );
               })}
@@ -441,23 +485,33 @@ function Home() {
       <section id="modalidades" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
         <div>
           <h2 className="font-display text-2xl font-semibold">Modalidades oferecidas</h2>
-          <p className="text-sm text-muted-foreground">Atividades pensadas para diferentes idades e objetivos.</p>
+          <p className="text-sm text-muted-foreground">
+            Atividades pensadas para diferentes idades e objetivos.
+          </p>
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {modalidades.map((modalidade) => {
             const Icon = modalidade.icon;
             return (
-              <Card key={modalidade.nome} className="border-border/70" style={{ background: "var(--gradient-card)", boxShadow: "var(--shadow-card)" }}>
+              <Card
+                key={modalidade.nome}
+                className="border-border/70"
+                style={{ background: "var(--gradient-card)", boxShadow: "var(--shadow-card)" }}
+              >
                 <CardHeader>
                   <span className="grid h-11 w-11 place-items-center rounded-lg bg-accent text-accent-foreground">
                     <Icon className="h-5 w-5" />
                   </span>
                   <CardTitle className="mt-3 text-lg">{modalidade.nome}</CardTitle>
-         <span className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeModalidade[modalidade.nome as Modalidade]}`}>
-            {modalidade.faixa}
-          </span>
-        </CardHeader>
-        <CardContent className="-mt-2 text-sm text-foreground/80">{modalidade.desc}</CardContent>
+                  <span
+                    className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeModalidade[modalidade.nome as Modalidade]}`}
+                  >
+                    {modalidade.faixa}
+                  </span>
+                </CardHeader>
+                <CardContent className="-mt-2 text-sm text-foreground/80">
+                  {modalidade.desc}
+                </CardContent>
               </Card>
             );
           })}
@@ -468,7 +522,8 @@ function Home() {
         <div>
           <h2 className="font-display text-2xl font-semibold">Horários das atividades</h2>
           <p className="text-sm text-muted-foreground">
-            Grade semanal das aulas oferecidas pelo centro. Use os filtros para encontrar o horário ideal.
+            Grade semanal das aulas oferecidas pelo centro. Use os filtros para encontrar o horário
+            ideal.
           </p>
         </div>
         <TabelaHorarios />
@@ -481,31 +536,37 @@ function Home() {
               <CardTitle>Sobre o centro</CardTitle>
               <CardDescription>Espaço público de esporte, cultura e convivência.</CardDescription>
             </CardHeader>
-           <CardContent className="flex-1 space-y-4 text-sm leading-relaxed text-foreground/80">
-  <p>
-    O Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira é um espaço público dedicado à prática de atividades aquáticas, à promoção da saúde e ao fortalecimento da convivência comunitária em Pedro do Rio.
-  </p>
-  <p>
-    Vinculado à Escola Municipal Monsenhor João de Deus Rodrigues, o centro oferece turmas de natação infantil, natação adulta e hidroginástica, organizadas por modalidade, faixa etária e horários, atendendo moradores de Pedro do Rio e de regiões próximas.
-
-  </p>
-  <p>
-  Com atuação desde o início dos anos 2000, o centro já atendeu milhares de
-  alunos ao longo dos anos. O espaço leva o nome da professora Marta Regina
-  de Carvalho Ferreira, docente de história e diretora adjunta da Escola
-  Municipal Monsenhor João de Deus Rodrigues por 16 anos, homenageada após
-  seu falecimento pelo compromisso e dedicação à comunidade de Pedro do Rio.
-</p>
-  <p>
-    Além de contar com infraestrutura adequada para a prática das atividades, o espaço é atualmente a única opção gratuita de atividades aquáticas entre os distritos de Pedro do Rio, Posse e Itaipava, ampliando o acesso ao esporte e incentivando a qualidade de vida da comunidade.
-
-  </p>
-  <p>
-    Todas as atividades são oferecidas gratuitamente. As inscrições são
-realizadas exclusivamente de forma presencial, diretamente no local,
-nos horários de atendimento da secretaria.
-  </p>
-</CardContent>
+            <CardContent className="flex-1 space-y-4 text-sm leading-relaxed text-foreground/80">
+              <p>
+                O Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira é um
+                espaço público dedicado à prática de atividades aquáticas, à promoção da saúde e ao
+                fortalecimento da convivência comunitária em Pedro do Rio.
+              </p>
+              <p>
+                Vinculado à Escola Municipal Monsenhor João de Deus Rodrigues, o centro oferece
+                turmas de natação infantil, natação adulta e hidroginástica, organizadas por
+                modalidade, faixa etária e horários, atendendo moradores de Pedro do Rio e de
+                regiões próximas.
+              </p>
+              <p>
+                Com atuação desde o início dos anos 2000, o centro já atendeu milhares de alunos ao
+                longo dos anos. O espaço leva o nome da professora Marta Regina de Carvalho
+                Ferreira, docente de história e diretora adjunta da Escola Municipal Monsenhor João
+                de Deus Rodrigues por 16 anos, homenageada após seu falecimento pelo compromisso e
+                dedicação à comunidade de Pedro do Rio.
+              </p>
+              <p>
+                Além de contar com infraestrutura adequada para a prática das atividades, o espaço é
+                atualmente a única opção gratuita de atividades aquáticas entre os distritos de
+                Pedro do Rio, Posse e Itaipava, ampliando o acesso ao esporte e incentivando a
+                qualidade de vida da comunidade.
+              </p>
+              <p>
+                Todas as atividades são oferecidas gratuitamente. As inscrições são realizadas
+                exclusivamente de forma presencial, diretamente no local, nos horários de
+                atendimento da secretaria.
+              </p>
+            </CardContent>
           </Card>
 
           <Card className="flex h-full flex-col">
@@ -534,22 +595,28 @@ nos horários de atendimento da secretaria.
       <section id="canais-oficiais" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
         <div>
           <h2 className="font-display text-2xl font-semibold">Canais oficiais</h2>
-          <p className="text-sm text-muted-foreground">Acompanhe comunicados, novidades e formas de contato do centro.</p>
+          <p className="text-sm text-muted-foreground">
+            Acompanhe comunicados, novidades e formas de contato do centro.
+          </p>
         </div>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {redesSociais.map((rede) => {
             const Icon = rede.icon;
             return (
-              <a key={rede.label} href={rede.href} target="_blank" rel="noreferrer" className="group flex flex-col rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md">
+              <a
+                key={rede.label}
+                href={rede.href}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex flex-col rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
+              >
                 <span className="grid h-11 w-11 place-items-center rounded-lg bg-accent text-accent-foreground">
                   <Icon className="h-5 w-5" />
                 </span>
                 <h3 className="mt-4 font-semibold text-foreground">{rede.label}</h3>
-{"detalhe" in rede && rede.detalhe && (
-  <p className="mt-0.5 text-sm font-semibold text-foreground">
-    {rede.detalhe}
-  </p>
-)}
+                {"detalhe" in rede && rede.detalhe && (
+                  <p className="mt-0.5 text-sm font-semibold text-foreground">{rede.detalhe}</p>
+                )}
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{rede.desc}</p>
                 <p className="mt-auto pt-3 inline-flex items-center text-sm font-medium text-primary">
                   Acessar canal
@@ -570,7 +637,9 @@ nos horários de atendimento da secretaria.
                   <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary">
                     <Megaphone className="h-5 w-5" />
                   </span>
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Importante</span>
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                    Importante
+                  </span>
                 </div>
                 <DialogTitle>{avisoAberto.titulo}</DialogTitle>
                 <DialogDescription>Publicado em {formatarData(avisoAberto.data)}</DialogDescription>
