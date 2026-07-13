@@ -68,12 +68,12 @@ const passos = [
     descricao:
       "Vá pessoalmente durante o horário de atendimento levando o atestado médico e o documento de identificação. O cadastro é feito na hora.",
   },
-  {
-    numero: "3",
-    titulo: "Confirme seus dados pessoais",
-    descricao:
-      "Seus dados de endereço e contato serão registrados. Mantenha seu celular e WhatsApp atualizados para receber avisos sobre horários e comunicados da turma.",
-  },
+ {
+  numero: "3",
+  titulo: "Conclua sua matrícula",
+  descricao:
+    "A secretaria conferirá os documentos, preencherá seu cadastro e registrará sua matrícula. Estando tudo correto, você poderá iniciar as aulas na turma e horário definidos.",
+},
 ];
 
 function ComoSeInscreverPage() {
@@ -143,7 +143,25 @@ function ComoSeInscreverPage() {
             </Card>
           ))}
         </div>
+<Card className="mb-8 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20">
+  <CardContent className="pt-6">
+    <div className="flex items-start gap-3">
+      <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+      <div>
+        <p className="font-medium text-foreground">
+          Mantenha seu cadastro atualizado
+        </p>
 
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+          Durante a matrícula serão registrados seus dados pessoais, endereço e
+          contatos. Sempre que houver alteração de telefone, endereço ou outras
+          informações cadastrais, informe a secretaria para manter seu cadastro
+          atualizado e garantir o recebimento de avisos e comunicados.
+        </p>
+      </div>
+    </div>
+  </CardContent>
+</Card>
         {/* Horário e localização */}
         <div className="mb-10 grid gap-4 sm:grid-cols-2">
           <Card>
