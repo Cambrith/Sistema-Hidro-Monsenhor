@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabaseAluno } from "@/lib/supabase";
 import { getSessaoAluno, sairAluno, type SessaoAluno } from "@/lib/auth-aluno";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -93,7 +93,7 @@ function PortalDados() {
   async function carregarDados() {
     if (!sessao) return;
     setCarregando(true);
-    const { data, error } = await supabase.rpc("portal_meus_dados", {
+    const { data, error } = await supabaseAluno.rpc("portal_meus_dados", {
       p_aluno_id: sessao.id,
     });
     const alunoData = data?.[0];

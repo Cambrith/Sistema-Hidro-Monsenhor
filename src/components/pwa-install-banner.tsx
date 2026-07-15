@@ -2,7 +2,8 @@ import { Download, Share, SquarePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useInstallPrompt } from "@/hooks/use-install-prompt";
-import logo from "@/assets/logo-simbolo.png";
+import logoPortal from "@/assets/icone-portal-app.png";
+import logoAdmin from "@/assets/icone-admin-app.png";
 
 interface PwaInstallBannerProps {
   /** Qual dos dois apps instaláveis este banner representa. */
@@ -25,6 +26,8 @@ export function PwaInstallBanner({
   const { plataforma, podeMostrar, instalar, dispensar } = useInstallPrompt(app);
 
   if (!podeMostrar || !plataforma) return null;
+
+  const logo = app === "admin" ? logoAdmin : logoPortal;
 
   return (
     <Card className="mx-4 mt-4 flex flex-col gap-3 border-primary/20 bg-primary/5 p-4 sm:mx-6 sm:flex-row sm:items-center sm:gap-4">

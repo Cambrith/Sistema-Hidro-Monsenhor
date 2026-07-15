@@ -7,7 +7,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabaseAluno } from "@/lib/supabase";
 import {
   getSessaoAluno,
   identificarAluno,
@@ -85,7 +85,7 @@ function PortalLayout() {
 
   async function carregarPendenciaDocumentos() {
     if (!sessao) return;
-    const { data } = await supabase.rpc("portal_dados_inicio", {
+    const { data } = await supabaseAluno.rpc("portal_dados_inicio", {
       p_aluno_id: sessao.id,
     });
     const alunoData = data?.[0];

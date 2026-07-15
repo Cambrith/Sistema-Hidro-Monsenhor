@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseAluno } from "@/lib/supabase";
 
 export type SessaoAluno = {
   id: string;
@@ -27,7 +27,7 @@ export type ResultadoVerificar =
 const ERRO_GENERICO = "Não foi possível verificar seus dados agora. Tente novamente.";
 
 export async function getSessaoAluno(): Promise<SessaoAluno | null> {
-  const { data } = await supabase.auth.getSession();
+  const { data } = await supabaseAluno.auth.getSession();
   const session = data.session;
   if (!session) return null;
 
@@ -46,7 +46,7 @@ export async function identificarAluno(
   nomeCompleto: string,
   nascimento: string,
 ): Promise<ResultadoIdentificar> {
-  const { data, error } = await supabase.functions.invoke<RespostaFuncao>(
+  const { data, error } = await supabaseAluno.functions.invoke<RespostaFuncao>(
     "garantir-usuario-aluno",
     { body: { acao: "identificar", nome_completo: nomeCompleto, nascimento } },
   );
@@ -83,7 +83,7 @@ export async function verificarAluno(
   nascimento: string,
   valorTerceiroFator: string,
 ): Promise<ResultadoVerificar> {
-  const { data, error } = await supabase.functions.invoke<RespostaFuncao>(
+  const { data, error } = await supabaseAluno.functions.invoke<RespostaFuncao>(
     "garantir-usuario-aluno",
     {
       body: {
@@ -119,7 +119,7 @@ export async function verificarAluno(
 
   // O servidor já conferiu nome+nascimento+3º fator e devolveu um token de
   // uso único — o navegador nunca calcula nem envia nenhuma senha.
-  const { data: sessionData, error: erroOtp } = await supabase.auth.verifyOtp({
+  const { data: sessionData, error: erroOtp } = await supabaseAluno.auth.verifyOtp({
     token_hash: data.token_hash,
     type: "email",
   });
@@ -133,7 +133,7 @@ export async function verificarAluno(
 }
 
 export async function sairAluno(): Promise<void> {
-  await supabase.auth.signOut();
+  await supabaseAluno.auth.signOut();
 }
 
 export async function temSessaoAluno(): Promise<boolean> {

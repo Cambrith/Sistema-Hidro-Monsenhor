@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabaseAluno } from "@/lib/supabase";
 import { getSessaoAluno } from "@/lib/auth-aluno";
 import { AvisoMensagemHtml } from "@/lib/sanitizar-aviso";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,7 +50,7 @@ function PortalAvisos() {
 
   async function carregarAvisos() {
     setCarregando(true);
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAluno
       .from("avisos")
       .select("*")
       .eq("ativo", true)

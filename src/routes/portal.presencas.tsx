@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabaseAluno } from "@/lib/supabase";
 import { getSessaoAluno, type SessaoAluno } from "@/lib/auth-aluno";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
@@ -54,7 +54,7 @@ function PortalPresencas() {
     if (!sessao) return;
     setCarregando(true);
     const mesStr = String(mes).padStart(2, "0");
-    const { data, error } = await supabase.rpc("portal_presencas_mes", {
+    const { data, error } = await supabaseAluno.rpc("portal_presencas_mes", {
       p_aluno_id: sessao.id,
       p_inicio: `${ano}-${mesStr}-01`,
       p_fim: `${ano}-${mesStr}-31`,

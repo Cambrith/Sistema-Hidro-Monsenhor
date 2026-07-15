@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabaseAluno } from "@/lib/supabase";
 import { getSessaoAluno, sairAluno, type SessaoAluno } from "@/lib/auth-aluno";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -83,7 +83,7 @@ function PortalInicio() {
     if (!sessao) return;
     setCarregando(true);
 
-    const { data, error } = await supabase.rpc("portal_dados_inicio", {
+    const { data, error } = await supabaseAluno.rpc("portal_dados_inicio", {
       p_aluno_id: sessao.id,
     });
     const alunoData = data?.[0];
@@ -106,14 +106,14 @@ function PortalInicio() {
     setAluno(alunoData as DadosAluno);
 
     const { inicio, fim } = mesAtual();
-    const { data: dp } = await supabase.rpc("portal_presencas_mes", {
+    const { data: dp } = await supabaseAluno.rpc("portal_presencas_mes", {
       p_aluno_id: sessao.id,
       p_inicio: inicio,
       p_fim: fim,
     });
     setPresencas((dp ?? []) as Presenca[]);
 
-    const { data: dt } = await supabase.rpc("portal_turma_atual", {
+    const { data: dt } = await supabaseAluno.rpc("portal_turma_atual", {
       p_aluno_id: sessao.id,
     });
     setTurmaInfo((dt?.[0] ?? null) as TurmaInfo | null);

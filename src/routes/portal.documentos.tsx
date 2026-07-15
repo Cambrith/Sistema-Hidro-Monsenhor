@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabaseAluno } from "@/lib/supabase";
 import { getSessaoAluno, type SessaoAluno } from "@/lib/auth-aluno";
 import { statusValidade } from "@/lib/validade";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,7 +116,7 @@ function PortalDocumentos() {
 
   async function carregarDocumentos() {
     setCarregando(true);
-    const { data, error } = await supabase.rpc("portal_documentos_aluno", {
+    const { data, error } = await supabaseAluno.rpc("portal_documentos_aluno", {
       p_aluno_id: session!.id,
     });
 
@@ -129,7 +129,7 @@ function PortalDocumentos() {
   }
 
   async function carregarValidade() {
-    const { data, error } = await supabase.rpc("portal_dados_inicio", {
+    const { data, error } = await supabaseAluno.rpc("portal_dados_inicio", {
       p_aluno_id: session!.id,
     });
 
@@ -165,7 +165,7 @@ function PortalDocumentos() {
         const ext = arquivo.name.split(".").pop();
         const caminho = `${session.id}/${tipo}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${ext}`;
 
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabaseAluno.storage
           .from("documentos-aluno")
           .upload(caminho, arquivo, { upsert: false });
 
@@ -177,7 +177,7 @@ function PortalDocumentos() {
 
       const forcar = tipo === "atestado" ? forcarAtestado : forcarParq;
 
-      const { error: insertError } = await supabase.rpc("portal_enviar_documento", {
+      const { error: insertError } = await supabaseAluno.rpc("portal_enviar_documento", {
         p_aluno_id: session.id,
         p_tipo: tipo,
         p_nomes_arquivo: nomes,
@@ -216,7 +216,7 @@ function PortalDocumentos() {
     setCancelando(doc.id);
 
     try {
-      const { data, error } = await supabase.rpc("portal_cancelar_documento", {
+      const { data, error } = await supabaseAluno.rpc("portal_cancelar_documento", {
         p_aluno_id: session.id,
         p_documento_id: doc.id,
       });
@@ -225,7 +225,7 @@ function PortalDocumentos() {
 
       const urlsArquivos = data?.[0]?.url;
       if (urlsArquivos?.length) {
-        await supabase.storage.from("documentos-aluno").remove(urlsArquivos);
+        await supabaseAluno.storage.from("documentos-aluno").remove(urlsArquivos);
       }
 
       toast.success("Envio cancelado.");

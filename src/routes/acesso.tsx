@@ -18,7 +18,7 @@ function Acesso() {
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-20 left-1/2 h-[400px] w-[400px] -translate-x-1/2 rounded-full opacity-50"
+          className="pointer-events-none absolute -top-20 left-1/2 h-100 w-100 -translate-x-1/2 rounded-full opacity-50"
           style={{ background: "radial-gradient(closest-side, #DBEAFE, transparent)" }}
         />
 
@@ -48,7 +48,7 @@ function Acesso() {
                 </h2>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">
                   Veja suas presenças, faltas, turma, documentos e avisos da secretaria. Acesse com
-                  CPF, data de nascimento e telefone cadastrados.
+                  nome completo e data de nascimento.
                 </p>
                 <span className="mt-6 inline-flex items-center text-sm font-semibold text-[#1D4ED8]">
                   Acessar minha conta
