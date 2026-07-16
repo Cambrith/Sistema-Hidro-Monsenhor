@@ -339,23 +339,33 @@ function AlunosAdmin() {
   const filtrados = useMemo(() => {
     const busca = q.trim();
     const buscaNumeros = busca.replace(/\D/g, "");
-    return alunos.filter((aluno) => {
-      const status = statusDoAluno(aluno);
-      const passaBusca =
-        !busca ||
-        correspondeCampo(aluno.nome_completo, busca) ||
-        correspondeCampo(aluno.modalidade, busca) ||
-        correspondeCampo(aluno.turma ?? "", busca) ||
-        correspondeCampo(aluno.responsavel ?? "", busca) ||
-        correspondeCampo(aluno.email ?? "", busca) ||
-        (buscaNumeros !== "" &&
-          (aluno.whatsapp.replace(/\D/g, "").includes(buscaNumeros) ||
-            (aluno.telefone ?? "").replace(/\D/g, "").includes(buscaNumeros) ||
-            (aluno.cpf ?? "").replace(/\D/g, "").includes(buscaNumeros)));
-      const passaModalidade = mod === "todas" || aluno.modalidade === mod;
-      const passaStatus = st === "todos" || status === st;
-      return passaBusca && passaModalidade && passaStatus;
-    });
+    return alunos
+      .filter((aluno) => {
+        const status = statusDoAluno(aluno);
+        const passaBusca =
+          !busca ||
+          correspondeCampo(aluno.nome_completo, busca) ||
+          correspondeCampo(aluno.modalidade, busca) ||
+          correspondeCampo(aluno.turma ?? "", busca) ||
+          correspondeCampo(aluno.responsavel ?? "", busca) ||
+          correspondeCampo(aluno.email ?? "", busca) ||
+          (buscaNumeros !== "" &&
+            (aluno.whatsapp.replace(/\D/g, "").includes(buscaNumeros) ||
+              (aluno.telefone ?? "").replace(/\D/g, "").includes(buscaNumeros) ||
+              (aluno.cpf ?? "").replace(/\D/g, "").includes(buscaNumeros)));
+        const passaModalidade = mod === "todas" || aluno.modalidade === mod;
+        const passaStatus = st === "todos" || status === st;
+        return passaBusca && passaModalidade && passaStatus;
+      })
+      .sort((a, b) => {
+        // Ordena por nome (A-Z, ignorando acento/caixa). Em caso de empate exato de
+        // nome, desempata por id — evita que a ordem "balance" entre re-renders.
+        const porNome = a.nome_completo.localeCompare(b.nome_completo, "pt-BR", {
+          sensitivity: "base",
+        });
+        if (porNome !== 0) return porNome;
+        return a.id.localeCompare(b.id);
+      });
   }, [alunos, q, mod, st]);
   const TAMANHO_PAGINA = 50;
   const totalPaginas = Math.max(1, Math.ceil(filtrados.length / TAMANHO_PAGINA));

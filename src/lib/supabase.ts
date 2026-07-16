@@ -31,6 +31,9 @@ export async function buscarTodasLinhas<T = unknown>(
     if (opcoes?.aplicarFiltros) query = opcoes.aplicarFiltros(query);
     if (opcoes?.ordenarPor) {
       query = query.order(opcoes.ordenarPor, { ascending: opcoes.ascendente ?? true });
+      if (opcoes.ordenarPor !== "id") {
+        query = query.order("id", { ascending: true });
+      }
     }
 
     const { data, error } = await query;
