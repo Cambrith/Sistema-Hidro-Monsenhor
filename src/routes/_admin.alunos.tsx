@@ -147,6 +147,15 @@ function calcIdade(nascimento: string) {
   return Math.max(0, idade);
 }
 
+function labelResponsavel(nascimento: string) {
+  const idade = calcIdade(nascimento);
+  const ehMenor = nascimento !== "" && idade < 18;
+  return {
+    label: ehMenor ? "Responsável" : "Responsável ou Cuidador (opcional)",
+    placeholder: ehMenor ? "Nome do responsável" : "Caso haja cuidador ou curador",
+  };
+}
+
 function somenteNumeros(valor: string) {
   return valor.replace(/\D/g, "").slice(0, 11);
 }
@@ -1274,11 +1283,11 @@ function NovoAlunoDialog({
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Responsável">
+            <Field label={labelResponsavel(f.nascimento).label}>
               <Input
                 value={f.responsavel}
                 onChange={(e) => setF((a) => ({ ...a, responsavel: e.target.value }))}
-                placeholder="Opcional"
+                placeholder={labelResponsavel(f.nascimento).placeholder}
               />
             </Field>
             <Field label="WhatsApp">
@@ -1657,11 +1666,11 @@ function EditarAlunoDialog({
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Responsável">
+            <Field label={labelResponsavel(f.nascimento).label}>
               <Input
                 value={f.responsavel}
                 onChange={(e) => setF((a) => ({ ...a, responsavel: e.target.value }))}
-                placeholder="Opcional"
+                placeholder={labelResponsavel(f.nascimento).placeholder}
               />
             </Field>
             <Field label="WhatsApp">
