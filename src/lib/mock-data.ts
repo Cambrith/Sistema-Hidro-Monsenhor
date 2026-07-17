@@ -235,7 +235,9 @@ function load(): DB {
       cache = JSON.parse(raw) as DB;
       return cache;
     }
-  } catch {}
+  } catch {
+    // localStorage corrompido ou indisponível — cai pro seed abaixo.
+  }
 
   cache = seed();
   localStorage.setItem(KEY, JSON.stringify(cache));

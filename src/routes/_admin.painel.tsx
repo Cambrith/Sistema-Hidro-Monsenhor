@@ -188,10 +188,13 @@ function diaDeData(data?: string | null) {
 }
 
 function diaLabel(numero: number) {
+  if (numero === 0) return "Domingo";
   if (numero === 1) return "Segunda-feira";
   if (numero === 2) return "Terça-feira";
   if (numero === 3) return "Quarta-feira";
   if (numero === 4) return "Quinta-feira";
+  if (numero === 5) return "Sexta-feira";
+  if (numero === 6) return "Sábado";
 
   return "Próximo dia útil";
 }
@@ -199,10 +202,13 @@ function diaLabel(numero: number) {
 function turmaAconteceNoDia(turma: Turma, dia: number) {
   const texto = normalizarTexto(turma.dia_semana);
 
+  if (dia === 0) return texto.includes("domingo");
   if (dia === 1) return texto.includes("segunda");
   if (dia === 2) return texto.includes("terca");
   if (dia === 3) return texto.includes("quarta");
   if (dia === 4) return texto.includes("quinta");
+  if (dia === 5) return texto.includes("sexta");
+  if (dia === 6) return texto.includes("sabado");
 
   return false;
 }
@@ -212,7 +218,7 @@ function buscarDiaReferencia(turmas: Turma[]): DiaReferencia {
   const hoje = agora.getDay();
   const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
 
-  const diasPossiveis = [1, 2, 3, 4];
+  const diasPossiveis = [0, 1, 2, 3, 4, 5, 6];
 
   for (let distancia = 0; distancia <= 7; distancia++) {
     const dia = (hoje + distancia) % 7;
@@ -936,7 +942,7 @@ function Painel() {
                 <CardDescription>{descricaoDiaReferencia(dados.diaReferencia)}</CardDescription>
               </CardHeader>
 
-              <CardContent className="max-h-[340px] space-y-2 overflow-y-auto pr-1">
+              <CardContent className="max-h-85 space-y-2 overflow-y-auto pr-1">
                 {dados.proximasTurmas.length === 0 && (
                   <p className="text-sm text-muted-foreground">
                     Nenhuma turma ativa encontrada para o próximo horário.
@@ -976,7 +982,7 @@ function Painel() {
                 <CardDescription>Alunos ativos com aniversário neste mês.</CardDescription>
               </CardHeader>
 
-              <CardContent className="max-h-[340px] space-y-2 overflow-y-auto pr-1">
+              <CardContent className="max-h-85 space-y-2 overflow-y-auto pr-1">
                 {dados.aniversariantes.length === 0 && (
                   <p className="text-sm text-muted-foreground">
                     Nenhum aniversariante ativo neste mês.
@@ -1024,7 +1030,7 @@ function Painel() {
             </Link>
           </CardHeader>
 
-          <CardContent className="max-h-[430px] space-y-3 overflow-y-auto pr-1">
+          <CardContent className="max-h-107.5 space-y-3 overflow-y-auto pr-1">
             {dados.ocupacaoPorTurma.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 Nenhuma turma possui aluno vinculado ainda.

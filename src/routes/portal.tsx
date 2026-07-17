@@ -81,6 +81,20 @@ function PortalLayout() {
   useEffect(() => {
     if (!sessao) return;
     carregarPendenciaDocumentos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessao?.id, path]);
+
+  // O layout do portal fica montado a sessão inteira (só o <Outlet/> troca de
+  // página) — sem isso, se a secretaria aprovar um documento com a aba aberta,
+  // a bolinha de pendência no menu nunca atualiza sozinha.
+  useEffect(() => {
+    if (!sessao) return;
+    function aoVoltarFoco() {
+      if (document.visibilityState === "visible") carregarPendenciaDocumentos();
+    }
+    document.addEventListener("visibilitychange", aoVoltarFoco);
+    return () => document.removeEventListener("visibilitychange", aoVoltarFoco);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessao?.id]);
 
   async function carregarPendenciaDocumentos() {

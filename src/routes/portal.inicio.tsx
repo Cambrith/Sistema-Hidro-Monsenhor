@@ -59,9 +59,15 @@ function formatarData(data?: string | null) {
 function mesAtual() {
   const hoje = new Date();
   const ano = hoje.getFullYear();
-  const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+  const mesNum = hoje.getMonth() + 1;
+  const mes = String(mesNum).padStart(2, "0");
+  const ultimoDia = new Date(ano, mesNum, 0).getDate();
   const label = hoje.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-  return { inicio: `${ano}-${mes}-01`, fim: `${ano}-${mes}-31`, label };
+  return {
+    inicio: `${ano}-${mes}-01`,
+    fim: `${ano}-${mes}-${String(ultimoDia).padStart(2, "0")}`,
+    label,
+  };
 }
 
 function PortalInicio() {

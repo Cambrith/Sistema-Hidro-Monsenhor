@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, buscarTodasLinhas } from "@/lib/supabase";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -159,13 +159,13 @@ function baixarArquivo(nome: string, conteudo: string, tipo = "application/json"
 }
 
 async function buscarTabela(nomeTabela: TabelaBackup) {
-  const { data, error } = await supabase.from(nomeTabela).select("*");
+  const { data, error } = await buscarTodasLinhas(nomeTabela, "*");
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return data ?? [];
+  return data;
 }
 
 async function carregarResumo(): Promise<ResumoContagem> {

@@ -54,10 +54,11 @@ function PortalPresencas() {
     if (!sessao) return;
     setCarregando(true);
     const mesStr = String(mes).padStart(2, "0");
+    const ultimoDia = new Date(ano, mes, 0).getDate();
     const { data, error } = await supabaseAluno.rpc("portal_presencas_mes", {
       p_aluno_id: sessao.id,
       p_inicio: `${ano}-${mesStr}-01`,
-      p_fim: `${ano}-${mesStr}-31`,
+      p_fim: `${ano}-${mesStr}-${String(ultimoDia).padStart(2, "0")}`,
     });
     if (error) toast.error("Erro ao carregar presenças.");
     setPresencas((data ?? []) as Presenca[]);

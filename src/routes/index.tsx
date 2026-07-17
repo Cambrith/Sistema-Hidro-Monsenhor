@@ -159,7 +159,7 @@ const badgeModalidade: Record<Modalidade, string> = {
 
 function formatarData(data?: string | null) {
   if (!data) return "—";
-  const d = new Date(data);
+  const d = new Date(`${data}T00:00:00`);
   if (Number.isNaN(d.getTime())) return "—";
   return d.toLocaleDateString("pt-BR");
 }
@@ -482,6 +482,37 @@ function Home() {
           </div>
         </div>
       </section>
+      {avisosImportantes.length > 0 && (
+        <section id="avisos" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
+          <div>
+            <h2 className="font-display text-2xl font-semibold">Avisos importantes</h2>
+            <p className="text-sm text-muted-foreground">Comunicados recentes da secretaria.</p>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {avisosImportantes.map((aviso) => (
+              <button
+                key={aviso.id}
+                type="button"
+                onClick={() => setAvisoAberto(aviso)}
+                className="group flex flex-col rounded-xl border border-amber-200 bg-amber-50 p-5 text-left shadow-sm transition-shadow hover:shadow-md"
+              >
+                <span className="grid h-11 w-11 place-items-center rounded-lg bg-amber-100 text-amber-700">
+                  <Megaphone className="h-5 w-5" />
+                </span>
+                <h3 className="mt-4 font-semibold text-foreground">{aviso.titulo}</h3>
+                <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                  {aviso.resumo || "Toque para ver o comunicado completo."}
+                </p>
+                <p className="mt-auto inline-flex items-center pt-3 text-sm font-medium text-amber-700">
+                  Ler aviso completo
+                  <ArrowRight className="ml-1 h-3.5 w-3.5 opacity-70" />
+                </p>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section id="modalidades" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
         <div>
           <h2 className="font-display text-2xl font-semibold">Modalidades oferecidas</h2>

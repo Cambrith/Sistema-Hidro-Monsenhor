@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -166,6 +166,10 @@ function PresencaAdmin() {
   const [modalidadeFiltro, setModalidadeFiltro] = useState<FiltroModalidade>("todas");
   const [buscaTurma, setBuscaTurma] = useState("");
 
+  // Guarda qual chamada (turma+data) foi pedida por último, pra uma resposta
+  // atrasada de uma troca de turma anterior não sobrescrever o estado atual.
+  const requisicaoChamadaRef = useRef<string | null>(null);
+
   const turmasFiltradas = useMemo(() => {
     const busca = buscaTurma.trim().toLowerCase();
 
@@ -232,6 +236,10 @@ function PresencaAdmin() {
   }
 
   async function carregarDadosDaChamada(idTurma: string, dataChamada: string) {
+    const idRequisicao = `${idTurma}|${dataChamada}`;
+    requisicaoChamadaRef.current = idRequisicao;
+    const aindaAtual = () => requisicaoChamadaRef.current === idRequisicao;
+
     if (!idTurma || !dataChamada) {
       setAlunosTurma([]);
       setReg({});
@@ -247,6 +255,8 @@ function PresencaAdmin() {
       .select("aluno_id")
       .eq("turma_id", idTurma)
       .eq("ativo", true);
+
+    if (!aindaAtual()) return;
 
     if (vinculosError) {
       console.error(vinculosError);
@@ -269,6 +279,8 @@ function PresencaAdmin() {
         .eq("ativo", true)
         .order("nome_completo", { ascending: true });
 
+      if (!aindaAtual()) return;
+
       if (alunosError) {
         console.error(alunosError);
         toast.error(`Erro ao carregar alunos da turma: ${alunosError.message}`);
@@ -286,6 +298,8 @@ function PresencaAdmin() {
       .eq("data", dataChamada)
       .maybeSingle();
 
+    if (!aindaAtual()) return;
+
     if (chamadaError) {
       console.error(chamadaError);
       toast.error(`Erro ao carregar chamada: ${chamadaError.message}`);
@@ -302,6 +316,8 @@ function PresencaAdmin() {
         .from("presencas")
         .select("id, chamada_id, aluno_id, turma_id, data, status, observacao, criado_em")
         .eq("chamada_id", chamada.id);
+
+      if (!aindaAtual()) return;
 
       if (presencasError) {
         console.error(presencasError);
@@ -324,6 +340,8 @@ function PresencaAdmin() {
     alunos.forEach((aluno) => {
       registrosIniciais[aluno.id] = mapaPresencas.get(aluno.id) ?? "presente";
     });
+
+    if (!aindaAtual()) return;
 
     setAlunosTurma(alunos);
     setChamadaId(chamada?.id ?? null);

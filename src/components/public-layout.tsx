@@ -22,7 +22,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             <img
               src={logo}
               alt="Hidro e Natação Monsenhor"
-              className="h-12 w-auto max-w-[88px] shrink-0 object-contain sm:h-22 sm:max-w-[108px]"
+              className="h-12 w-auto max-w-22 shrink-0 object-contain sm:h-22 sm:max-w-27"
             />
             <span className="flex flex-col leading-tight">
               <span
@@ -103,14 +103,14 @@ export function PublicLayout({ children }: { children: ReactNode }) {
               <img
                 src={logo}
                 alt=""
-                className="h-17 w-auto max-w-[96px] shrink-0 object-contain"
+                className="h-17 w-auto max-w-24 shrink-0 object-contain"
                 aria-hidden
               />
               <p className="font-display font-semibold text-foreground">
                 Hidro e Natação Monsenhor
               </p>
             </div>
-            <p className="mt-3 max-w-[340px] text-xs">
+            <p className="mt-3 max-w-85 text-xs">
               Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira
             </p>
           </div>

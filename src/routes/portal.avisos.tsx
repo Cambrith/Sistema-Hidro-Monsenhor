@@ -34,7 +34,7 @@ type Aviso = {
 
 function formatarData(data?: string | null) {
   if (!data) return "—";
-  const d = new Date(data);
+  const d = new Date(`${data}T00:00:00`);
   if (Number.isNaN(d.getTime())) return "—";
   return d.toLocaleDateString("pt-BR");
 }

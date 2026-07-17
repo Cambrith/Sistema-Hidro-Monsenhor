@@ -386,6 +386,12 @@ function AlunosAdmin() {
   useEffect(() => {
     setPagina(0);
   }, [q, mod, st]);
+
+  // Se a lista encolher (exclusão, inativação) e a página atual deixar de
+  // existir, volta pra última página válida em vez de renderizar em branco.
+  useEffect(() => {
+    setPagina((p) => Math.min(p, totalPaginas - 1));
+  }, [totalPaginas]);
   const totalAlunos = alunos.length;
   const totalAtivos = alunos.filter((a) => a.ativo).length;
   const totalInativos = alunos.filter((a) => !a.ativo).length;
@@ -650,7 +656,8 @@ function AlunosAdmin() {
             <div className="mt-3 flex items-center justify-between text-sm">
               <p className="text-xs text-muted-foreground">
                 Mostrando {pagina * TAMANHO_PAGINA + 1}–
-                {Math.min((pagina + 1) * TAMANHO_PAGINA, filtrados.length)} de {filtrados.length} encontrados
+                {Math.min((pagina + 1) * TAMANHO_PAGINA, filtrados.length)} de {filtrados.length}{" "}
+                encontrados
               </p>
               <div className="flex items-center gap-2">
                 <Button
