@@ -49,7 +49,7 @@ const atalhos: Atalho[] = [
   { label: "Modalidades oferecidas", to: "/", hash: "modalidades", icon: ListChecks },
   { label: "Localização", to: "/", hash: "localizacao", icon: MapPin },
   { label: "Avisos da secretaria", to: "/avisos", icon: Megaphone },
-  { label: "Como se inscrever", to: "/pre-cadastro", icon: ClipboardCheck },
+  { label: "Como se inscrever", to: "/inscricao", icon: ClipboardCheck },
   { label: "Canais oficiais", to: "/", hash: "canais-oficiais", icon: MessageCircle },
 ];
 
