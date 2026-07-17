@@ -25,7 +25,7 @@ import {
   useSidebar,
 } from "@/componentes/ui/sidebar";
 
-import logo from "@/imagens/logo.png";
+import logo from "@/imagens/icone-portal-sidebar.png";
 
 export type PendenciaDocumentos = "urgente" | "atencao" | null;
 

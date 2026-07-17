@@ -130,15 +130,14 @@ export const Route = createRootRouteWithContext<{
         type: "image/png",
         href: faviconPath,
       },
-      {
-        rel: "apple-touch-icon",
-        href: "/icons/apple-touch-icon.png",
-      },
-      // Sem <link rel="manifest"> aqui de propósito: existem dois apps
-      // instaláveis (Portal do Aluno e Painel administrativo), cada um com
-      // seu próprio manifest.json e escopo. Declarar um manifest fixo aqui
-      // faria ele "vazar" pra área errada. Cada layout (portal.tsx,
-      // _admin.tsx, login.tsx) declara o seu via head().
+      // Sem <link rel="manifest"> nem <link rel="apple-touch-icon"> aqui de
+      // propósito: existem dois apps instaláveis (Portal do Aluno e Painel
+      // administrativo), cada um com seu próprio manifest.json e ícone.
+      // TanStack Router concatena os links de todas as rotas ativas sem
+      // fazer dedupe por "rel" (diferente de meta/title), então declarar um
+      // ícone fixo aqui faria ele "vazar" ao lado do ícone certo em vez de
+      // ser substituído. Cada layout (portal.tsx, _admin.tsx, login.tsx)
+      // declara o seu via head().
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {

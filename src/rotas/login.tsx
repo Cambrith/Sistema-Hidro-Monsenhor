@@ -30,6 +30,10 @@ export const Route = createFileRoute("/login")({
       },
       { name: "apple-mobile-web-app-title", content: "Painel Monsenhor" },
     ],
+    links: [
+      { rel: "manifest", href: "/manifest-admin.json" },
+      { rel: "apple-touch-icon", href: "/admin-icons/apple-touch-icon.png" },
+    ],
   }),
   component: LoginPage,
 });

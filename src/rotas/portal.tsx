@@ -36,7 +36,10 @@ export const Route = createFileRoute("/portal")({
       { title: "Portal do Aluno" },
       { name: "apple-mobile-web-app-title", content: "Portal do Aluno" },
     ],
-    links: [{ rel: "manifest", href: "/manifest.json" }],
+    links: [
+      { rel: "manifest", href: "/manifest.json" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
+    ],
   }),
 
   beforeLoad: async ({ location }) => {

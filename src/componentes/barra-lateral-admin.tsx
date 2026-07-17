@@ -30,7 +30,7 @@ import {
 
 import { getSessao, podeAcessar, sair, type Permissao } from "@/utilitarios/autenticacao";
 
-import logo from "@/imagens/logo.png";
+import logo from "@/imagens/icone-admin-sidebar.png";
 type MenuItem = {
   to: string;
   label: string;

@@ -16,7 +16,10 @@ import { Badge } from "@/componentes/ui/badge";
 export const Route = createFileRoute("/_admin")({
   head: () => ({
     meta: [{ name: "apple-mobile-web-app-title", content: "Painel Monsenhor" }],
-    links: [{ rel: "manifest", href: "/manifest-admin.json" }],
+    links: [
+      { rel: "manifest", href: "/manifest-admin.json" },
+      { rel: "apple-touch-icon", href: "/admin-icons/apple-touch-icon.png" },
+    ],
   }),
   beforeLoad: ({ location }) => {
     if (typeof window === "undefined") return;
