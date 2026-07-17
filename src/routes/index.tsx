@@ -2,15 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { PublicLayout } from "@/components/public-layout";
 import { Button } from "@/components/ui/button";
-import { AvisoMensagemHtml } from "@/lib/sanitizar-aviso";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   PersonStanding,
   UserRound,
@@ -23,12 +15,10 @@ import {
   ExternalLink,
   Instagram,
   Facebook,
-  Megaphone,
   X,
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { horarioSegQua, horarioTerQui, type Modalidade } from "@/lib/mock-data";
-import { supabase } from "@/lib/supabase";
 import mapaImg from "@/assets/mapa-localizacao.png";
 
 export const Route = createFileRoute("/")({
@@ -44,17 +34,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Home,
 });
-
-type Aviso = {
-  id: string;
-  titulo: string;
-  mensagem: string;
-  resumo: string | null;
-  data: string;
-  importante: boolean;
-  publico: boolean;
-  ativo?: boolean;
-};
 
 type FiltroDia = "todos" | "seg-qui" | "ter-qua";
 type FiltroTurno = "todos" | "Manhã" | "Tarde" | "Noite";
@@ -156,13 +135,6 @@ const badgeModalidade: Record<Modalidade, string> = {
   "Natação Adulta": "bg-indigo-50 text-indigo-700 border border-indigo-200",
   Hidroginástica: "bg-teal-50 text-teal-700 border border-teal-200",
 };
-
-function formatarData(data?: string | null) {
-  if (!data) return "—";
-  const d = new Date(`${data}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("pt-BR");
-}
 
 function Chip({
   ativo,
@@ -351,13 +323,6 @@ function TabelaHorarios() {
 }
 
 function Home() {
-  const [avisosImportantes, setAvisosImportantes] = useState<Aviso[]>([]);
-  const [avisoAberto, setAvisoAberto] = useState<Aviso | null>(null);
-
-  useEffect(() => {
-    carregarAvisosImportantes();
-  }, []);
-
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const scrollFromQuery = params.get("scroll");
@@ -383,24 +348,6 @@ function Home() {
       window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
     }, 200);
   }, []);
-
-  async function carregarAvisosImportantes() {
-    const { data, error } = await supabase
-      .from("avisos")
-      .select("*")
-      .eq("publico", true)
-      .eq("importante", true)
-      .eq("ativo", true)
-      .order("data", { ascending: false })
-      .limit(3);
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    setAvisosImportantes((data ?? []) as Aviso[]);
-  }
 
   return (
     <PublicLayout>
@@ -482,37 +429,6 @@ function Home() {
           </div>
         </div>
       </section>
-      {avisosImportantes.length > 0 && (
-        <section id="avisos" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
-          <div>
-            <h2 className="font-display text-2xl font-semibold">Avisos importantes</h2>
-            <p className="text-sm text-muted-foreground">Comunicados recentes da secretaria.</p>
-          </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {avisosImportantes.map((aviso) => (
-              <button
-                key={aviso.id}
-                type="button"
-                onClick={() => setAvisoAberto(aviso)}
-                className="group flex flex-col rounded-xl border border-amber-200 bg-amber-50 p-5 text-left shadow-sm transition-shadow hover:shadow-md"
-              >
-                <span className="grid h-11 w-11 place-items-center rounded-lg bg-amber-100 text-amber-700">
-                  <Megaphone className="h-5 w-5" />
-                </span>
-                <h3 className="mt-4 font-semibold text-foreground">{aviso.titulo}</h3>
-                <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-                  {aviso.resumo || "Toque para ver o comunicado completo."}
-                </p>
-                <p className="mt-auto inline-flex items-center pt-3 text-sm font-medium text-amber-700">
-                  Ler aviso completo
-                  <ArrowRight className="ml-1 h-3.5 w-3.5 opacity-70" />
-                </p>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
       <section id="modalidades" className="mx-auto w-full max-w-6xl px-4 py-10 scroll-mt-16">
         <div>
           <h2 className="font-display text-2xl font-semibold">Modalidades oferecidas</h2>
@@ -659,29 +575,6 @@ function Home() {
         </div>
       </section>
 
-      <Dialog open={!!avisoAberto} onOpenChange={(open) => !open && setAvisoAberto(null)}>
-        <DialogContent className="sm:max-w-lg">
-          {avisoAberto && (
-            <>
-              <DialogHeader>
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary">
-                    <Megaphone className="h-5 w-5" />
-                  </span>
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                    Importante
-                  </span>
-                </div>
-                <DialogTitle>{avisoAberto.titulo}</DialogTitle>
-                <DialogDescription>Publicado em {formatarData(avisoAberto.data)}</DialogDescription>
-              </DialogHeader>
-              <div className="max-h-[55vh] overflow-y-auto rounded-lg border border-border/70 bg-muted/20 p-4">
-                <AvisoMensagemHtml mensagem={avisoAberto.mensagem} className="text-foreground/85" />
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </PublicLayout>
   );
 }

@@ -208,16 +208,6 @@ function formatarDataHora(data?: string | null) {
   return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
-function normalizarBusca(valor?: string | null) {
-  return (valor ?? "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-}
-
-function digitosBusca(valor?: string | null) {
-  return (valor ?? "").replace(/\D/g, "");
-}
 function normalizarTexto(valor: string) {
   return valor
     .normalize("NFD")
@@ -226,17 +216,111 @@ function normalizarTexto(valor: string) {
     .trim();
 }
 
-function correspondeCampo(campo: string, busca: string) {
-  if (!busca) return true;
+// Damerau-Levenshtein (variante OSA) com corte antecipado: retorna `limite + 1`
+// assim que a linha inteira do DP j\u00e1 ultrapassa o limite, evitando terminar a
+// matriz em compara\u00e7\u00f5es claramente fora de toler\u00e2ncia.
+function distanciaEdicaoLimitada(a: string, b: string, limite: number): number {
+  const la = a.length;
+  const lb = b.length;
+  if (Math.abs(la - lb) > limite) return limite + 1;
+  if (la === 0 || lb === 0) return Math.max(la, lb);
+
+  const d: number[][] = Array.from({ length: la + 1 }, () => new Array(lb + 1).fill(0));
+  for (let i = 0; i <= la; i++) d[i][0] = i;
+  for (let j = 0; j <= lb; j++) d[0][j] = j;
+
+  for (let i = 1; i <= la; i++) {
+    let melhorLinha = Infinity;
+    for (let j = 1; j <= lb; j++) {
+      const custo = a[i - 1] === b[j - 1] ? 0 : 1;
+      let valor = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + custo);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        valor = Math.min(valor, d[i - 2][j - 2] + 1);
+      }
+      d[i][j] = valor;
+      if (valor < melhorLinha) melhorLinha = valor;
+    }
+    if (melhorLinha > limite) return limite + 1;
+  }
+  return d[la][lb];
+}
+
+// Pontua a correspond\u00eancia de um campo de texto contra o termo buscado, do mais
+// forte (igualdade exata) ao mais fraco (fuzzy, tolerante a erro de digita\u00e7\u00e3o).
+// `pesoBase` define o peso do campo na relev\u00e2ncia final (nome > turma > modalidade
+// /respons\u00e1vel > email). Retorna 0 quando n\u00e3o h\u00e1 correspond\u00eancia alguma.
+function pontuarTexto(campo: string, busca: string, pesoBase: number): number {
+  if (!busca) return 0;
   const campoNorm = normalizarTexto(campo);
   const buscaNorm = normalizarTexto(busca);
+  if (!campoNorm || !buscaNorm) return 0;
+
+  if (campoNorm === buscaNorm) return pesoBase;
+  if (campoNorm.startsWith(buscaNorm)) return pesoBase * 0.9;
+
+  const palavrasCampo = campoNorm.split(/\s+/).filter(Boolean);
+  if (palavrasCampo.some((palavra) => palavra.startsWith(buscaNorm))) return pesoBase * 0.8;
 
   const campoSemEspaco = campoNorm.replace(/\s+/g, "");
   const buscaSemEspaco = buscaNorm.replace(/\s+/g, "");
-  if (campoSemEspaco.includes(buscaSemEspaco)) return true;
+  const palavrasBusca = buscaNorm.split(/\s+/).filter(Boolean);
+  const contemSubstring = campoSemEspaco.includes(buscaSemEspaco);
+  const contemTodasPalavras =
+    palavrasBusca.length > 0 && palavrasBusca.every((palavra) => campoNorm.includes(palavra));
+  if (contemSubstring || contemTodasPalavras) return pesoBase * 0.7;
 
-  const palavras = buscaNorm.split(/\s+/).filter(Boolean);
-  return palavras.length > 0 && palavras.every((palavra) => campoNorm.includes(palavra));
+  if (buscaNorm.length >= 3) {
+    const limite = buscaNorm.length <= 5 ? 1 : 2;
+    const candidatos = [campoNorm, ...palavrasCampo];
+    let melhorDistancia = limite + 1;
+    for (const candidato of candidatos) {
+      if (Math.abs(candidato.length - buscaNorm.length) > limite) continue;
+      const distancia = distanciaEdicaoLimitada(candidato, buscaNorm, limite);
+      if (distancia < melhorDistancia) melhorDistancia = distancia;
+      if (melhorDistancia === 0) break;
+    }
+    if (melhorDistancia <= limite) {
+      return pesoBase * 0.55 * (1 - melhorDistancia / (limite + 1));
+    }
+  }
+
+  return 0;
+}
+
+function correspondeCampo(campo: string, busca: string) {
+  if (!busca) return true;
+  return pontuarTexto(campo, busca, 1) > 0;
+}
+
+// Pontua campos num\u00e9ricos (CPF/telefone/WhatsApp): match exato ou longo pesa
+// muito mais que uma coincid\u00eancia curta de poucos d\u00edgitos.
+function pontuarNumerico(valorDigitos: string, buscaDigitos: string, pesoBase: number): number {
+  if (!buscaDigitos || !valorDigitos) return 0;
+  if (valorDigitos === buscaDigitos) return pesoBase;
+  if (valorDigitos.startsWith(buscaDigitos)) return pesoBase * 0.85;
+  if (valorDigitos.includes(buscaDigitos)) {
+    const proporcao = buscaDigitos.length / valorDigitos.length;
+    return pesoBase * 0.5 * Math.min(1, proporcao * 2);
+  }
+  return 0;
+}
+
+// Maior pontua\u00e7\u00e3o entre os campos do aluno: nome > n\u00fameros (CPF/telefone/whatsapp)
+// em match exato > turma > modalidade/respons\u00e1vel > email. Usada tanto para
+// filtrar (relev\u00e2ncia 0 = fora da busca) quanto para ordenar por relev\u00e2ncia.
+function calcularRelevancia(aluno: Aluno, busca: string): number {
+  if (!busca) return 0;
+  const buscaDigitos = busca.replace(/\D/g, "");
+  return Math.max(
+    pontuarTexto(aluno.nome_completo, busca, 1000),
+    pontuarTexto(aluno.modalidade, busca, 300),
+    pontuarTexto(aluno.turma ?? "", busca, 350),
+    pontuarTexto(aluno.responsavel ?? "", busca, 300),
+    pontuarTexto(aluno.email ?? "", busca, 250),
+    pontuarNumerico(aluno.whatsapp.replace(/\D/g, ""), buscaDigitos, 1000),
+    pontuarNumerico((aluno.telefone ?? "").replace(/\D/g, ""), buscaDigitos, 1000),
+    pontuarNumerico((aluno.cpf ?? "").replace(/\D/g, ""), buscaDigitos, 1000),
+  );
 }
 function statusDoAluno(aluno: Aluno): StatusAluno {
   return aluno.ativo ? "ativo" : "inativo";
@@ -301,6 +385,10 @@ function AlunosAdmin() {
   const [q, setQ] = useState("");
   const [mod, setMod] = useState<"todas" | Modalidade>("todas");
   const [st, setSt] = useState<"todos" | StatusAluno>("todos");
+  const [turmaFiltro, setTurmaFiltro] = useState<string>("todas");
+  const [nivelFiltro, setNivelFiltro] = useState<"todos" | Nivel | "nao_avaliado">("todos");
+  const [idadeMin, setIdadeMin] = useState("");
+  const [idadeMax, setIdadeMax] = useState("");
   const [pagina, setPagina] = useState(0);
   const [novoAberto, setNovoAberto] = useState(false);
   const [editando, setEditando] = useState<Aluno | null>(null);
@@ -345,37 +433,58 @@ function AlunosAdmin() {
     carregarTudo();
   }, []);
 
+  const nomesTurmaDisponiveis = useMemo(() => {
+    const nomes = new Set<string>();
+    for (const aluno of alunos) {
+      if (aluno.turma) nomes.add(aluno.turma);
+    }
+    return Array.from(nomes).sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+  }, [alunos]);
+
   const filtrados = useMemo(() => {
     const busca = q.trim();
-    const buscaNumeros = busca.replace(/\D/g, "");
+    const idadeMinNum = idadeMin === "" ? null : Number(idadeMin);
+    const idadeMaxNum = idadeMax === "" ? null : Number(idadeMax);
+
     return alunos
       .filter((aluno) => {
         const status = statusDoAluno(aluno);
-        const passaBusca =
-          !busca ||
-          correspondeCampo(aluno.nome_completo, busca) ||
-          correspondeCampo(aluno.modalidade, busca) ||
-          correspondeCampo(aluno.turma ?? "", busca) ||
-          correspondeCampo(aluno.responsavel ?? "", busca) ||
-          correspondeCampo(aluno.email ?? "", busca) ||
-          (buscaNumeros !== "" &&
-            (aluno.whatsapp.replace(/\D/g, "").includes(buscaNumeros) ||
-              (aluno.telefone ?? "").replace(/\D/g, "").includes(buscaNumeros) ||
-              (aluno.cpf ?? "").replace(/\D/g, "").includes(buscaNumeros)));
         const passaModalidade = mod === "todas" || aluno.modalidade === mod;
         const passaStatus = st === "todos" || status === st;
-        return passaBusca && passaModalidade && passaStatus;
+        const passaTurma =
+          turmaFiltro === "todas" ||
+          (turmaFiltro === SEM_TURMA ? !aluno.turma : aluno.turma === turmaFiltro);
+        const passaNivel =
+          nivelFiltro === "todos" ||
+          (nivelFiltro === "nao_avaliado" ? !aluno.nivel : aluno.nivel === nivelFiltro);
+        const passaIdadeMin = idadeMinNum === null || aluno.idade >= idadeMinNum;
+        const passaIdadeMax = idadeMaxNum === null || aluno.idade <= idadeMaxNum;
+        return (
+          passaModalidade &&
+          passaStatus &&
+          passaTurma &&
+          passaNivel &&
+          passaIdadeMin &&
+          passaIdadeMax
+        );
       })
+      .map((aluno) => ({ aluno, relevancia: busca ? calcularRelevancia(aluno, busca) : 0 }))
+      .filter((item) => !busca || item.relevancia > 0)
       .sort((a, b) => {
+        if (busca) {
+          const porRelevancia = b.relevancia - a.relevancia;
+          if (porRelevancia !== 0) return porRelevancia;
+        }
         // Ordena por nome (A-Z, ignorando acento/caixa). Em caso de empate exato de
         // nome, desempata por id — evita que a ordem "balance" entre re-renders.
-        const porNome = a.nome_completo.localeCompare(b.nome_completo, "pt-BR", {
+        const porNome = a.aluno.nome_completo.localeCompare(b.aluno.nome_completo, "pt-BR", {
           sensitivity: "base",
         });
         if (porNome !== 0) return porNome;
-        return a.id.localeCompare(b.id);
-      });
-  }, [alunos, q, mod, st]);
+        return a.aluno.id.localeCompare(b.aluno.id);
+      })
+      .map((item) => item.aluno);
+  }, [alunos, q, mod, st, turmaFiltro, nivelFiltro, idadeMin, idadeMax]);
   const TAMANHO_PAGINA = 50;
   const totalPaginas = Math.max(1, Math.ceil(filtrados.length / TAMANHO_PAGINA));
   const alunosPagina = useMemo(
@@ -385,7 +494,7 @@ function AlunosAdmin() {
 
   useEffect(() => {
     setPagina(0);
-  }, [q, mod, st]);
+  }, [q, mod, st, turmaFiltro, nivelFiltro, idadeMin, idadeMax]);
 
   // Se a lista encolher (exclusão, inativação) e a página atual deixar de
   // existir, volta pra última página válida em vez de renderizar em branco.
@@ -500,16 +609,17 @@ function AlunosAdmin() {
             </div>
           )}
 
-          <div className="grid gap-3 md:grid-cols-[1fr_220px_180px]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Buscar aluno, CPF..."
-                className="pl-9"
-              />
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar aluno, CPF..."
+              className="pl-9"
+            />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <select
               value={mod}
               onChange={(e) => setMod(e.target.value as "todas" | Modalidade)}
@@ -531,6 +641,53 @@ function AlunosAdmin() {
               <option value="ativo">Ativos</option>
               <option value="inativo">Inativos</option>
             </select>
+            <select
+              value={turmaFiltro}
+              onChange={(e) => setTurmaFiltro(e.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="todas">Todas as turmas</option>
+              <option value={SEM_TURMA}>Sem turma</option>
+              {nomesTurmaDisponiveis.map((nome) => (
+                <option key={nome} value={nome}>
+                  {nome}
+                </option>
+              ))}
+            </select>
+            <select
+              value={nivelFiltro}
+              onChange={(e) => setNivelFiltro(e.target.value as "todos" | Nivel | "nao_avaliado")}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="todos">Todos os níveis</option>
+              {niveis.map((n) => (
+                <option key={n.value} value={n.value}>
+                  {n.label}
+                </option>
+              ))}
+              <option value="nao_avaliado">Não avaliado</option>
+            </select>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted-foreground">Idade:</span>
+            <Input
+              type="number"
+              min={0}
+              value={idadeMin}
+              onChange={(e) => setIdadeMin(e.target.value)}
+              placeholder="Mínima"
+              className="h-10 w-28"
+            />
+            <span className="text-sm text-muted-foreground">até</span>
+            <Input
+              type="number"
+              min={0}
+              value={idadeMax}
+              onChange={(e) => setIdadeMax(e.target.value)}
+              placeholder="Máxima"
+              className="h-10 w-28"
+            />
           </div>
 
           <div className="overflow-x-auto rounded-md border border-border">
