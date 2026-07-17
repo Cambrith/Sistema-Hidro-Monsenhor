@@ -9,7 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './rotas/__root'
-import { Route as PreCadastroRouteImport } from './rotas/pre-cadastro'
+import { Route as PreCadastroRouteImport } from './rotas/inscrição.tsx'
 import { Route as PortalRouteImport } from './rotas/portal'
 import { Route as LoginRouteImport } from './rotas/login'
 import { Route as AvisosRouteImport } from './rotas/avisos'
