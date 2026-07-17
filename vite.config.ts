@@ -5,5 +5,6 @@ export default defineConfig({
   plugins: [nitro()],
   tanstackStart: {
     server: { entry: "server" },
+    router: { routesDirectory: "rotas" },
   },
 });

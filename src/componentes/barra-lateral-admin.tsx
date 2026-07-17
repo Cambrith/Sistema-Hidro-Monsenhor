@@ -1,0 +1,248 @@
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useIsStandalone } from "@/hooks/use-install-prompt";
+import {
+  LayoutDashboard,
+  Users,
+  CalendarDays,
+  CheckSquare,
+  Megaphone,
+  BarChart3,
+  Shield,
+  UserCog,
+  LogOut,
+  FileText,
+  Hourglass,
+  Globe,
+} from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarHeader,
+  SidebarFooter,
+  useSidebar,
+} from "@/componentes/ui/sidebar";
+
+import { getSessao, podeAcessar, sair, type Permissao } from "@/utilitarios/autenticacao";
+
+import logo from "@/imagens/logo.png";
+type MenuItem = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  permissao: Permissao;
+};
+
+const operacao: MenuItem[] = [
+  {
+    to: "/painel",
+    label: "Painel",
+    icon: LayoutDashboard,
+    permissao: "painel",
+  },
+  {
+    to: "/alunos",
+    label: "Alunos",
+    icon: Users,
+    permissao: "alunos",
+  },
+  {
+    to: "/turmas",
+    label: "Turmas",
+    icon: CalendarDays,
+    permissao: "turmas",
+  },
+  {
+    to: "/presenca",
+    label: "Presença",
+    icon: CheckSquare,
+    permissao: "presenca",
+  },
+  {
+    to: "/avisos-admin",
+    label: "Avisos",
+    icon: Megaphone,
+    permissao: "avisos",
+  },
+  {
+    to: "/documentos",
+    label: "Documentos",
+    icon: FileText,
+    permissao: "alunos",
+  },
+  {
+    to: "/pre-cadastros",
+    label: "Lista de Espera",
+    icon: Hourglass,
+    permissao: "alunos",
+  },
+  {
+    to: "/relatorios",
+    label: "Relatórios",
+    icon: BarChart3,
+    permissao: "relatorios",
+  },
+];
+
+const sistema: MenuItem[] = [
+  {
+    to: "/usuarios",
+    label: "Usuários e Perfis",
+    icon: UserCog,
+    permissao: "usuarios",
+  },
+  {
+    to: "/seguranca",
+    label: "Segurança e Backup",
+    icon: Shield,
+    permissao: "seguranca",
+  },
+];
+
+function isActivePath(current: string, to: string) {
+  return current === to || current.startsWith(`${to}/`);
+}
+
+function areaPorPerfil(perfil?: string) {
+  if (perfil === "Administrador") return "Administração";
+  if (perfil === "Recepção") return "Recepção";
+  if (perfil === "Professor") return "Professor";
+
+  return "Equipe";
+}
+
+function descricaoPorPerfil(perfil?: string) {
+  if (perfil === "Administrador") return "Acesso completo";
+  if (perfil === "Recepção") return "Atendimento e gestão";
+  if (perfil === "Professor") return "Turmas e chamada";
+
+  return "Acesso interno";
+}
+
+function MenuLink({ item, current }: { item: MenuItem; current: string }) {
+  const Icon = item.icon;
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={isActivePath(current, item.to)} tooltip={item.label}>
+        <Link
+          to={item.to as never}
+          onClick={() => {
+            if (isMobile) setOpenMobile(false);
+          }}
+        >
+          <Icon className="h-4 w-4" />
+          <span>{item.label}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
+export function AdminSidebar() {
+  const navigate = useNavigate();
+  const current = useRouterState({ select: (s) => s.location.pathname });
+  const sessao = getSessao();
+  const isStandalone = useIsStandalone();
+
+  const operacaoVisivel = operacao.filter((item) => podeAcessar(item.permissao));
+  const sistemaVisivel = sistema.filter((item) => podeAcessar(item.permissao));
+
+  const areaExibicao = areaPorPerfil(sessao?.perfil);
+  const descricaoExibicao = descricaoPorPerfil(sessao?.perfil);
+
+  return (
+    <Sidebar collapsible="icon">
+      <SidebarHeader>
+        <div className="flex items-center gap-3 px-2 py-2 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center">
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-sm group-data-[collapsible=icon]:size-7 group-data-[collapsible=icon]:p-1">
+            <img
+              src={logo}
+              alt="Hidro e Natação Monsenhor"
+              className="h-full w-full scale-140 object-contain"
+            />
+          </span>
+
+          <div className="flex min-w-0 flex-col leading-tight group-data-[collapsible=icon]:hidden">
+            <span className="truncate font-display text-sm font-semibold text-sidebar-foreground">
+              Painel Monsenhor
+            </span>
+
+            <span className="truncate text-[11px] text-sidebar-foreground/70">
+              Hidro e Natação Monsenhor
+            </span>
+          </div>
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Operação</SidebarGroupLabel>
+
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {operacaoVisivel.map((item) => (
+                <MenuLink key={item.to} item={item} current={current} />
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {sistemaVisivel.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Sistema</SidebarGroupLabel>
+
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {sistemaVisivel.map((item) => (
+                  <MenuLink key={item.to} item={item} current={current} />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+      </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border/50 pt-1">
+        <div className="px-2 py-1 text-xs text-sidebar-foreground/80 group-data-[collapsible=icon]:hidden">
+          <p className="truncate font-semibold text-sidebar-foreground">
+            {sessao?.nome?.split(" ")[0] ?? areaExibicao}
+          </p>
+          <p className="truncate text-[11px] text-sidebar-foreground/65">{descricaoExibicao}</p>
+        </div>
+
+        <SidebarMenu>
+          {!isStandalone && (
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Voltar ao Site">
+                <Link to="/">
+                  <Globe className="h-4 w-4" />
+                  <span>Voltar ao Site</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Sair"
+              onClick={() => {
+                sair();
+                navigate({ to: "/login" });
+              }}
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sair</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
