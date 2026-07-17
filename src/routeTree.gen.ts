@@ -9,9 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './rotas/__root'
-import { Route as PreCadastroRouteImport } from './rotas/inscrição.tsx'
 import { Route as PortalRouteImport } from './rotas/portal'
 import { Route as LoginRouteImport } from './rotas/login'
+import { Route as InscricaoRouteImport } from './rotas/inscricao'
 import { Route as AvisosRouteImport } from './rotas/avisos'
 import { Route as AcessoRapidoRouteImport } from './rotas/acesso-rapido'
 import { Route as AcessoRouteImport } from './rotas/acesso'
@@ -34,11 +34,6 @@ import { Route as AdminDocumentosRouteImport } from './rotas/_admin.documentos'
 import { Route as AdminAvisosAdminRouteImport } from './rotas/_admin.avisos-admin'
 import { Route as AdminAlunosRouteImport } from './rotas/_admin.alunos'
 
-const PreCadastroRoute = PreCadastroRouteImport.update({
-  id: '/pre-cadastro',
-  path: '/pre-cadastro',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
@@ -47,6 +42,11 @@ const PortalRoute = PortalRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InscricaoRoute = InscricaoRouteImport.update({
+  id: '/inscricao',
+  path: '/inscricao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AvisosRoute = AvisosRouteImport.update({
@@ -159,9 +159,9 @@ export interface FileRoutesByFullPath {
   '/acesso': typeof AcessoRoute
   '/acesso-rapido': typeof AcessoRapidoRoute
   '/avisos': typeof AvisosRoute
+  '/inscricao': typeof InscricaoRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
-  '/pre-cadastro': typeof PreCadastroRoute
   '/alunos': typeof AdminAlunosRoute
   '/avisos-admin': typeof AdminAvisosAdminRoute
   '/documentos': typeof AdminDocumentosRoute
@@ -184,9 +184,9 @@ export interface FileRoutesByTo {
   '/acesso': typeof AcessoRoute
   '/acesso-rapido': typeof AcessoRapidoRoute
   '/avisos': typeof AvisosRoute
+  '/inscricao': typeof InscricaoRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
-  '/pre-cadastro': typeof PreCadastroRoute
   '/alunos': typeof AdminAlunosRoute
   '/avisos-admin': typeof AdminAvisosAdminRoute
   '/documentos': typeof AdminDocumentosRoute
@@ -211,9 +211,9 @@ export interface FileRoutesById {
   '/acesso': typeof AcessoRoute
   '/acesso-rapido': typeof AcessoRapidoRoute
   '/avisos': typeof AvisosRoute
+  '/inscricao': typeof InscricaoRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
-  '/pre-cadastro': typeof PreCadastroRoute
   '/_admin/alunos': typeof AdminAlunosRoute
   '/_admin/avisos-admin': typeof AdminAvisosAdminRoute
   '/_admin/documentos': typeof AdminDocumentosRoute
@@ -238,9 +238,9 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/acesso-rapido'
     | '/avisos'
+    | '/inscricao'
     | '/login'
     | '/portal'
-    | '/pre-cadastro'
     | '/alunos'
     | '/avisos-admin'
     | '/documentos'
@@ -263,9 +263,9 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/acesso-rapido'
     | '/avisos'
+    | '/inscricao'
     | '/login'
     | '/portal'
-    | '/pre-cadastro'
     | '/alunos'
     | '/avisos-admin'
     | '/documentos'
@@ -289,9 +289,9 @@ export interface FileRouteTypes {
     | '/acesso'
     | '/acesso-rapido'
     | '/avisos'
+    | '/inscricao'
     | '/login'
     | '/portal'
-    | '/pre-cadastro'
     | '/_admin/alunos'
     | '/_admin/avisos-admin'
     | '/_admin/documentos'
@@ -316,20 +316,13 @@ export interface RootRouteChildren {
   AcessoRoute: typeof AcessoRoute
   AcessoRapidoRoute: typeof AcessoRapidoRoute
   AvisosRoute: typeof AvisosRoute
+  InscricaoRoute: typeof InscricaoRoute
   LoginRoute: typeof LoginRoute
   PortalRoute: typeof PortalRouteWithChildren
-  PreCadastroRoute: typeof PreCadastroRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/pre-cadastro': {
-      id: '/pre-cadastro'
-      path: '/pre-cadastro'
-      fullPath: '/pre-cadastro'
-      preLoaderRoute: typeof PreCadastroRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/portal': {
       id: '/portal'
       path: '/portal'
@@ -342,6 +335,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inscricao': {
+      id: '/inscricao'
+      path: '/inscricao'
+      fullPath: '/inscricao'
+      preLoaderRoute: typeof InscricaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/avisos': {
@@ -549,9 +549,9 @@ const rootRouteChildren: RootRouteChildren = {
   AcessoRoute: AcessoRoute,
   AcessoRapidoRoute: AcessoRapidoRoute,
   AvisosRoute: AvisosRoute,
+  InscricaoRoute: InscricaoRoute,
   LoginRoute: LoginRoute,
   PortalRoute: PortalRouteWithChildren,
-  PreCadastroRoute: PreCadastroRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

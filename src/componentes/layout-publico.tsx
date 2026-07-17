@@ -8,7 +8,7 @@ const nav = [
   { to: "/", label: "Início" },
   { to: "/avisos", label: "Avisos" },
   { to: "/acesso-rapido", label: "Dúvidas Frequentes" },
-  { to: "/pre-cadastro", label: "Como se Inscrever" },
+  { to: "/inscricao", label: "Como se Inscrever" },
 ];
 
 export function PublicLayout({ children }: { children: ReactNode }) {

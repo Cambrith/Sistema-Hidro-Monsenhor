@@ -14,7 +14,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 
-export const Route = createFileRoute("/pre-cadastro")({
+export const Route = createFileRoute("/inscricao")({
   head: () => ({
     meta: [
       { title: "Como se inscrever" },
