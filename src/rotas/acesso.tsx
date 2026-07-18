@@ -58,7 +58,7 @@ function Acesso() {
             </Link>
 
             {/* Card Equipe */}
-            <Link to="/login" className="group">
+            <Link to="/painel/login" className="group">
               <div className="relative flex h-full flex-col rounded-2xl border border-border bg-white p-7 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-slate-400/50 hover:shadow-lg">
                 <div className="absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-slate-400" />
                 <span className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-100 text-slate-600 shadow-sm">

@@ -13,7 +13,7 @@ import { getSessao, permissoesPorPerfil, type Permissao, type Sessao } from "@/u
 import { Separator } from "@/componentes/ui/separator";
 import { Badge } from "@/componentes/ui/badge";
 
-export const Route = createFileRoute("/_admin")({
+export const Route = createFileRoute("/painel")({
   head: () => ({
     meta: [{ name: "apple-mobile-web-app-title", content: "Painel Monsenhor" }],
     links: [
@@ -27,7 +27,11 @@ export const Route = createFileRoute("/_admin")({
     const sessao = getSessao();
 
     if (!sessao) {
-      throw redirect({ to: "/login" });
+      // /painel/login precisa ficar acessível sem sessão — senão o redirect
+      // abaixo mandaria pra si mesma (loop). Ela cuida da própria checagem
+      // (redireciona pra /painel se já tiver sessão).
+      if (location.pathname === "/painel/login") return;
+      throw redirect({ to: "/painel/login" });
     }
 
     const permissaoNecessaria = permissaoDaRota(location.pathname);
@@ -40,7 +44,7 @@ export const Route = createFileRoute("/_admin")({
       throw redirect({ to: "/painel" });
     }
   },
-  component: AdminLayout,
+  component: PainelRoot,
 });
 
 // Fonte única de verdade: título exibido no topo + permissão exigida de
@@ -60,7 +64,7 @@ const configRotasAdmin: Record<string, ConfigRotaAdmin> = {
     sub: "Visão geral do centro",
     permissao: "painel",
   },
-  "/pre-cadastros": {
+  "/painel/pre-cadastros": {
     title: "Lista de Espera",
     sub: "Fila de espera por modalidade e turma",
     // Confirmado em lib/auth.ts: Administrador e Recepção têm tanto
@@ -69,7 +73,7 @@ const configRotasAdmin: Record<string, ConfigRotaAdmin> = {
     // criar um perfil novo no futuro, dê as duas juntas.
     permissao: "pre-cadastros",
   },
-  "/documentos": {
+  "/painel/documentos": {
     title: "Documentos",
     sub: "Atestados e documentos enviados pelos alunos",
     // Antes esta rota não tinha entrada aqui = nenhuma checagem de
@@ -78,40 +82,35 @@ const configRotasAdmin: Record<string, ConfigRotaAdmin> = {
     // "alunos" pra bater com a permissão que já controla o link no menu.
     permissao: "alunos",
   },
-  "/alunos": {
+  "/painel/alunos": {
     title: "Alunos",
     sub: "Cadastro e gestão dos estudantes",
     permissao: "alunos",
   },
-  "/turmas": {
+  "/painel/turmas": {
     title: "Turmas",
     sub: "Organização das atividades",
     permissao: "turmas",
   },
-  "/presenca": {
+  "/painel/presenca": {
     title: "Presença",
     sub: "Controle digital de frequência",
     permissao: "presenca",
   },
-  "/avisos-admin": {
+  "/painel/avisos-admin": {
     title: "Avisos",
     sub: "Comunicação com a comunidade",
     permissao: "avisos",
   },
-  "/relatorios": {
+  "/painel/relatorios": {
     title: "Relatórios",
     sub: "Indicadores e exportações",
     permissao: "relatorios",
   },
-  "/seguranca": {
-    title: "Segurança e Backup",
-    sub: "Boas práticas e indicadores",
+  "/painel/diagnostico": {
+    title: "Diagnóstico do Sistema",
+    sub: "Segurança, integridade e backup",
     permissao: "seguranca",
-  },
-  "/usuarios": {
-    title: "Usuários e Perfis",
-    sub: "Permissões da equipe",
-    permissao: "usuarios",
   },
 };
 
@@ -163,6 +162,18 @@ function podeEntrarNaRota(pathname: string, sessao: Sessao | null) {
   return permissoes.includes(permissaoNecessaria);
 }
 
+// A tela de login (painel.login.tsx) fica nesta mesma árvore de rotas por
+// causa da convenção de arquivos (painel.login.tsx é filha de painel.tsx),
+// mas não pode ganhar a sidebar/header do admin — senão o formulário de
+// login apareceria embrulhado no chrome do painel. Por isso o componente
+// desta rota decide entre o Outlet "nu" (login) e o AdminLayout completo
+// (todo o resto), igual ao padrão já usado em portal.tsx.
+function PainelRoot() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (pathname === "/painel/login") return <Outlet />;
+  return <AdminLayout />;
+}
+
 function AdminLayout() {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -171,7 +182,7 @@ function AdminLayout() {
 
   useEffect(() => {
     if (!sessao) {
-      navigate({ to: "/login" });
+      navigate({ to: "/painel/login" });
       return;
     }
 

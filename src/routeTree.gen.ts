@@ -9,34 +9,80 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './rotas/__root'
+import { Route as UsuariosRouteImport } from './rotas/usuarios'
+import { Route as TurmasRouteImport } from './rotas/turmas'
+import { Route as SegurancaRouteImport } from './rotas/seguranca'
+import { Route as RelatoriosRouteImport } from './rotas/relatorios'
+import { Route as PresencaRouteImport } from './rotas/presenca'
+import { Route as PreCadastrosRouteImport } from './rotas/pre-cadastros'
 import { Route as PortalRouteImport } from './rotas/portal'
+import { Route as PainelRouteImport } from './rotas/painel'
 import { Route as LoginRouteImport } from './rotas/login'
 import { Route as InscricaoRouteImport } from './rotas/inscricao'
+import { Route as DocumentosRouteImport } from './rotas/documentos'
+import { Route as AvisosAdminRouteImport } from './rotas/avisos-admin'
 import { Route as AvisosRouteImport } from './rotas/avisos'
+import { Route as AlunosRouteImport } from './rotas/alunos'
 import { Route as AcessoRapidoRouteImport } from './rotas/acesso-rapido'
 import { Route as AcessoRouteImport } from './rotas/acesso'
-import { Route as AdminRouteImport } from './rotas/_admin'
 import { Route as IndexRouteImport } from './rotas/index'
+import { Route as PainelIndexRouteImport } from './rotas/painel.index'
 import { Route as PortalPresencasRouteImport } from './rotas/portal.presencas'
 import { Route as PortalInicioRouteImport } from './rotas/portal.inicio'
 import { Route as PortalDocumentosRouteImport } from './rotas/portal.documentos'
 import { Route as PortalDadosRouteImport } from './rotas/portal.dados'
 import { Route as PortalAvisosRouteImport } from './rotas/portal.avisos'
 import { Route as PortalAjudaRouteImport } from './rotas/portal.ajuda'
-import { Route as AdminUsuariosRouteImport } from './rotas/_admin.usuarios'
-import { Route as AdminTurmasRouteImport } from './rotas/_admin.turmas'
-import { Route as AdminSegurancaRouteImport } from './rotas/_admin.seguranca'
-import { Route as AdminRelatoriosRouteImport } from './rotas/_admin.relatorios'
-import { Route as AdminPresencaRouteImport } from './rotas/_admin.presenca'
-import { Route as AdminPreCadastrosRouteImport } from './rotas/_admin.pre-cadastros'
-import { Route as AdminPainelRouteImport } from './rotas/_admin.painel'
-import { Route as AdminDocumentosRouteImport } from './rotas/_admin.documentos'
-import { Route as AdminAvisosAdminRouteImport } from './rotas/_admin.avisos-admin'
-import { Route as AdminAlunosRouteImport } from './rotas/_admin.alunos'
+import { Route as PainelUsuariosRouteImport } from './rotas/painel.usuarios'
+import { Route as PainelTurmasRouteImport } from './rotas/painel.turmas'
+import { Route as PainelSegurancaRouteImport } from './rotas/painel.seguranca'
+import { Route as PainelRelatoriosRouteImport } from './rotas/painel.relatorios'
+import { Route as PainelPresencaRouteImport } from './rotas/painel.presenca'
+import { Route as PainelPreCadastrosRouteImport } from './rotas/painel.pre-cadastros'
+import { Route as PainelLoginRouteImport } from './rotas/painel.login'
+import { Route as PainelDocumentosRouteImport } from './rotas/painel.documentos'
+import { Route as PainelDiagnosticoRouteImport } from './rotas/painel.diagnostico'
+import { Route as PainelAvisosAdminRouteImport } from './rotas/painel.avisos-admin'
+import { Route as PainelAlunosRouteImport } from './rotas/painel.alunos'
 
+const UsuariosRoute = UsuariosRouteImport.update({
+  id: '/usuarios',
+  path: '/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TurmasRoute = TurmasRouteImport.update({
+  id: '/turmas',
+  path: '/turmas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SegurancaRoute = SegurancaRouteImport.update({
+  id: '/seguranca',
+  path: '/seguranca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelatoriosRoute = RelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PresencaRoute = PresencaRouteImport.update({
+  id: '/presenca',
+  path: '/presenca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreCadastrosRoute = PreCadastrosRouteImport.update({
+  id: '/pre-cadastros',
+  path: '/pre-cadastros',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PortalRoute = PortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PainelRoute = PainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -49,9 +95,24 @@ const InscricaoRoute = InscricaoRouteImport.update({
   path: '/inscricao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocumentosRoute = DocumentosRouteImport.update({
+  id: '/documentos',
+  path: '/documentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AvisosAdminRoute = AvisosAdminRouteImport.update({
+  id: '/avisos-admin',
+  path: '/avisos-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AvisosRoute = AvisosRouteImport.update({
   id: '/avisos',
   path: '/avisos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlunosRoute = AlunosRouteImport.update({
+  id: '/alunos',
+  path: '/alunos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AcessoRapidoRoute = AcessoRapidoRouteImport.update({
@@ -64,14 +125,15 @@ const AcessoRoute = AcessoRouteImport.update({
   path: '/acesso',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/_admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const PainelIndexRoute = PainelIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PainelRoute,
 } as any)
 const PortalPresencasRoute = PortalPresencasRouteImport.update({
   id: '/presencas',
@@ -103,133 +165,172 @@ const PortalAjudaRoute = PortalAjudaRouteImport.update({
   path: '/ajuda',
   getParentRoute: () => PortalRoute,
 } as any)
-const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
+const PainelUsuariosRoute = PainelUsuariosRouteImport.update({
   id: '/usuarios',
   path: '/usuarios',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => PainelRoute,
 } as any)
-const AdminTurmasRoute = AdminTurmasRouteImport.update({
+const PainelTurmasRoute = PainelTurmasRouteImport.update({
   id: '/turmas',
   path: '/turmas',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => PainelRoute,
 } as any)
-const AdminSegurancaRoute = AdminSegurancaRouteImport.update({
+const PainelSegurancaRoute = PainelSegurancaRouteImport.update({
   id: '/seguranca',
   path: '/seguranca',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => PainelRoute,
 } as any)
-const AdminRelatoriosRoute = AdminRelatoriosRouteImport.update({
+const PainelRelatoriosRoute = PainelRelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => PainelRoute,
 } as any)
-const AdminPresencaRoute = AdminPresencaRouteImport.update({
+const PainelPresencaRoute = PainelPresencaRouteImport.update({
   id: '/presenca',
   path: '/presenca',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => PainelRoute,
 } as any)
-const AdminPreCadastrosRoute = AdminPreCadastrosRouteImport.update({
+const PainelPreCadastrosRoute = PainelPreCadastrosRouteImport.update({
   id: '/pre-cadastros',
   path: '/pre-cadastros',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => PainelRoute,
 } as any)
-const AdminPainelRoute = AdminPainelRouteImport.update({
-  id: '/painel',
-  path: '/painel',
-  getParentRoute: () => AdminRoute,
+const PainelLoginRoute = PainelLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => PainelRoute,
 } as any)
-const AdminDocumentosRoute = AdminDocumentosRouteImport.update({
+const PainelDocumentosRoute = PainelDocumentosRouteImport.update({
   id: '/documentos',
   path: '/documentos',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => PainelRoute,
 } as any)
-const AdminAvisosAdminRoute = AdminAvisosAdminRouteImport.update({
+const PainelDiagnosticoRoute = PainelDiagnosticoRouteImport.update({
+  id: '/diagnostico',
+  path: '/diagnostico',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelAvisosAdminRoute = PainelAvisosAdminRouteImport.update({
   id: '/avisos-admin',
   path: '/avisos-admin',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => PainelRoute,
 } as any)
-const AdminAlunosRoute = AdminAlunosRouteImport.update({
+const PainelAlunosRoute = PainelAlunosRouteImport.update({
   id: '/alunos',
   path: '/alunos',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => PainelRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/acesso': typeof AcessoRoute
   '/acesso-rapido': typeof AcessoRapidoRoute
+  '/alunos': typeof AlunosRoute
   '/avisos': typeof AvisosRoute
+  '/avisos-admin': typeof AvisosAdminRoute
+  '/documentos': typeof DocumentosRoute
   '/inscricao': typeof InscricaoRoute
   '/login': typeof LoginRoute
+  '/painel': typeof PainelRouteWithChildren
   '/portal': typeof PortalRouteWithChildren
-  '/alunos': typeof AdminAlunosRoute
-  '/avisos-admin': typeof AdminAvisosAdminRoute
-  '/documentos': typeof AdminDocumentosRoute
-  '/painel': typeof AdminPainelRoute
-  '/pre-cadastros': typeof AdminPreCadastrosRoute
-  '/presenca': typeof AdminPresencaRoute
-  '/relatorios': typeof AdminRelatoriosRoute
-  '/seguranca': typeof AdminSegurancaRoute
-  '/turmas': typeof AdminTurmasRoute
-  '/usuarios': typeof AdminUsuariosRoute
+  '/pre-cadastros': typeof PreCadastrosRoute
+  '/presenca': typeof PresencaRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/seguranca': typeof SegurancaRoute
+  '/turmas': typeof TurmasRoute
+  '/usuarios': typeof UsuariosRoute
+  '/painel/alunos': typeof PainelAlunosRoute
+  '/painel/avisos-admin': typeof PainelAvisosAdminRoute
+  '/painel/diagnostico': typeof PainelDiagnosticoRoute
+  '/painel/documentos': typeof PainelDocumentosRoute
+  '/painel/login': typeof PainelLoginRoute
+  '/painel/pre-cadastros': typeof PainelPreCadastrosRoute
+  '/painel/presenca': typeof PainelPresencaRoute
+  '/painel/relatorios': typeof PainelRelatoriosRoute
+  '/painel/seguranca': typeof PainelSegurancaRoute
+  '/painel/turmas': typeof PainelTurmasRoute
+  '/painel/usuarios': typeof PainelUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
   '/portal/avisos': typeof PortalAvisosRoute
   '/portal/dados': typeof PortalDadosRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
   '/portal/presencas': typeof PortalPresencasRoute
+  '/painel/': typeof PainelIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/acesso': typeof AcessoRoute
   '/acesso-rapido': typeof AcessoRapidoRoute
+  '/alunos': typeof AlunosRoute
   '/avisos': typeof AvisosRoute
+  '/avisos-admin': typeof AvisosAdminRoute
+  '/documentos': typeof DocumentosRoute
   '/inscricao': typeof InscricaoRoute
   '/login': typeof LoginRoute
   '/portal': typeof PortalRouteWithChildren
-  '/alunos': typeof AdminAlunosRoute
-  '/avisos-admin': typeof AdminAvisosAdminRoute
-  '/documentos': typeof AdminDocumentosRoute
-  '/painel': typeof AdminPainelRoute
-  '/pre-cadastros': typeof AdminPreCadastrosRoute
-  '/presenca': typeof AdminPresencaRoute
-  '/relatorios': typeof AdminRelatoriosRoute
-  '/seguranca': typeof AdminSegurancaRoute
-  '/turmas': typeof AdminTurmasRoute
-  '/usuarios': typeof AdminUsuariosRoute
+  '/pre-cadastros': typeof PreCadastrosRoute
+  '/presenca': typeof PresencaRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/seguranca': typeof SegurancaRoute
+  '/turmas': typeof TurmasRoute
+  '/usuarios': typeof UsuariosRoute
+  '/painel/alunos': typeof PainelAlunosRoute
+  '/painel/avisos-admin': typeof PainelAvisosAdminRoute
+  '/painel/diagnostico': typeof PainelDiagnosticoRoute
+  '/painel/documentos': typeof PainelDocumentosRoute
+  '/painel/login': typeof PainelLoginRoute
+  '/painel/pre-cadastros': typeof PainelPreCadastrosRoute
+  '/painel/presenca': typeof PainelPresencaRoute
+  '/painel/relatorios': typeof PainelRelatoriosRoute
+  '/painel/seguranca': typeof PainelSegurancaRoute
+  '/painel/turmas': typeof PainelTurmasRoute
+  '/painel/usuarios': typeof PainelUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
   '/portal/avisos': typeof PortalAvisosRoute
   '/portal/dados': typeof PortalDadosRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
   '/portal/presencas': typeof PortalPresencasRoute
+  '/painel': typeof PainelIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_admin': typeof AdminRouteWithChildren
   '/acesso': typeof AcessoRoute
   '/acesso-rapido': typeof AcessoRapidoRoute
+  '/alunos': typeof AlunosRoute
   '/avisos': typeof AvisosRoute
+  '/avisos-admin': typeof AvisosAdminRoute
+  '/documentos': typeof DocumentosRoute
   '/inscricao': typeof InscricaoRoute
   '/login': typeof LoginRoute
+  '/painel': typeof PainelRouteWithChildren
   '/portal': typeof PortalRouteWithChildren
-  '/_admin/alunos': typeof AdminAlunosRoute
-  '/_admin/avisos-admin': typeof AdminAvisosAdminRoute
-  '/_admin/documentos': typeof AdminDocumentosRoute
-  '/_admin/painel': typeof AdminPainelRoute
-  '/_admin/pre-cadastros': typeof AdminPreCadastrosRoute
-  '/_admin/presenca': typeof AdminPresencaRoute
-  '/_admin/relatorios': typeof AdminRelatoriosRoute
-  '/_admin/seguranca': typeof AdminSegurancaRoute
-  '/_admin/turmas': typeof AdminTurmasRoute
-  '/_admin/usuarios': typeof AdminUsuariosRoute
+  '/pre-cadastros': typeof PreCadastrosRoute
+  '/presenca': typeof PresencaRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/seguranca': typeof SegurancaRoute
+  '/turmas': typeof TurmasRoute
+  '/usuarios': typeof UsuariosRoute
+  '/painel/alunos': typeof PainelAlunosRoute
+  '/painel/avisos-admin': typeof PainelAvisosAdminRoute
+  '/painel/diagnostico': typeof PainelDiagnosticoRoute
+  '/painel/documentos': typeof PainelDocumentosRoute
+  '/painel/login': typeof PainelLoginRoute
+  '/painel/pre-cadastros': typeof PainelPreCadastrosRoute
+  '/painel/presenca': typeof PainelPresencaRoute
+  '/painel/relatorios': typeof PainelRelatoriosRoute
+  '/painel/seguranca': typeof PainelSegurancaRoute
+  '/painel/turmas': typeof PainelTurmasRoute
+  '/painel/usuarios': typeof PainelUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
   '/portal/avisos': typeof PortalAvisosRoute
   '/portal/dados': typeof PortalDadosRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
   '/portal/presencas': typeof PortalPresencasRoute
+  '/painel/': typeof PainelIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -237,97 +338,189 @@ export interface FileRouteTypes {
     | '/'
     | '/acesso'
     | '/acesso-rapido'
-    | '/avisos'
-    | '/inscricao'
-    | '/login'
-    | '/portal'
     | '/alunos'
+    | '/avisos'
     | '/avisos-admin'
     | '/documentos'
+    | '/inscricao'
+    | '/login'
     | '/painel'
+    | '/portal'
     | '/pre-cadastros'
     | '/presenca'
     | '/relatorios'
     | '/seguranca'
     | '/turmas'
     | '/usuarios'
+    | '/painel/alunos'
+    | '/painel/avisos-admin'
+    | '/painel/diagnostico'
+    | '/painel/documentos'
+    | '/painel/login'
+    | '/painel/pre-cadastros'
+    | '/painel/presenca'
+    | '/painel/relatorios'
+    | '/painel/seguranca'
+    | '/painel/turmas'
+    | '/painel/usuarios'
     | '/portal/ajuda'
     | '/portal/avisos'
     | '/portal/dados'
     | '/portal/documentos'
     | '/portal/inicio'
     | '/portal/presencas'
+    | '/painel/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/acesso'
     | '/acesso-rapido'
+    | '/alunos'
     | '/avisos'
+    | '/avisos-admin'
+    | '/documentos'
     | '/inscricao'
     | '/login'
     | '/portal'
-    | '/alunos'
-    | '/avisos-admin'
-    | '/documentos'
-    | '/painel'
     | '/pre-cadastros'
     | '/presenca'
     | '/relatorios'
     | '/seguranca'
     | '/turmas'
     | '/usuarios'
+    | '/painel/alunos'
+    | '/painel/avisos-admin'
+    | '/painel/diagnostico'
+    | '/painel/documentos'
+    | '/painel/login'
+    | '/painel/pre-cadastros'
+    | '/painel/presenca'
+    | '/painel/relatorios'
+    | '/painel/seguranca'
+    | '/painel/turmas'
+    | '/painel/usuarios'
     | '/portal/ajuda'
     | '/portal/avisos'
     | '/portal/dados'
     | '/portal/documentos'
     | '/portal/inicio'
     | '/portal/presencas'
+    | '/painel'
   id:
     | '__root__'
     | '/'
-    | '/_admin'
     | '/acesso'
     | '/acesso-rapido'
+    | '/alunos'
     | '/avisos'
+    | '/avisos-admin'
+    | '/documentos'
     | '/inscricao'
     | '/login'
+    | '/painel'
     | '/portal'
-    | '/_admin/alunos'
-    | '/_admin/avisos-admin'
-    | '/_admin/documentos'
-    | '/_admin/painel'
-    | '/_admin/pre-cadastros'
-    | '/_admin/presenca'
-    | '/_admin/relatorios'
-    | '/_admin/seguranca'
-    | '/_admin/turmas'
-    | '/_admin/usuarios'
+    | '/pre-cadastros'
+    | '/presenca'
+    | '/relatorios'
+    | '/seguranca'
+    | '/turmas'
+    | '/usuarios'
+    | '/painel/alunos'
+    | '/painel/avisos-admin'
+    | '/painel/diagnostico'
+    | '/painel/documentos'
+    | '/painel/login'
+    | '/painel/pre-cadastros'
+    | '/painel/presenca'
+    | '/painel/relatorios'
+    | '/painel/seguranca'
+    | '/painel/turmas'
+    | '/painel/usuarios'
     | '/portal/ajuda'
     | '/portal/avisos'
     | '/portal/dados'
     | '/portal/documentos'
     | '/portal/inicio'
     | '/portal/presencas'
+    | '/painel/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRouteWithChildren
   AcessoRoute: typeof AcessoRoute
   AcessoRapidoRoute: typeof AcessoRapidoRoute
+  AlunosRoute: typeof AlunosRoute
   AvisosRoute: typeof AvisosRoute
+  AvisosAdminRoute: typeof AvisosAdminRoute
+  DocumentosRoute: typeof DocumentosRoute
   InscricaoRoute: typeof InscricaoRoute
   LoginRoute: typeof LoginRoute
+  PainelRoute: typeof PainelRouteWithChildren
   PortalRoute: typeof PortalRouteWithChildren
+  PreCadastrosRoute: typeof PreCadastrosRoute
+  PresencaRoute: typeof PresencaRoute
+  RelatoriosRoute: typeof RelatoriosRoute
+  SegurancaRoute: typeof SegurancaRoute
+  TurmasRoute: typeof TurmasRoute
+  UsuariosRoute: typeof UsuariosRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/usuarios': {
+      id: '/usuarios'
+      path: '/usuarios'
+      fullPath: '/usuarios'
+      preLoaderRoute: typeof UsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/turmas': {
+      id: '/turmas'
+      path: '/turmas'
+      fullPath: '/turmas'
+      preLoaderRoute: typeof TurmasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/seguranca': {
+      id: '/seguranca'
+      path: '/seguranca'
+      fullPath: '/seguranca'
+      preLoaderRoute: typeof SegurancaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relatorios': {
+      id: '/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/presenca': {
+      id: '/presenca'
+      path: '/presenca'
+      fullPath: '/presenca'
+      preLoaderRoute: typeof PresencaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pre-cadastros': {
+      id: '/pre-cadastros'
+      path: '/pre-cadastros'
+      fullPath: '/pre-cadastros'
+      preLoaderRoute: typeof PreCadastrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portal': {
       id: '/portal'
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/painel': {
+      id: '/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof PainelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -344,11 +537,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InscricaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/documentos': {
+      id: '/documentos'
+      path: '/documentos'
+      fullPath: '/documentos'
+      preLoaderRoute: typeof DocumentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/avisos-admin': {
+      id: '/avisos-admin'
+      path: '/avisos-admin'
+      fullPath: '/avisos-admin'
+      preLoaderRoute: typeof AvisosAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/avisos': {
       id: '/avisos'
       path: '/avisos'
       fullPath: '/avisos'
       preLoaderRoute: typeof AvisosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alunos': {
+      id: '/alunos'
+      path: '/alunos'
+      fullPath: '/alunos'
+      preLoaderRoute: typeof AlunosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/acesso-rapido': {
@@ -365,19 +579,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcessoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_admin': {
-      id: '/_admin'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/painel/': {
+      id: '/painel/'
+      path: '/'
+      fullPath: '/painel/'
+      preLoaderRoute: typeof PainelIndexRouteImport
+      parentRoute: typeof PainelRoute
     }
     '/portal/presencas': {
       id: '/portal/presencas'
@@ -421,106 +635,118 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalAjudaRouteImport
       parentRoute: typeof PortalRoute
     }
-    '/_admin/usuarios': {
-      id: '/_admin/usuarios'
+    '/painel/usuarios': {
+      id: '/painel/usuarios'
       path: '/usuarios'
-      fullPath: '/usuarios'
-      preLoaderRoute: typeof AdminUsuariosRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/painel/usuarios'
+      preLoaderRoute: typeof PainelUsuariosRouteImport
+      parentRoute: typeof PainelRoute
     }
-    '/_admin/turmas': {
-      id: '/_admin/turmas'
+    '/painel/turmas': {
+      id: '/painel/turmas'
       path: '/turmas'
-      fullPath: '/turmas'
-      preLoaderRoute: typeof AdminTurmasRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/painel/turmas'
+      preLoaderRoute: typeof PainelTurmasRouteImport
+      parentRoute: typeof PainelRoute
     }
-    '/_admin/seguranca': {
-      id: '/_admin/seguranca'
+    '/painel/seguranca': {
+      id: '/painel/seguranca'
       path: '/seguranca'
-      fullPath: '/seguranca'
-      preLoaderRoute: typeof AdminSegurancaRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/painel/seguranca'
+      preLoaderRoute: typeof PainelSegurancaRouteImport
+      parentRoute: typeof PainelRoute
     }
-    '/_admin/relatorios': {
-      id: '/_admin/relatorios'
+    '/painel/relatorios': {
+      id: '/painel/relatorios'
       path: '/relatorios'
-      fullPath: '/relatorios'
-      preLoaderRoute: typeof AdminRelatoriosRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/painel/relatorios'
+      preLoaderRoute: typeof PainelRelatoriosRouteImport
+      parentRoute: typeof PainelRoute
     }
-    '/_admin/presenca': {
-      id: '/_admin/presenca'
+    '/painel/presenca': {
+      id: '/painel/presenca'
       path: '/presenca'
-      fullPath: '/presenca'
-      preLoaderRoute: typeof AdminPresencaRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/painel/presenca'
+      preLoaderRoute: typeof PainelPresencaRouteImport
+      parentRoute: typeof PainelRoute
     }
-    '/_admin/pre-cadastros': {
-      id: '/_admin/pre-cadastros'
+    '/painel/pre-cadastros': {
+      id: '/painel/pre-cadastros'
       path: '/pre-cadastros'
-      fullPath: '/pre-cadastros'
-      preLoaderRoute: typeof AdminPreCadastrosRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/painel/pre-cadastros'
+      preLoaderRoute: typeof PainelPreCadastrosRouteImport
+      parentRoute: typeof PainelRoute
     }
-    '/_admin/painel': {
-      id: '/_admin/painel'
-      path: '/painel'
-      fullPath: '/painel'
-      preLoaderRoute: typeof AdminPainelRouteImport
-      parentRoute: typeof AdminRoute
+    '/painel/login': {
+      id: '/painel/login'
+      path: '/login'
+      fullPath: '/painel/login'
+      preLoaderRoute: typeof PainelLoginRouteImport
+      parentRoute: typeof PainelRoute
     }
-    '/_admin/documentos': {
-      id: '/_admin/documentos'
+    '/painel/documentos': {
+      id: '/painel/documentos'
       path: '/documentos'
-      fullPath: '/documentos'
-      preLoaderRoute: typeof AdminDocumentosRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/painel/documentos'
+      preLoaderRoute: typeof PainelDocumentosRouteImport
+      parentRoute: typeof PainelRoute
     }
-    '/_admin/avisos-admin': {
-      id: '/_admin/avisos-admin'
+    '/painel/diagnostico': {
+      id: '/painel/diagnostico'
+      path: '/diagnostico'
+      fullPath: '/painel/diagnostico'
+      preLoaderRoute: typeof PainelDiagnosticoRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/avisos-admin': {
+      id: '/painel/avisos-admin'
       path: '/avisos-admin'
-      fullPath: '/avisos-admin'
-      preLoaderRoute: typeof AdminAvisosAdminRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/painel/avisos-admin'
+      preLoaderRoute: typeof PainelAvisosAdminRouteImport
+      parentRoute: typeof PainelRoute
     }
-    '/_admin/alunos': {
-      id: '/_admin/alunos'
+    '/painel/alunos': {
+      id: '/painel/alunos'
       path: '/alunos'
-      fullPath: '/alunos'
-      preLoaderRoute: typeof AdminAlunosRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/painel/alunos'
+      preLoaderRoute: typeof PainelAlunosRouteImport
+      parentRoute: typeof PainelRoute
     }
   }
 }
 
-interface AdminRouteChildren {
-  AdminAlunosRoute: typeof AdminAlunosRoute
-  AdminAvisosAdminRoute: typeof AdminAvisosAdminRoute
-  AdminDocumentosRoute: typeof AdminDocumentosRoute
-  AdminPainelRoute: typeof AdminPainelRoute
-  AdminPreCadastrosRoute: typeof AdminPreCadastrosRoute
-  AdminPresencaRoute: typeof AdminPresencaRoute
-  AdminRelatoriosRoute: typeof AdminRelatoriosRoute
-  AdminSegurancaRoute: typeof AdminSegurancaRoute
-  AdminTurmasRoute: typeof AdminTurmasRoute
-  AdminUsuariosRoute: typeof AdminUsuariosRoute
+interface PainelRouteChildren {
+  PainelAlunosRoute: typeof PainelAlunosRoute
+  PainelAvisosAdminRoute: typeof PainelAvisosAdminRoute
+  PainelDiagnosticoRoute: typeof PainelDiagnosticoRoute
+  PainelDocumentosRoute: typeof PainelDocumentosRoute
+  PainelLoginRoute: typeof PainelLoginRoute
+  PainelPreCadastrosRoute: typeof PainelPreCadastrosRoute
+  PainelPresencaRoute: typeof PainelPresencaRoute
+  PainelRelatoriosRoute: typeof PainelRelatoriosRoute
+  PainelSegurancaRoute: typeof PainelSegurancaRoute
+  PainelTurmasRoute: typeof PainelTurmasRoute
+  PainelUsuariosRoute: typeof PainelUsuariosRoute
+  PainelIndexRoute: typeof PainelIndexRoute
 }
 
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminAlunosRoute: AdminAlunosRoute,
-  AdminAvisosAdminRoute: AdminAvisosAdminRoute,
-  AdminDocumentosRoute: AdminDocumentosRoute,
-  AdminPainelRoute: AdminPainelRoute,
-  AdminPreCadastrosRoute: AdminPreCadastrosRoute,
-  AdminPresencaRoute: AdminPresencaRoute,
-  AdminRelatoriosRoute: AdminRelatoriosRoute,
-  AdminSegurancaRoute: AdminSegurancaRoute,
-  AdminTurmasRoute: AdminTurmasRoute,
-  AdminUsuariosRoute: AdminUsuariosRoute,
+const PainelRouteChildren: PainelRouteChildren = {
+  PainelAlunosRoute: PainelAlunosRoute,
+  PainelAvisosAdminRoute: PainelAvisosAdminRoute,
+  PainelDiagnosticoRoute: PainelDiagnosticoRoute,
+  PainelDocumentosRoute: PainelDocumentosRoute,
+  PainelLoginRoute: PainelLoginRoute,
+  PainelPreCadastrosRoute: PainelPreCadastrosRoute,
+  PainelPresencaRoute: PainelPresencaRoute,
+  PainelRelatoriosRoute: PainelRelatoriosRoute,
+  PainelSegurancaRoute: PainelSegurancaRoute,
+  PainelTurmasRoute: PainelTurmasRoute,
+  PainelUsuariosRoute: PainelUsuariosRoute,
+  PainelIndexRoute: PainelIndexRoute,
 }
 
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+const PainelRouteWithChildren =
+  PainelRoute._addFileChildren(PainelRouteChildren)
 
 interface PortalRouteChildren {
   PortalAjudaRoute: typeof PortalAjudaRoute
@@ -545,13 +771,22 @@ const PortalRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRouteWithChildren,
   AcessoRoute: AcessoRoute,
   AcessoRapidoRoute: AcessoRapidoRoute,
+  AlunosRoute: AlunosRoute,
   AvisosRoute: AvisosRoute,
+  AvisosAdminRoute: AvisosAdminRoute,
+  DocumentosRoute: DocumentosRoute,
   InscricaoRoute: InscricaoRoute,
   LoginRoute: LoginRoute,
+  PainelRoute: PainelRouteWithChildren,
   PortalRoute: PortalRouteWithChildren,
+  PreCadastrosRoute: PreCadastrosRoute,
+  PresencaRoute: PresencaRoute,
+  RelatoriosRoute: RelatoriosRoute,
+  SegurancaRoute: SegurancaRoute,
+  TurmasRoute: TurmasRoute,
+  UsuariosRoute: UsuariosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

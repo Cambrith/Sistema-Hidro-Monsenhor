@@ -7,8 +7,7 @@ import {
   CheckSquare,
   Megaphone,
   BarChart3,
-  Shield,
-  UserCog,
+  ShieldAlert,
   LogOut,
   FileText,
   Hourglass,
@@ -46,43 +45,43 @@ const operacao: MenuItem[] = [
     permissao: "painel",
   },
   {
-    to: "/alunos",
+    to: "/painel/alunos",
     label: "Alunos",
     icon: Users,
     permissao: "alunos",
   },
   {
-    to: "/turmas",
+    to: "/painel/turmas",
     label: "Turmas",
     icon: CalendarDays,
     permissao: "turmas",
   },
   {
-    to: "/presenca",
+    to: "/painel/presenca",
     label: "Presença",
     icon: CheckSquare,
     permissao: "presenca",
   },
   {
-    to: "/avisos-admin",
+    to: "/painel/avisos-admin",
     label: "Avisos",
     icon: Megaphone,
     permissao: "avisos",
   },
   {
-    to: "/documentos",
+    to: "/painel/documentos",
     label: "Documentos",
     icon: FileText,
     permissao: "alunos",
   },
   {
-    to: "/pre-cadastros",
+    to: "/painel/pre-cadastros",
     label: "Lista de Espera",
     icon: Hourglass,
     permissao: "alunos",
   },
   {
-    to: "/relatorios",
+    to: "/painel/relatorios",
     label: "Relatórios",
     icon: BarChart3,
     permissao: "relatorios",
@@ -91,15 +90,9 @@ const operacao: MenuItem[] = [
 
 const sistema: MenuItem[] = [
   {
-    to: "/usuarios",
-    label: "Usuários e Perfis",
-    icon: UserCog,
-    permissao: "usuarios",
-  },
-  {
-    to: "/seguranca",
-    label: "Segurança e Backup",
-    icon: Shield,
+    to: "/painel/diagnostico",
+    label: "Diagnóstico do Sistema",
+    icon: ShieldAlert,
     permissao: "seguranca",
   },
 ];
@@ -234,7 +227,7 @@ export function AdminSidebar() {
               tooltip="Sair"
               onClick={() => {
                 sair();
-                navigate({ to: "/login" });
+                navigate({ to: "/painel/login" });
               }}
             >
               <LogOut className="h-4 w-4" />

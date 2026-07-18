@@ -54,8 +54,14 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_admin/alunos")({
+export const Route = createFileRoute("/painel/alunos")({
   head: () => ({ meta: [{ title: "Gerenciamento de Alunos" }] }),
+  // Permite chegar aqui com a busca já preenchida (ex: a partir de um item
+  // da lista de problemas em /painel/diagnostico), sem precisar de outro
+  // mecanismo de deep-link.
+  validateSearch: (search: Record<string, unknown>): { busca?: string } => ({
+    busca: typeof search.busca === "string" ? search.busca : undefined,
+  }),
   component: AlunosAdmin,
 });
 
@@ -301,12 +307,16 @@ function AlunosAdmin() {
   const podeRegistrarOcorrencia = perfil === "Administrador" || perfil === "Recepção";
   const apenasVisualiza = perfil === "Professor";
 
+  const { busca: buscaInicial } = Route.useSearch();
+
   const [alunos, setAlunos] = useState<Aluno[]>([]);
   const [turmas, setTurmas] = useState<Turma[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(buscaInicial ?? "");
   const [mod, setMod] = useState<"todas" | Modalidade>("todas");
-  const [st, setSt] = useState<"todos" | StatusAluno>("todos");
+  // Por padrão mostra só ativos — a maioria das operações do dia a dia é com
+  // quem está matriculado agora, e a base tem mais inativos que ativos.
+  const [st, setSt] = useState<"todos" | StatusAluno>("ativo");
   const [turmaFiltro, setTurmaFiltro] = useState<string>("todas");
   const [nivelFiltro, setNivelFiltro] = useState<"todos" | Nivel | "nao_avaliado">("todos");
   const [idadeMin, setIdadeMin] = useState("");

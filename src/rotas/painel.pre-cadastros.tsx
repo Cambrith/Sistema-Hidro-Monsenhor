@@ -51,7 +51,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_admin/pre-cadastros")({
+export const Route = createFileRoute("/painel/pre-cadastros")({
   head: () => ({ meta: [{ title: "Lista de Espera" }] }),
   component: ListaEsperaAdmin,
 });

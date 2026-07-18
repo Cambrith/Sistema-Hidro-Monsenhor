@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_admin/presenca")({
+export const Route = createFileRoute("/painel/presenca")({
   head: () => ({ meta: [{ title: "Presença" }] }),
   component: PresencaAdmin,
 });

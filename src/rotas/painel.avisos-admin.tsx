@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_admin/avisos-admin")({
+export const Route = createFileRoute("/painel/avisos-admin")({
   head: () => ({ meta: [{ title: "Gerenciamento de Avisos" }] }),
   component: AvisosAdmin,
 });

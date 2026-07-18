@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_admin/relatorios")({
+export const Route = createFileRoute("/painel/relatorios")({
   head: () => ({ meta: [{ title: "Relatórios" }] }),
   component: Relatorios,
 });

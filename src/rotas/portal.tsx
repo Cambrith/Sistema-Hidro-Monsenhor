@@ -145,7 +145,7 @@ function PortalLayout() {
             <p className="truncate font-display text-sm font-semibold">{tituloAtual}</p>
           </header>
 
-          <PwaInstallBanner />
+          {sessao && <PwaInstallBanner />}
 
           <main className="flex-1 overflow-y-auto">
             <Outlet />

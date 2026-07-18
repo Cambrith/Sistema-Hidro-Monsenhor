@@ -57,7 +57,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_admin/turmas")({
+export const Route = createFileRoute("/painel/turmas")({
   head: () => ({ meta: [{ title: "Turmas" }] }),
   component: TurmasAdmin,
 });

@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_admin/documentos")({
+export const Route = createFileRoute("/painel/documentos")({
   head: () => ({ meta: [{ title: "Documentos Enviados" }] }),
   component: DocumentosAdmin,
 });

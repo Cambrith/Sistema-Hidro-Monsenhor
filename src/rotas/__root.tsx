@@ -178,7 +178,15 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
-    registrarServiceWorker();
+    // Só registra o service worker dentro do Portal do Aluno ou do Painel
+    // administrativo — o site público (/, /avisos, /inscricao, /acesso...)
+    // não deve ter um SW controlando a navegação (achado de auditoria).
+    const pathname = window.location.pathname;
+    if (pathname.startsWith("/portal")) {
+      registrarServiceWorker("portal");
+    } else if (pathname.startsWith("/painel")) {
+      registrarServiceWorker("painel");
+    }
   }, []);
 
   return (

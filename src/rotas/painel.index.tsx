@@ -29,7 +29,7 @@ import {
 
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
-export const Route = createFileRoute("/_admin/painel")({
+export const Route = createFileRoute("/painel/")({
   head: () => ({
     meta: [{ title: "Painel Administrativo" }],
   }),
@@ -67,13 +67,13 @@ type AlunoTurma = {
 };
 
 type DashboardTo =
-  | "/pre-cadastros"
-  | "/alunos"
-  | "/avisos-admin"
-  | "/turmas"
-  | "/presenca"
-  | "/relatorios"
-  | "/documentos";
+  | "/painel/pre-cadastros"
+  | "/painel/alunos"
+  | "/painel/avisos-admin"
+  | "/painel/turmas"
+  | "/painel/presenca"
+  | "/painel/relatorios"
+  | "/painel/documentos";
 
 type DashboardCard = {
   title: string;
@@ -536,7 +536,7 @@ function Painel() {
         value: dados.alunosAtivos.length,
         description: "Alunos atualmente ativos",
         icon: Users,
-        to: "/alunos",
+        to: "/painel/alunos",
         permissao: "alunos",
       },
       {
@@ -544,7 +544,7 @@ function Painel() {
         value: dados.turmasAtivas.length,
         description: "Turmas disponíveis no sistema",
         icon: CalendarDays,
-        to: "/turmas",
+        to: "/painel/turmas",
         permissao: "turmas",
       },
       {
@@ -552,7 +552,7 @@ function Painel() {
         value: dados.vagasOcupadas,
         description: `${dados.ocupacaoTexto} da capacidade configurada`,
         icon: UserCheck,
-        to: "/turmas",
+        to: "/painel/turmas",
         permissao: "turmas",
       },
       {
@@ -560,7 +560,7 @@ function Painel() {
         value: dados.vagasDisponiveis,
         description: `${dados.totalVagas} vaga(s) configurada(s)`,
         icon: DoorOpen,
-        to: "/turmas",
+        to: "/painel/turmas",
         permissao: "turmas",
       },
       {
@@ -568,7 +568,7 @@ function Painel() {
         value: filaEsperaCount,
         description: "Pessoas aguardando vaga",
         icon: Hourglass,
-        to: "/pre-cadastros",
+        to: "/painel/pre-cadastros",
         permissao: "pre-cadastros",
       },
       {
@@ -576,7 +576,7 @@ function Painel() {
         value: documentosPendentesCount,
         description: "Atestados e PAR-Q aguardando análise",
         icon: FileText,
-        to: "/documentos",
+        to: "/painel/documentos",
         permissao: "alunos",
       },
       {
@@ -584,7 +584,7 @@ function Painel() {
         value: avisosPublicadosCount,
         description: "Comunicados visíveis no site",
         icon: Megaphone,
-        to: "/avisos-admin",
+        to: "/painel/avisos-admin",
         permissao: "avisos",
       },
     ];
@@ -599,7 +599,7 @@ function Painel() {
         value: "Abrir",
         description: "Registrar presença dos alunos",
         icon: CheckSquare,
-        to: "/presenca",
+        to: "/painel/presenca",
         permissao: "presenca",
       },
       {
@@ -607,7 +607,7 @@ function Painel() {
         value: "Abrir",
         description: "Indicadores, faltas e exportações",
         icon: BarChart3,
-        to: "/relatorios",
+        to: "/painel/relatorios",
         permissao: "relatorios",
       },
     ];
@@ -628,7 +628,7 @@ function Painel() {
           </CardHeader>
 
           <CardContent>
-            <Link to="/login">
+            <Link to="/painel/login">
               <Button>Ir para o login</Button>
             </Link>
           </CardContent>
@@ -777,14 +777,14 @@ function Painel() {
             </CardHeader>
 
             <CardContent className="grid gap-3 sm:grid-cols-2">
-              <Link to="/turmas">
+              <Link to="/painel/turmas">
                 <Button variant="outline" className="h-12 w-full justify-start">
                   <CalendarDays className="mr-2 h-4 w-4" />
                   Ver turmas
                 </Button>
               </Link>
 
-              <Link to="/presenca">
+              <Link to="/painel/presenca">
                 <Button className="h-12 w-full justify-start">
                   <CheckSquare className="mr-2 h-4 w-4" />
                   Fazer chamada
@@ -917,7 +917,7 @@ function Painel() {
                   </div>
                 </div>
 
-                <Link to="/turmas">
+                <Link to="/painel/turmas">
                   <Button variant="outline" size="sm" className="w-full">
                     Ver controle de turmas
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -1022,7 +1022,7 @@ function Painel() {
               </CardDescription>
             </div>
 
-            <Link to="/turmas">
+            <Link to="/painel/turmas">
               <Button size="sm" variant="ghost">
                 Ver turmas
                 <ArrowRight className="ml-1 h-3 w-3" />
