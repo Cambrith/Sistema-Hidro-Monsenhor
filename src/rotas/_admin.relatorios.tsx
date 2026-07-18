@@ -8,6 +8,7 @@ import {
   type SVGProps,
 } from "react";
 import { supabase, buscarTodasLinhas } from "@/utilitarios/supabase";
+import { gerarPdfTabela } from "@/utilitarios/exportar-pdf";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/componentes/ui/card";
 import { Button } from "@/componentes/ui/button";
 import { Input } from "@/componentes/ui/input";
@@ -110,6 +111,11 @@ function nomeArquivo(base: string) {
   return `${base}-${hoje}.csv`;
 }
 
+function nomeArquivoPdf(base: string) {
+  const hoje = new Date().toISOString().slice(0, 10);
+  return `${base}-${hoje}.pdf`;
+}
+
 function downloadCSV(filename: string, rows: Array<Array<string | number | null | undefined>>) {
   const csv = rows
     .map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(";"))
@@ -126,13 +132,6 @@ function downloadCSV(filename: string, rows: Array<Array<string | number | null 
   a.click();
   URL.revokeObjectURL(url);
   toast.success(`Arquivo ${filename} exportado.`);
-}
-
-function exportarPDF() {
-  toast.message("Abrindo impressão do relatório.", {
-    description: 'Na janela de impressão, escolha "Salvar como PDF".',
-  });
-  window.print();
 }
 
 function formatarData(iso?: string | null) {
@@ -420,6 +419,46 @@ function Relatorios() {
     ? faltasFiltradas
     : faltasFiltradas.slice(0, LINHAS_INICIAIS);
 
+  const dadosPorModalidade: Array<Array<string | number>> = [
+    ...relatorio.porMod.map((item) => [item.modalidade, item.total]),
+    ["Outras/sem modalidade", relatorio.outrasModalidades],
+  ];
+
+  const dadosPorTurma: Array<Array<string | number>> = relatorio.porTurma.map((item) => [
+    item.turma,
+    item.modalidade,
+    item.horario,
+    item.professor,
+    item.inscritos,
+    item.capacidadeConfigurada ? item.vagas : "Não configurada",
+    item.capacidadeConfigurada ? (item.disponiveis ?? 0) : "—",
+    item.capacidadeConfigurada
+      ? item.lotada
+        ? "Lotada"
+        : "Com vagas"
+      : "Capacidade não configurada",
+  ]);
+
+  const dadosPresencaPorPeriodo: Array<Array<string | number>> = presencaFiltrada.map((item) => [
+    item.turma,
+    item.modalidade,
+    formatarData(item.data),
+    item.total,
+    item.presentes,
+    item.faltas,
+    item.justificadas,
+  ]);
+
+  const dadosFaltasPorAluno: Array<Array<string | number>> = faltasFiltradas.map((item) => [
+    item.aluno,
+    item.modalidade,
+    item.turma,
+    item.presentes,
+    item.faltas,
+    item.justificadas,
+    item.total,
+  ]);
+
   return (
     <div className="print-report-root space-y-6">
       <PrintStyles />
@@ -571,9 +610,16 @@ function Relatorios() {
         onCSV={() =>
           downloadCSV(nomeArquivo("alunos-por-modalidade"), [
             ["Modalidade", "Total"],
-            ...relatorio.porMod.map((item) => [item.modalidade, item.total]),
-            ["Outras/sem modalidade", relatorio.outrasModalidades],
+            ...dadosPorModalidade,
           ])
+        }
+        onPDF={() =>
+          gerarPdfTabela({
+            titulo: "Distribuição por modalidade",
+            colunas: ["Modalidade", "Total"],
+            linhas: dadosPorModalidade,
+            nomeArquivo: nomeArquivoPdf("alunos-por-modalidade"),
+          })
         }
       >
         {carregando ? (
@@ -606,21 +652,25 @@ function Relatorios() {
               "Disponíveis",
               "Situação",
             ],
-            ...relatorio.porTurma.map((item) => [
-              item.turma,
-              item.modalidade,
-              item.horario,
-              item.professor,
-              item.inscritos,
-              item.capacidadeConfigurada ? item.vagas : "Não configurada",
-              item.capacidadeConfigurada ? (item.disponiveis ?? 0) : "—",
-              item.capacidadeConfigurada
-                ? item.lotada
-                  ? "Lotada"
-                  : "Com vagas"
-                : "Capacidade não configurada",
-            ]),
+            ...dadosPorTurma,
           ])
+        }
+        onPDF={() =>
+          gerarPdfTabela({
+            titulo: "Alunos e capacidade por turma",
+            colunas: [
+              "Turma",
+              "Modalidade",
+              "Horário",
+              "Professor",
+              "Inscritos",
+              "Capacidade",
+              "Disponíveis",
+              "Situação",
+            ],
+            linhas: dadosPorTurma,
+            nomeArquivo: nomeArquivoPdf("alunos-por-turma"),
+          })
         }
       >
         <Table>
@@ -693,16 +743,16 @@ function Relatorios() {
           onCSV={() =>
             downloadCSV(nomeArquivo("presencas-por-periodo"), [
               ["Turma", "Modalidade", "Data", "Total", "Presentes", "Faltas", "Justificadas"],
-              ...presencaFiltrada.map((item) => [
-                item.turma,
-                item.modalidade,
-                formatarData(item.data),
-                item.total,
-                item.presentes,
-                item.faltas,
-                item.justificadas,
-              ]),
+              ...dadosPresencaPorPeriodo,
             ])
+          }
+          onPDF={() =>
+            gerarPdfTabela({
+              titulo: "Presença por período",
+              colunas: ["Turma", "Modalidade", "Data", "Total", "Presentes", "Faltas", "Justificadas"],
+              linhas: dadosPresencaPorPeriodo,
+              nomeArquivo: nomeArquivoPdf("presencas-por-periodo"),
+            })
           }
         >
           <div className="mb-3 no-print">
@@ -801,16 +851,24 @@ function Relatorios() {
                 "Justificadas",
                 "Total de registros",
               ],
-              ...faltasFiltradas.map((item) => [
-                item.aluno,
-                item.modalidade,
-                item.turma,
-                item.presentes,
-                item.faltas,
-                item.justificadas,
-                item.total,
-              ]),
+              ...dadosFaltasPorAluno,
             ])
+          }
+          onPDF={() =>
+            gerarPdfTabela({
+              titulo: "Faltas por aluno",
+              colunas: [
+                "Aluno",
+                "Modalidade",
+                "Turma",
+                "Presentes",
+                "Faltas",
+                "Justificadas",
+                "Total de registros",
+              ],
+              linhas: dadosFaltasPorAluno,
+              nomeArquivo: nomeArquivoPdf("faltas-por-aluno"),
+            })
           }
         >
           <div className="mb-3 flex flex-col gap-2 no-print sm:flex-row">
@@ -1041,11 +1099,13 @@ function ReportCard({
   description,
   children,
   onCSV,
+  onPDF,
 }: {
   title: string;
   description?: string;
   children: ReactNode;
   onCSV: () => void;
+  onPDF: () => void;
 }) {
   return (
     <Card className="print-card">
@@ -1059,9 +1119,9 @@ function ReportCard({
             <Download className="mr-2 h-4 w-4" />
             CSV
           </Button>
-          <Button size="sm" variant="outline" onClick={exportarPDF}>
+          <Button size="sm" variant="outline" onClick={onPDF}>
             <FileText className="mr-2 h-4 w-4" />
-            Imprimir/PDF
+            PDF
           </Button>
         </div>
       </CardHeader>
