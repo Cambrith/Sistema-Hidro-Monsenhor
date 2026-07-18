@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/utilitarios/supabase";
 import { getSessao } from "@/utilitarios/autenticacao";
+import { pontuarTexto } from "@/utilitarios/relevancia-busca";
 import { Input } from "@/componentes/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/componentes/ui/card";
 import { Badge } from "@/componentes/ui/badge";
@@ -588,14 +589,32 @@ function RegistrarDialog({
       return;
     }
     const timeout = setTimeout(async () => {
+      const termo = buscaAluno.trim();
       const { data, error } = await supabase
         .from("alunos")
         .select("id, nome_completo")
-        .ilike("nome_completo", `%${buscaAluno.trim()}%`)
-        .order("nome_completo")
-        .limit(8);
+        .ilike("nome_completo", `%${termo}%`)
+        .limit(40);
 
-      if (!error) setResultadosAluno((data ?? []) as AlunoBusca[]);
+      if (error) return;
+
+      // O ILIKE traz até 40 candidatos; a ordem de exibição (top 8) vem da
+      // relevância (igual > começa com > palavra começa com > contém), não
+      // da ordem alfabética do banco — senão "Adilza Maria..." aparece antes
+      // de "Maria Eduarda..." só por causa do "A" no começo do nome completo.
+      const ranqueados = (data ?? [])
+        .map((item) => ({ item, score: pontuarTexto(item.nome_completo, termo, 1) }))
+        .sort(
+          (a, b) =>
+            b.score - a.score ||
+            a.item.nome_completo.localeCompare(b.item.nome_completo, "pt-BR", {
+              sensitivity: "base",
+            }),
+        )
+        .slice(0, 8)
+        .map((r) => r.item);
+
+      setResultadosAluno(ranqueados as AlunoBusca[]);
     }, 300);
     return () => clearTimeout(timeout);
   }, [buscaAluno, aluno]);
