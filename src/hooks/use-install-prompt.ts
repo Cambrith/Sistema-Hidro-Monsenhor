@@ -1,11 +1,7 @@
 import * as React from "react";
+import { useDeferredInstallPrompt } from "@/utilitarios/contexto-instalacao-pwa";
 
 const DIAS_ATE_REAPARECER = 14;
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
 
 type PlataformaInstalacao = "android" | "desktop" | "ios" | null;
 
@@ -74,8 +70,13 @@ function marcarComoInstalado(chaveInstalado: string): void {
 /**
  * Controla a exibição do banner de instalação do PWA.
  *
- * - No Android/Chrome: captura o evento nativo `beforeinstallprompt` e expõe
- *   uma função `instalar()` que dispara o prompt real do navegador.
+ * - No Android/Chrome: consome o evento `beforeinstallprompt` capturado pelo
+ *   `ProvedorInstalacaoPwa` (montado no root do app) e expõe uma função
+ *   `instalar()` que dispara o prompt real do navegador. O evento é
+ *   capturado globalmente, e não aqui, porque o navegador dispara ele uma
+ *   única vez e cedo — muitas vezes antes do redirect de login terminar e
+ *   este hook montar; capturando só no root garantimos que o evento não se
+ *   perde nesse meio-tempo.
  * - No iOS Safari: não existe evento nativo, então só sinalizamos que a
  *   plataforma é iOS pra UI mostrar a instrução manual ("Compartilhar" →
  *   "Adicionar à Tela de Início").
@@ -91,7 +92,7 @@ export function useInstallPrompt(app: "portal" | "admin" = "portal") {
   const chaveInstalado = `hidro-monsenhor:ja-instalado:${app}`;
   const [plataforma, setPlataforma] = React.useState<PlataformaInstalacao>(null);
   const [podeMostrar, setPodeMostrar] = React.useState(false);
-  const deferredPromptRef = React.useRef<BeforeInstallPromptEvent | null>(null);
+  const { deferredPrompt, limparDeferredPrompt } = useDeferredInstallPrompt();
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -109,35 +110,28 @@ export function useInstallPrompt(app: "portal" | "admin" = "portal") {
       return;
     }
 
-    function aoCapturarPrompt(event: Event) {
-      event.preventDefault();
-      deferredPromptRef.current = event as BeforeInstallPromptEvent;
+    if (deferredPrompt) {
       setPlataforma(detectarAndroid() ? "android" : "desktop");
       setPodeMostrar(true);
     }
+  }, [chaveDispensado, chaveInstalado, deferredPrompt]);
 
-    window.addEventListener("beforeinstallprompt", aoCapturarPrompt);
-
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
     function aoInstalar() {
       marcarComoInstalado(chaveInstalado);
       setPodeMostrar(false);
-      deferredPromptRef.current = null;
     }
     window.addEventListener("appinstalled", aoInstalar);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", aoCapturarPrompt);
-      window.removeEventListener("appinstalled", aoInstalar);
-    };
-  }, [chaveDispensado, chaveInstalado]);
+    return () => window.removeEventListener("appinstalled", aoInstalar);
+  }, [chaveInstalado]);
 
   async function instalar() {
-    const prompt = deferredPromptRef.current;
-    if (!prompt) return;
-    await prompt.prompt();
-    await prompt.userChoice;
+    if (!deferredPrompt) return;
+    await deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
     // Independente da escolha, o Chrome só permite usar o evento uma vez.
-    deferredPromptRef.current = null;
+    limparDeferredPrompt();
     setPodeMostrar(false);
   }
 

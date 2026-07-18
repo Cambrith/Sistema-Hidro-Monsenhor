@@ -107,7 +107,7 @@ export function PortalSidebar({
             <img
               src={logo}
               alt="Hidro e Natação Monsenhor"
-              className="h-full w-full scale-140 object-contain"
+              className="h-full w-full object-contain"
             />
           </span>
 

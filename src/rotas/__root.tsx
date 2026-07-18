@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/componentes/ui/sonner";
 import { registrarServiceWorker } from "@/utilitarios/pwa";
+import { ProvedorInstalacaoPwa } from "@/utilitarios/contexto-instalacao-pwa";
 
 import appCss from "../styles.css?url";
 
@@ -182,8 +183,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <Toaster richColors closeButton />
+      <ProvedorInstalacaoPwa>
+        <Outlet />
+        <Toaster richColors closeButton />
+      </ProvedorInstalacaoPwa>
     </QueryClientProvider>
   );
 }

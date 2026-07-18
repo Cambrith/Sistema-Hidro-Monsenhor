@@ -2,8 +2,13 @@ import { Download, Share, SquarePlus, X } from "lucide-react";
 import { Button } from "@/componentes/ui/button";
 import { Card } from "@/componentes/ui/card";
 import { useInstallPrompt } from "@/hooks/use-install-prompt";
-import logoPortal from "@/imagens/icone-portal.png";
-import logoAdmin from "@/imagens/icone-admin.png";
+
+// Mesmos ícones declarados no manifest de cada app (public/admin-icons e
+// public/icons) — assim o banner sempre mostra o ícone que realmente vai
+// parar na tela inicial do usuário, sem depender de uma cópia separada em
+// src/imagens que pode ficar desatualizada.
+const logoPortal = "/icons/icon-512.png";
+const logoAdmin = "/admin-icons/icon-512.png";
 
 interface PwaInstallBannerProps {
   /** Qual dos dois apps instaláveis este banner representa. */
@@ -31,8 +36,8 @@ export function PwaInstallBanner({
 
   return (
     <Card className="mx-4 mt-4 flex flex-col gap-3 border-primary/20 bg-primary/5 p-4 sm:mx-6 sm:flex-row sm:items-center sm:gap-4">
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-sm">
-        <img src={logo} alt="" className="h-full w-full scale-125 object-contain" />
+      <span className="flex h-14 w-14 shrink-0 items-center justify-center">
+        <img src={logo} alt="" className="h-full w-full object-contain" />
       </span>
 
       <div className="flex-1">
