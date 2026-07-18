@@ -204,9 +204,11 @@ function AdminLayout() {
             </div>
           </header>
 
-          <div className="print:hidden">
-            <PwaInstallBanner app="admin" titulo="Instale o app do Painel" />
-          </div>
+          {sessao && (
+            <div className="print:hidden">
+              <PwaInstallBanner app="admin" titulo="Instale o app do Painel" />
+            </div>
+          )}
 
           <main className="flex-1 px-4 py-6 md:px-6 print:p-0">
             <Outlet />
