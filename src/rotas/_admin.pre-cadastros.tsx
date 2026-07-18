@@ -36,6 +36,8 @@ import {
   DropdownMenuTrigger,
 } from "@/componentes/ui/dropdown-menu";
 import {
+  ChevronLeft,
+  ChevronRight,
   EyeIcon,
   Hourglass,
   MinusCircle,
@@ -283,6 +285,7 @@ function ListaEsperaAdmin() {
   const [filtro, setFiltro] = useState<"todos" | StatusListaEspera>("fila de espera");
   const [verId, setVerId] = useState<string | null>(null);
   const [novoAberto, setNovoAberto] = useState(false);
+  const [pagina, setPagina] = useState(0);
 
   async function carregarTurmas() {
     const { data, error } = await supabase
@@ -344,6 +347,23 @@ function ListaEsperaAdmin() {
       return passaFiltro && passaBusca;
     });
   }, [itens, q, filtro]);
+
+  const TAMANHO_PAGINA = 50;
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / TAMANHO_PAGINA));
+  const itensPagina = useMemo(
+    () => filtrados.slice(pagina * TAMANHO_PAGINA, (pagina + 1) * TAMANHO_PAGINA),
+    [filtrados, pagina],
+  );
+
+  useEffect(() => {
+    setPagina(0);
+  }, [q, filtro]);
+
+  // Se a lista encolher (exclusão, mudança de filtro) e a página atual deixar
+  // de existir, volta pra última página válida em vez de renderizar em branco.
+  useEffect(() => {
+    setPagina((p) => Math.min(p, totalPaginas - 1));
+  }, [totalPaginas]);
 
   const verItem = itens.find((item) => item.id === verId);
   const dadosEscolares = separarEscolaTurma(verItem?.escola_turma);
@@ -619,7 +639,7 @@ function ListaEsperaAdmin() {
               </TableHeader>
 
               <TableBody>
-                {filtrados.map((item) => (
+                {itensPagina.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>
                       <p className="font-medium">{item.nome_aluno}</p>
@@ -768,6 +788,36 @@ function ListaEsperaAdmin() {
               </TableBody>
             </Table>
           </div>
+          {filtrados.length > 0 && (
+            <div className="mt-3 flex items-center justify-between text-sm">
+              <p className="text-xs text-muted-foreground">
+                Mostrando {pagina * TAMANHO_PAGINA + 1}–
+                {Math.min((pagina + 1) * TAMANHO_PAGINA, filtrados.length)} de {filtrados.length}{" "}
+                encontrados
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  disabled={pagina === 0}
+                  onClick={() => setPagina((p) => Math.max(0, p - 1))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Página {pagina + 1} de {totalPaginas}
+                </span>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  disabled={pagina >= totalPaginas - 1}
+                  onClick={() => setPagina((p) => Math.min(totalPaginas - 1, p + 1))}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
