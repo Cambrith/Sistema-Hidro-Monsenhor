@@ -121,7 +121,7 @@ function LoginPage() {
             <div className="min-w-0 leading-tight">
               <p className="font-display text-2xl font-semibold">Hidro e Natação Monsenhor</p>
 
-              <p className="mt-1 max-w-[430px] text-sm leading-snug text-white/80">
+              <p className="mt-1 max-w-107.5 text-sm leading-snug text-white/80">
                 Centro Esportivo e Cultural Professora Marta Regina de Carvalho Ferreira
               </p>
             </div>
