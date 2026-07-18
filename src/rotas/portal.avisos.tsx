@@ -15,6 +15,7 @@ import { Megaphone } from "lucide-react";
 
 export const Route = createFileRoute("/portal/avisos")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     if (!(await getSessaoAluno())) throw redirect({ to: "/portal" });
   },
   head: () => ({ meta: [{ title: "Avisos — Portal do Aluno" }] }),

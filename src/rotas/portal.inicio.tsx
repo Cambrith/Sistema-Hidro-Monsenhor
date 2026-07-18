@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { statusValidade } from "@/utilitarios/validade";
 export const Route = createFileRoute("/portal/inicio")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     if (!(await getSessaoAluno())) throw redirect({ to: "/portal" });
   },
   head: () => ({ meta: [{ title: "Início — Portal do Aluno" }] }),

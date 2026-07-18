@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/portal/presencas")({
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     if (!(await getSessaoAluno())) throw redirect({ to: "/portal" });
   },
   head: () => ({ meta: [{ title: "Presenças — Portal do Aluno" }] }),
