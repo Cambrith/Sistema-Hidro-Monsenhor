@@ -107,9 +107,19 @@ const configRotasAdmin: Record<string, ConfigRotaAdmin> = {
     sub: "Indicadores e exportações",
     permissao: "relatorios",
   },
-  "/painel/diagnostico": {
-    title: "Diagnóstico do Sistema",
-    sub: "Segurança, integridade e backup",
+  "/painel/banco-dados": {
+    title: "Banco de Dados",
+    sub: "Contagem de registros, integridade, RLS, storage e backup",
+    permissao: "seguranca",
+  },
+  "/painel/aplicacao": {
+    title: "Aplicação / Deploy",
+    sub: "Deploy atual, service worker e variáveis de ambiente",
+    permissao: "seguranca",
+  },
+  "/painel/seguranca-acessos": {
+    title: "Segurança e Acessos",
+    sub: "Equipe, permissões e tentativas de login",
     permissao: "seguranca",
   },
 };

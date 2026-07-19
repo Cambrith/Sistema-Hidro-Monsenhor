@@ -5,6 +5,6 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 // Aponta direto pro destino atual (pós-Fase 11) pra evitar redirect duplo.
 export const Route = createFileRoute("/usuarios")({
   beforeLoad: () => {
-    throw redirect({ to: "/painel/diagnostico" });
+    throw redirect({ to: "/painel/seguranca-acessos" });
   },
 });

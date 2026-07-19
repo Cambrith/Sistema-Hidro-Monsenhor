@@ -36,6 +36,7 @@ import { Route as PortalAvisosRouteImport } from './rotas/portal.avisos'
 import { Route as PortalAjudaRouteImport } from './rotas/portal.ajuda'
 import { Route as PainelUsuariosRouteImport } from './rotas/painel.usuarios'
 import { Route as PainelTurmasRouteImport } from './rotas/painel.turmas'
+import { Route as PainelSegurancaAcessosRouteImport } from './rotas/painel.seguranca-acessos'
 import { Route as PainelSegurancaRouteImport } from './rotas/painel.seguranca'
 import { Route as PainelRelatoriosRouteImport } from './rotas/painel.relatorios'
 import { Route as PainelPresencaRouteImport } from './rotas/painel.presenca'
@@ -43,7 +44,9 @@ import { Route as PainelPreCadastrosRouteImport } from './rotas/painel.pre-cadas
 import { Route as PainelLoginRouteImport } from './rotas/painel.login'
 import { Route as PainelDocumentosRouteImport } from './rotas/painel.documentos'
 import { Route as PainelDiagnosticoRouteImport } from './rotas/painel.diagnostico'
+import { Route as PainelBancoDadosRouteImport } from './rotas/painel.banco-dados'
 import { Route as PainelAvisosAdminRouteImport } from './rotas/painel.avisos-admin'
+import { Route as PainelAplicacaoRouteImport } from './rotas/painel.aplicacao'
 import { Route as PainelAlunosRouteImport } from './rotas/painel.alunos'
 
 const UsuariosRoute = UsuariosRouteImport.update({
@@ -181,6 +184,11 @@ const PainelTurmasRoute = PainelTurmasRouteImport.update({
   path: '/turmas',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelSegurancaAcessosRoute = PainelSegurancaAcessosRouteImport.update({
+  id: '/seguranca-acessos',
+  path: '/seguranca-acessos',
+  getParentRoute: () => PainelRoute,
+} as any)
 const PainelSegurancaRoute = PainelSegurancaRouteImport.update({
   id: '/seguranca',
   path: '/seguranca',
@@ -216,9 +224,19 @@ const PainelDiagnosticoRoute = PainelDiagnosticoRouteImport.update({
   path: '/diagnostico',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelBancoDadosRoute = PainelBancoDadosRouteImport.update({
+  id: '/banco-dados',
+  path: '/banco-dados',
+  getParentRoute: () => PainelRoute,
+} as any)
 const PainelAvisosAdminRoute = PainelAvisosAdminRouteImport.update({
   id: '/avisos-admin',
   path: '/avisos-admin',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelAplicacaoRoute = PainelAplicacaoRouteImport.update({
+  id: '/aplicacao',
+  path: '/aplicacao',
   getParentRoute: () => PainelRoute,
 } as any)
 const PainelAlunosRoute = PainelAlunosRouteImport.update({
@@ -246,7 +264,9 @@ export interface FileRoutesByFullPath {
   '/turmas': typeof TurmasRoute
   '/usuarios': typeof UsuariosRoute
   '/painel/alunos': typeof PainelAlunosRoute
+  '/painel/aplicacao': typeof PainelAplicacaoRoute
   '/painel/avisos-admin': typeof PainelAvisosAdminRoute
+  '/painel/banco-dados': typeof PainelBancoDadosRoute
   '/painel/diagnostico': typeof PainelDiagnosticoRoute
   '/painel/documentos': typeof PainelDocumentosRoute
   '/painel/login': typeof PainelLoginRoute
@@ -254,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/painel/presenca': typeof PainelPresencaRoute
   '/painel/relatorios': typeof PainelRelatoriosRoute
   '/painel/seguranca': typeof PainelSegurancaRoute
+  '/painel/seguranca-acessos': typeof PainelSegurancaAcessosRoute
   '/painel/turmas': typeof PainelTurmasRoute
   '/painel/usuarios': typeof PainelUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
@@ -283,7 +304,9 @@ export interface FileRoutesByTo {
   '/turmas': typeof TurmasRoute
   '/usuarios': typeof UsuariosRoute
   '/painel/alunos': typeof PainelAlunosRoute
+  '/painel/aplicacao': typeof PainelAplicacaoRoute
   '/painel/avisos-admin': typeof PainelAvisosAdminRoute
+  '/painel/banco-dados': typeof PainelBancoDadosRoute
   '/painel/diagnostico': typeof PainelDiagnosticoRoute
   '/painel/documentos': typeof PainelDocumentosRoute
   '/painel/login': typeof PainelLoginRoute
@@ -291,6 +314,7 @@ export interface FileRoutesByTo {
   '/painel/presenca': typeof PainelPresencaRoute
   '/painel/relatorios': typeof PainelRelatoriosRoute
   '/painel/seguranca': typeof PainelSegurancaRoute
+  '/painel/seguranca-acessos': typeof PainelSegurancaAcessosRoute
   '/painel/turmas': typeof PainelTurmasRoute
   '/painel/usuarios': typeof PainelUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
@@ -322,7 +346,9 @@ export interface FileRoutesById {
   '/turmas': typeof TurmasRoute
   '/usuarios': typeof UsuariosRoute
   '/painel/alunos': typeof PainelAlunosRoute
+  '/painel/aplicacao': typeof PainelAplicacaoRoute
   '/painel/avisos-admin': typeof PainelAvisosAdminRoute
+  '/painel/banco-dados': typeof PainelBancoDadosRoute
   '/painel/diagnostico': typeof PainelDiagnosticoRoute
   '/painel/documentos': typeof PainelDocumentosRoute
   '/painel/login': typeof PainelLoginRoute
@@ -330,6 +356,7 @@ export interface FileRoutesById {
   '/painel/presenca': typeof PainelPresencaRoute
   '/painel/relatorios': typeof PainelRelatoriosRoute
   '/painel/seguranca': typeof PainelSegurancaRoute
+  '/painel/seguranca-acessos': typeof PainelSegurancaAcessosRoute
   '/painel/turmas': typeof PainelTurmasRoute
   '/painel/usuarios': typeof PainelUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
@@ -362,7 +389,9 @@ export interface FileRouteTypes {
     | '/turmas'
     | '/usuarios'
     | '/painel/alunos'
+    | '/painel/aplicacao'
     | '/painel/avisos-admin'
+    | '/painel/banco-dados'
     | '/painel/diagnostico'
     | '/painel/documentos'
     | '/painel/login'
@@ -370,6 +399,7 @@ export interface FileRouteTypes {
     | '/painel/presenca'
     | '/painel/relatorios'
     | '/painel/seguranca'
+    | '/painel/seguranca-acessos'
     | '/painel/turmas'
     | '/painel/usuarios'
     | '/portal/ajuda'
@@ -399,7 +429,9 @@ export interface FileRouteTypes {
     | '/turmas'
     | '/usuarios'
     | '/painel/alunos'
+    | '/painel/aplicacao'
     | '/painel/avisos-admin'
+    | '/painel/banco-dados'
     | '/painel/diagnostico'
     | '/painel/documentos'
     | '/painel/login'
@@ -407,6 +439,7 @@ export interface FileRouteTypes {
     | '/painel/presenca'
     | '/painel/relatorios'
     | '/painel/seguranca'
+    | '/painel/seguranca-acessos'
     | '/painel/turmas'
     | '/painel/usuarios'
     | '/portal/ajuda'
@@ -437,7 +470,9 @@ export interface FileRouteTypes {
     | '/turmas'
     | '/usuarios'
     | '/painel/alunos'
+    | '/painel/aplicacao'
     | '/painel/avisos-admin'
+    | '/painel/banco-dados'
     | '/painel/diagnostico'
     | '/painel/documentos'
     | '/painel/login'
@@ -445,6 +480,7 @@ export interface FileRouteTypes {
     | '/painel/presenca'
     | '/painel/relatorios'
     | '/painel/seguranca'
+    | '/painel/seguranca-acessos'
     | '/painel/turmas'
     | '/painel/usuarios'
     | '/portal/ajuda'
@@ -668,6 +704,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelTurmasRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/seguranca-acessos': {
+      id: '/painel/seguranca-acessos'
+      path: '/seguranca-acessos'
+      fullPath: '/painel/seguranca-acessos'
+      preLoaderRoute: typeof PainelSegurancaAcessosRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/painel/seguranca': {
       id: '/painel/seguranca'
       path: '/seguranca'
@@ -717,11 +760,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelDiagnosticoRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/banco-dados': {
+      id: '/painel/banco-dados'
+      path: '/banco-dados'
+      fullPath: '/painel/banco-dados'
+      preLoaderRoute: typeof PainelBancoDadosRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/painel/avisos-admin': {
       id: '/painel/avisos-admin'
       path: '/avisos-admin'
       fullPath: '/painel/avisos-admin'
       preLoaderRoute: typeof PainelAvisosAdminRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/aplicacao': {
+      id: '/painel/aplicacao'
+      path: '/aplicacao'
+      fullPath: '/painel/aplicacao'
+      preLoaderRoute: typeof PainelAplicacaoRouteImport
       parentRoute: typeof PainelRoute
     }
     '/painel/alunos': {
@@ -736,7 +793,9 @@ declare module '@tanstack/react-router' {
 
 interface PainelRouteChildren {
   PainelAlunosRoute: typeof PainelAlunosRoute
+  PainelAplicacaoRoute: typeof PainelAplicacaoRoute
   PainelAvisosAdminRoute: typeof PainelAvisosAdminRoute
+  PainelBancoDadosRoute: typeof PainelBancoDadosRoute
   PainelDiagnosticoRoute: typeof PainelDiagnosticoRoute
   PainelDocumentosRoute: typeof PainelDocumentosRoute
   PainelLoginRoute: typeof PainelLoginRoute
@@ -744,6 +803,7 @@ interface PainelRouteChildren {
   PainelPresencaRoute: typeof PainelPresencaRoute
   PainelRelatoriosRoute: typeof PainelRelatoriosRoute
   PainelSegurancaRoute: typeof PainelSegurancaRoute
+  PainelSegurancaAcessosRoute: typeof PainelSegurancaAcessosRoute
   PainelTurmasRoute: typeof PainelTurmasRoute
   PainelUsuariosRoute: typeof PainelUsuariosRoute
   PainelIndexRoute: typeof PainelIndexRoute
@@ -751,7 +811,9 @@ interface PainelRouteChildren {
 
 const PainelRouteChildren: PainelRouteChildren = {
   PainelAlunosRoute: PainelAlunosRoute,
+  PainelAplicacaoRoute: PainelAplicacaoRoute,
   PainelAvisosAdminRoute: PainelAvisosAdminRoute,
+  PainelBancoDadosRoute: PainelBancoDadosRoute,
   PainelDiagnosticoRoute: PainelDiagnosticoRoute,
   PainelDocumentosRoute: PainelDocumentosRoute,
   PainelLoginRoute: PainelLoginRoute,
@@ -759,6 +821,7 @@ const PainelRouteChildren: PainelRouteChildren = {
   PainelPresencaRoute: PainelPresencaRoute,
   PainelRelatoriosRoute: PainelRelatoriosRoute,
   PainelSegurancaRoute: PainelSegurancaRoute,
+  PainelSegurancaAcessosRoute: PainelSegurancaAcessosRoute,
   PainelTurmasRoute: PainelTurmasRoute,
   PainelUsuariosRoute: PainelUsuariosRoute,
   PainelIndexRoute: PainelIndexRoute,

@@ -7,7 +7,9 @@ import {
   CheckSquare,
   Megaphone,
   BarChart3,
-  ShieldAlert,
+  Database,
+  Rocket,
+  ShieldCheck,
   LogOut,
   FileText,
   Hourglass,
@@ -90,9 +92,21 @@ const operacao: MenuItem[] = [
 
 const sistema: MenuItem[] = [
   {
-    to: "/painel/diagnostico",
-    label: "Diagnóstico do Sistema",
-    icon: ShieldAlert,
+    to: "/painel/banco-dados",
+    label: "Banco de Dados",
+    icon: Database,
+    permissao: "seguranca",
+  },
+  {
+    to: "/painel/aplicacao",
+    label: "Aplicação / Deploy",
+    icon: Rocket,
+    permissao: "seguranca",
+  },
+  {
+    to: "/painel/seguranca-acessos",
+    label: "Segurança e Acessos",
+    icon: ShieldCheck,
     permissao: "seguranca",
   },
 ];

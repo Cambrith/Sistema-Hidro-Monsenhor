@@ -25,8 +25,7 @@ export type Permissao =
   | "presenca"
   | "avisos"
   | "relatorios"
-  | "seguranca"
-  | "usuarios";
+  | "seguranca";
 
 export const permissoesPorPerfil: Record<Perfil, Permissao[]> = {
   Administrador: [
@@ -38,7 +37,6 @@ export const permissoesPorPerfil: Record<Perfil, Permissao[]> = {
     "avisos",
     "relatorios",
     "seguranca",
-    "usuarios",
   ],
 
   Recepção: ["painel", "pre-cadastros", "alunos", "turmas", "presenca", "avisos", "relatorios"],
