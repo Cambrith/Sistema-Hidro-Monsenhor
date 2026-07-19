@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabaseAluno } from "@/utilitarios/supabase";
-import { getSessaoAluno } from "@/utilitarios/autenticacao-aluno";
+import { getSessaoAluno, type SessaoAluno } from "@/utilitarios/autenticacao-aluno";
 import { AvisoMensagemHtml } from "@/utilitarios/sanitizar-aviso";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/componentes/ui/card";
 import {
@@ -46,18 +46,16 @@ function PortalAvisos() {
   const [avisoAberto, setAvisoAberto] = useState<Aviso | null>(null);
 
   useEffect(() => {
-    carregarAvisos();
+    getSessaoAluno().then((sessao) => {
+      if (sessao) carregarAvisos(sessao);
+    });
   }, []);
 
-  async function carregarAvisos() {
+  async function carregarAvisos(sessao: SessaoAluno) {
     setCarregando(true);
-    const { data, error } = await supabaseAluno
-      .from("avisos")
-      .select("*")
-      .eq("ativo", true)
-      .eq("visivel_portal", true)
-      .order("data", { ascending: false })
-      .limit(30);
+    const { data, error } = await supabaseAluno.rpc("portal_avisos_listar", {
+      p_aluno_id: sessao.id,
+    });
 
     if (error) {
       console.error(error);
@@ -67,6 +65,10 @@ function PortalAvisos() {
 
     setAvisos((data ?? []) as Aviso[]);
     setCarregando(false);
+
+    // Marca como visto ao abrir a página — próxima checagem de badge/toast
+    // só considera avisos publicados depois deste momento.
+    await supabaseAluno.rpc("portal_avisos_marcar_visto", { p_aluno_id: sessao.id });
   }
 
   return (

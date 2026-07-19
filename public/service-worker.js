@@ -9,7 +9,7 @@
 // do app), troque o valor de CACHE_VERSION abaixo. Isso força o navegador a
 // criar um cache novo e descartar o antigo — sem isso, o celular do usuário
 // pode ficar "preso" numa versão antiga do app.
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const STATIC_CACHE = `hidro-monsenhor-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `hidro-monsenhor-runtime-${CACHE_VERSION}`;
 
@@ -136,4 +136,39 @@ async function networkFirstGenerico(request) {
 // (usado pelo banner de atualização, se o app decidir avisar o usuário).
 self.addEventListener("message", (event) => {
   if (event.data === "SKIP_WAITING") self.skipWaiting();
+});
+
+// Push nativo (Web Push) — só usado hoje pra avisos marcados como "urgente"
+// no portal do aluno (ver enviar-push-aviso, Edge Function no Supabase).
+self.addEventListener("push", (event) => {
+  let payload = { titulo: "Hidro e Natação Monsenhor", corpo: "Você tem um novo aviso." };
+  try {
+    if (event.data) payload = { ...payload, ...event.data.json() };
+  } catch (erro) {
+    // payload não veio em JSON — mantém o texto padrão acima.
+  }
+
+  const url = payload.url || "/portal/avisos";
+
+  event.waitUntil(
+    self.registration.showNotification(payload.titulo, {
+      body: payload.corpo,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url },
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || "/portal/avisos";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((janelas) => {
+      const aberta = janelas.find((janela) => janela.url.includes(url));
+      if (aberta) return aberta.focus();
+      return self.clients.openWindow(url);
+    }),
+  );
 });

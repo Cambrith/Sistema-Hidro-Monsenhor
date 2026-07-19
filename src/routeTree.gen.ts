@@ -31,6 +31,7 @@ import { Route as PortalPresencasRouteImport } from './rotas/portal.presencas'
 import { Route as PortalInicioRouteImport } from './rotas/portal.inicio'
 import { Route as PortalDocumentosRouteImport } from './rotas/portal.documentos'
 import { Route as PortalDadosRouteImport } from './rotas/portal.dados'
+import { Route as PortalConfiguracoesRouteImport } from './rotas/portal.configuracoes'
 import { Route as PortalAvisosRouteImport } from './rotas/portal.avisos'
 import { Route as PortalAjudaRouteImport } from './rotas/portal.ajuda'
 import { Route as PainelUsuariosRouteImport } from './rotas/painel.usuarios'
@@ -155,6 +156,11 @@ const PortalDadosRoute = PortalDadosRouteImport.update({
   path: '/dados',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalConfiguracoesRoute = PortalConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalAvisosRoute = PortalAvisosRouteImport.update({
   id: '/avisos',
   path: '/avisos',
@@ -252,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/painel/usuarios': typeof PainelUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
   '/portal/avisos': typeof PortalAvisosRoute
+  '/portal/configuracoes': typeof PortalConfiguracoesRoute
   '/portal/dados': typeof PortalDadosRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
@@ -288,6 +295,7 @@ export interface FileRoutesByTo {
   '/painel/usuarios': typeof PainelUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
   '/portal/avisos': typeof PortalAvisosRoute
+  '/portal/configuracoes': typeof PortalConfiguracoesRoute
   '/portal/dados': typeof PortalDadosRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
@@ -326,6 +334,7 @@ export interface FileRoutesById {
   '/painel/usuarios': typeof PainelUsuariosRoute
   '/portal/ajuda': typeof PortalAjudaRoute
   '/portal/avisos': typeof PortalAvisosRoute
+  '/portal/configuracoes': typeof PortalConfiguracoesRoute
   '/portal/dados': typeof PortalDadosRoute
   '/portal/documentos': typeof PortalDocumentosRoute
   '/portal/inicio': typeof PortalInicioRoute
@@ -365,6 +374,7 @@ export interface FileRouteTypes {
     | '/painel/usuarios'
     | '/portal/ajuda'
     | '/portal/avisos'
+    | '/portal/configuracoes'
     | '/portal/dados'
     | '/portal/documentos'
     | '/portal/inicio'
@@ -401,6 +411,7 @@ export interface FileRouteTypes {
     | '/painel/usuarios'
     | '/portal/ajuda'
     | '/portal/avisos'
+    | '/portal/configuracoes'
     | '/portal/dados'
     | '/portal/documentos'
     | '/portal/inicio'
@@ -438,6 +449,7 @@ export interface FileRouteTypes {
     | '/painel/usuarios'
     | '/portal/ajuda'
     | '/portal/avisos'
+    | '/portal/configuracoes'
     | '/portal/dados'
     | '/portal/documentos'
     | '/portal/inicio'
@@ -621,6 +633,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalDadosRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/configuracoes': {
+      id: '/portal/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/portal/configuracoes'
+      preLoaderRoute: typeof PortalConfiguracoesRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/avisos': {
       id: '/portal/avisos'
       path: '/avisos'
@@ -751,6 +770,7 @@ const PainelRouteWithChildren =
 interface PortalRouteChildren {
   PortalAjudaRoute: typeof PortalAjudaRoute
   PortalAvisosRoute: typeof PortalAvisosRoute
+  PortalConfiguracoesRoute: typeof PortalConfiguracoesRoute
   PortalDadosRoute: typeof PortalDadosRoute
   PortalDocumentosRoute: typeof PortalDocumentosRoute
   PortalInicioRoute: typeof PortalInicioRoute
@@ -760,6 +780,7 @@ interface PortalRouteChildren {
 const PortalRouteChildren: PortalRouteChildren = {
   PortalAjudaRoute: PortalAjudaRoute,
   PortalAvisosRoute: PortalAvisosRoute,
+  PortalConfiguracoesRoute: PortalConfiguracoesRoute,
   PortalDadosRoute: PortalDadosRoute,
   PortalDocumentosRoute: PortalDocumentosRoute,
   PortalInicioRoute: PortalInicioRoute,

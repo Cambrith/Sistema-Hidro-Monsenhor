@@ -9,6 +9,13 @@ import { Label } from "@/componentes/ui/label";
 import { Switch } from "@/componentes/ui/switch";
 import { Badge } from "@/componentes/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/componentes/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -33,6 +40,7 @@ import {
   List,
   ListOrdered,
   Users,
+  BellRing,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,8 +58,15 @@ type Aviso = {
   importante: boolean;
   publico: boolean;
   visivel_portal: boolean;
+  urgente: boolean;
+  turma_id: string | null;
   ativo: boolean;
   created_at?: string;
+};
+
+type Turma = {
+  id: string;
+  nome: string;
 };
 
 type AvisoForm = {
@@ -62,6 +77,8 @@ type AvisoForm = {
   importante: boolean;
   publico: boolean;
   visivel_portal: boolean;
+  urgente: boolean;
+  turma_id: string | null;
 };
 
 function hojeISO() {
@@ -177,6 +194,8 @@ function formVazio(): AvisoForm {
     importante: false,
     publico: true,
     visivel_portal: true,
+    urgente: false,
+    turma_id: null,
   };
 }
 
@@ -189,6 +208,8 @@ function avisoParaForm(aviso: Aviso): AvisoForm {
     importante: Boolean(aviso.importante),
     publico: Boolean(aviso.publico),
     visivel_portal: Boolean(aviso.visivel_portal),
+    urgente: Boolean(aviso.urgente),
+    turma_id: aviso.turma_id ?? null,
   };
 }
 
@@ -210,6 +231,7 @@ function AvisosAdmin() {
   const podeExcluir = perfil === "Administrador";
 
   const [avisos, setAvisos] = useState<Aviso[]>([]);
+  const [turmas, setTurmas] = useState<Turma[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [dialogAberto, setDialogAberto] = useState(false);
   const [avisoEditando, setAvisoEditando] = useState<Aviso | null>(null);
@@ -217,6 +239,12 @@ function AvisosAdmin() {
   const avisosAtivos = useMemo(() => avisos.filter((a) => a.ativo !== false), [avisos]);
 
   const avisosInativos = useMemo(() => avisos.filter((a) => a.ativo === false), [avisos]);
+
+  const nomesTurmas = useMemo(() => {
+    const mapa = new Map<string, string>();
+    turmas.forEach((t) => mapa.set(t.id, t.nome));
+    return mapa;
+  }, [turmas]);
 
   const carregarAvisos = useCallback(async () => {
     setCarregando(true);
@@ -241,6 +269,12 @@ function AvisosAdmin() {
 
   useEffect(() => {
     carregarAvisos();
+    supabase
+      .from("turmas")
+      .select("id, nome")
+      .eq("ativa", true)
+      .order("nome")
+      .then(({ data }) => setTurmas((data ?? []) as Turma[]));
   }, [carregarAvisos]);
 
   function abrirNovoAviso() {
@@ -375,6 +409,7 @@ function AvisosAdmin() {
               <AvisoCard
                 key={aviso.id}
                 aviso={aviso}
+                nomeTurma={aviso.turma_id ? nomesTurmas.get(aviso.turma_id) : undefined}
                 podeCriarEditar={podeCriarEditar}
                 podeInativarReativar={podeInativarReativar}
                 podeExcluir={podeExcluir}
@@ -402,6 +437,7 @@ function AvisosAdmin() {
               <AvisoCard
                 key={aviso.id}
                 aviso={aviso}
+                nomeTurma={aviso.turma_id ? nomesTurmas.get(aviso.turma_id) : undefined}
                 podeCriarEditar={podeCriarEditar}
                 podeInativarReativar={podeInativarReativar}
                 podeExcluir={podeExcluir}
@@ -419,6 +455,7 @@ function AvisosAdmin() {
           open={dialogAberto}
           onOpenChange={setDialogAberto}
           aviso={avisoEditando}
+          turmas={turmas}
           onSaved={carregarAvisos}
         />
       )}
@@ -428,6 +465,7 @@ function AvisosAdmin() {
 
 function AvisoCard({
   aviso,
+  nomeTurma,
   podeCriarEditar,
   podeInativarReativar,
   podeExcluir,
@@ -436,6 +474,7 @@ function AvisoCard({
   onExcluir,
 }: {
   aviso: Aviso;
+  nomeTurma?: string;
   podeCriarEditar: boolean;
   podeInativarReativar: boolean;
   podeExcluir: boolean;
@@ -459,6 +498,13 @@ function AvisoCard({
               </Badge>
             )}
 
+            {aviso.urgente && (
+              <Badge variant="destructive">
+                <BellRing className="mr-1 h-3 w-3" />
+                Urgente (push)
+              </Badge>
+            )}
+
             {aviso.importante && (
               <Badge variant="destructive">
                 <AlertTriangle className="mr-1 h-3 w-3" />
@@ -476,7 +522,7 @@ function AvisoCard({
             {ativo && aviso.visivel_portal && (
               <Badge className="bg-blue-600 text-white hover:bg-blue-600">
                 <Users className="mr-1 h-3 w-3" />
-                Portal alunos
+                {nomeTurma ? `Portal — ${nomeTurma}` : "Portal alunos"}
               </Badge>
             )}
 
@@ -551,11 +597,13 @@ function AvisoDialog({
   open,
   onOpenChange,
   aviso,
+  turmas,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   aviso: Aviso | null;
+  turmas: Turma[];
   onSaved: () => void;
 }) {
   const [form, setForm] = useState<AvisoForm>(formVazio());
@@ -596,34 +644,58 @@ function AvisoDialog({
       importante: form.importante,
       publico: form.publico,
       visivel_portal: form.visivel_portal,
+      urgente: form.urgente,
+      turma_id: form.turma_id,
     };
+
+    let avisoId: string | null = null;
+    let ativoFinal = true;
 
     if (aviso) {
       const { error } = await supabase.from("avisos").update(payload).eq("id", aviso.id);
 
-      setSalvando(false);
-
       if (error) {
         console.error("Erro ao atualizar aviso:", error);
         toast.error("Não foi possível atualizar o aviso.");
+        setSalvando(false);
         return;
       }
 
+      avisoId = aviso.id;
+      ativoFinal = aviso.ativo;
       toast.success("Aviso atualizado.");
     } else {
-      const { error } = await supabase.from("avisos").insert({ ...payload, ativo: true });
-
-      setSalvando(false);
+      const { data, error } = await supabase
+        .from("avisos")
+        .insert({ ...payload, ativo: true })
+        .select("id")
+        .single();
 
       if (error) {
         console.error("Erro ao publicar aviso:", error);
         toast.error("Não foi possível publicar o aviso.");
+        setSalvando(false);
         return;
       }
 
+      avisoId = data.id;
       toast.success("Aviso publicado.");
     }
 
+    if (form.urgente && form.visivel_portal && ativoFinal && avisoId) {
+      const { data: resultado, error: erroPush } = await supabase.functions.invoke<{
+        ok: boolean;
+        enviados?: number;
+      }>("enviar-push-aviso", { body: { aviso_id: avisoId } });
+
+      if (erroPush) {
+        toast.error("Aviso salvo, mas o push não pôde ser enviado agora.");
+      } else if (resultado && (resultado.enviados ?? 0) > 0) {
+        toast.success(`Notificação push enviada a ${resultado.enviados} aluno(s).`);
+      }
+    }
+
+    setSalvando(false);
     onOpenChange(false);
     onSaved();
   }
@@ -728,6 +800,51 @@ function AvisoDialog({
               Sem nenhuma das duas opções marcadas, este aviso fica visível só aqui no painel
               administrativo.
             </p>
+          )}
+
+          {form.visivel_portal && (
+            <>
+              <Fld label="Turma alvo no portal (opcional)">
+                <Select
+                  value={form.turma_id ?? "todas"}
+                  onValueChange={(valor) =>
+                    setForm((atual) => ({ ...atual, turma_id: valor === "todas" ? null : valor }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">Todas as turmas</SelectItem>
+                    {turmas.map((turma) => (
+                      <SelectItem key={turma.id} value={turma.id}>
+                        {turma.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Se escolher uma turma, só os alunos matriculados nela veem este aviso no portal.
+                </p>
+              </Fld>
+
+              <div className="flex items-center justify-between rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2">
+                <div>
+                  <Label className="flex items-center gap-1.5 text-sm">
+                    <BellRing className="h-3.5 w-3.5" />
+                    Urgente
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Dispara notificação push no celular (ex.: aula cancelada hoje). Use só quando
+                    for algo que precisa chegar mesmo com o app fechado.
+                  </p>
+                </div>
+                <Switch
+                  checked={form.urgente}
+                  onCheckedChange={(valor) => setForm((atual) => ({ ...atual, urgente: valor }))}
+                />
+              </div>
+            </>
           )}
         </div>
 

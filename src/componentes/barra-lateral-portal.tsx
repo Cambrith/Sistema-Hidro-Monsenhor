@@ -9,6 +9,7 @@ import {
   HelpCircle,
   LogOut,
   Globe,
+  Settings,
 } from "lucide-react";
 
 import {
@@ -41,6 +42,7 @@ const navPortal: MenuItemPortal[] = [
   { to: "/portal/dados", label: "Meus dados", icon: ClipboardList },
   { to: "/portal/documentos", label: "Documentos", icon: FileText },
   { to: "/portal/avisos", label: "Avisos", icon: Megaphone },
+  { to: "/portal/configuracoes", label: "Configurações", icon: Settings },
   { to: "/portal/ajuda", label: "Dúvidas", icon: HelpCircle },
 ];
 

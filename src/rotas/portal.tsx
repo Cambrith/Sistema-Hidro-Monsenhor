@@ -6,7 +6,7 @@ import {
   useNavigate,
   useRouterState,
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabaseAluno } from "@/utilitarios/supabase";
 import {
   getSessaoAluno,
@@ -18,12 +18,14 @@ import {
 } from "@/utilitarios/autenticacao-aluno";
 import { statusBloqueio, registrarTentativaFalha, limparTentativas } from "@/utilitarios/limite-requisicoes";
 import { statusValidade } from "@/utilitarios/validade";
+import { tocarSomDeAviso } from "@/utilitarios/som-aviso";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/componentes/ui/card";
 import { Input } from "@/componentes/ui/input";
 import { Button } from "@/componentes/ui/button";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/componentes/ui/sidebar";
 import { Separator } from "@/componentes/ui/separator";
 import { PortalSidebar, type PendenciaDocumentos } from "@/componentes/barra-lateral-portal";
+import { SinoAvisosPortal } from "@/componentes/sino-avisos-portal";
 import { PwaInstallBanner } from "@/componentes/banner-instalacao-app";
 import { useIsStandalone } from "@/hooks/use-install-prompt";
 import { ArrowLeft, Info, Loader2 } from "lucide-react";
@@ -69,6 +71,7 @@ const titulosPortal: Record<string, string> = {
   "/portal/documentos": "Documentos",
   "/portal/avisos": "Avisos",
   "/portal/ajuda": "Dúvidas",
+  "/portal/configuracoes": "Configurações",
 };
 
 function PortalLayout() {
@@ -76,6 +79,8 @@ function PortalLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [sessao, setSessao] = useState<SessaoAluno | null>(null);
   const [pendenciaDocumentos, setPendenciaDocumentos] = useState<PendenciaDocumentos>(null);
+  const [avisosNaoLidos, setAvisosNaoLidos] = useState(0);
+  const naoLidosAnteriorRef = useRef<number | null>(null);
 
   useEffect(() => {
     getSessaoAluno().then(setSessao);
@@ -84,16 +89,20 @@ function PortalLayout() {
   useEffect(() => {
     if (!sessao) return;
     carregarPendenciaDocumentos();
+    carregarAvisosNaoLidos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessao?.id, path]);
 
   // O layout do portal fica montado a sessão inteira (só o <Outlet/> troca de
-  // página) — sem isso, se a secretaria aprovar um documento com a aba aberta,
-  // a bolinha de pendência no menu nunca atualiza sozinha.
+  // página) — sem isso, se a secretaria aprovar um documento ou publicar um
+  // aviso com a aba aberta, a bolinha de pendência/o sino nunca atualizam sozinhos.
   useEffect(() => {
     if (!sessao) return;
     function aoVoltarFoco() {
-      if (document.visibilityState === "visible") carregarPendenciaDocumentos();
+      if (document.visibilityState === "visible") {
+        carregarPendenciaDocumentos();
+        carregarAvisosNaoLidos();
+      }
     }
     document.addEventListener("visibilitychange", aoVoltarFoco);
     return () => document.removeEventListener("visibilitychange", aoVoltarFoco);
@@ -120,6 +129,36 @@ function PortalLayout() {
     setPendenciaDocumentos(grave ? "urgente" : atencao ? "atencao" : null);
   }
 
+  async function carregarAvisosNaoLidos() {
+    if (!sessao) return;
+    const { data: total } = await supabaseAluno.rpc("portal_avisos_nao_lidos", {
+      p_aluno_id: sessao.id,
+    });
+    const novoTotal = total ?? 0;
+    setAvisosNaoLidos(novoTotal);
+
+    const anterior = naoLidosAnteriorRef.current;
+    if (novoTotal > 0 && anterior === null) {
+      // Primeira checagem da sessão (login/carregamento da página) com avisos pendentes.
+      toast.info(
+        novoTotal === 1
+          ? "Você tem 1 aviso não lido."
+          : `Você tem ${novoTotal} avisos não lidos.`,
+      );
+      tocarSomDeAviso();
+    } else if (anterior !== null && novoTotal > anterior) {
+      // Chegou aviso novo com o portal já aberto.
+      const { data: recentes } = await supabaseAluno.rpc("portal_avisos_listar", {
+        p_aluno_id: sessao.id,
+      });
+      const maisRecente = recentes?.[0];
+      toast.info(maisRecente ? `Novo aviso: ${maisRecente.titulo}` : "Você recebeu um novo aviso.");
+      tocarSomDeAviso();
+    }
+
+    naoLidosAnteriorRef.current = novoTotal;
+  }
+
   async function handleSair() {
     await sairAluno();
     toast.success("Você saiu do portal.");
@@ -143,6 +182,7 @@ function PortalLayout() {
             <SidebarTrigger />
             <Separator orientation="vertical" className="h-6" />
             <p className="truncate font-display text-sm font-semibold">{tituloAtual}</p>
+            {sessao && <SinoAvisosPortal alunoId={sessao.id} naoLidos={avisosNaoLidos} />}
           </header>
 
           {sessao && <PwaInstallBanner />}
