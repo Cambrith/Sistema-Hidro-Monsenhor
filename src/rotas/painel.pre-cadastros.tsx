@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/utilitarios/supabase";
 import { getSessao } from "@/utilitarios/autenticacao";
+import { calcIdade } from "@/utilitarios/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/componentes/ui/card";
 import { Button } from "@/componentes/ui/button";
 import { Input } from "@/componentes/ui/input";
@@ -102,18 +103,6 @@ const statusStyle: Record<StatusListaEspera, string> = {
   recusado: "border border-red-300 bg-red-50 text-red-700",
   inativo: "border border-muted bg-muted text-muted-foreground",
 };
-
-function calcIdade(nascimento: string) {
-  if (!nascimento) return 0;
-  const dataNascimento = new Date(nascimento);
-  const hoje = new Date();
-  let idade = hoje.getFullYear() - dataNascimento.getFullYear();
-  const diferencaMes = hoje.getMonth() - dataNascimento.getMonth();
-  if (diferencaMes < 0 || (diferencaMes === 0 && hoje.getDate() < dataNascimento.getDate())) {
-    idade -= 1;
-  }
-  return Math.max(0, idade);
-}
 
 function somenteNumeros(valor: string) {
   return valor.replace(/\D/g, "").slice(0, 11);
@@ -487,7 +476,7 @@ function ListaEsperaAdmin() {
       .insert({
         nome_completo: item.nome_aluno,
         nascimento: item.nascimento,
-        idade: item.idade,
+        idade: calcIdade(item.nascimento),
         modalidade: item.modalidade,
         turma: turmaEncontrada?.nome ?? null,
         responsavel: item.responsavel,
@@ -643,7 +632,7 @@ function ListaEsperaAdmin() {
                   <TableRow key={item.id}>
                     <TableCell>
                       <p className="font-medium">{item.nome_aluno}</p>
-                      <p className="text-xs text-muted-foreground">{item.idade} anos</p>
+                      <p className="text-xs text-muted-foreground">{calcIdade(item.nascimento)} anos</p>
                     </TableCell>
 
                     <TableCell>{item.modalidade}</TableCell>
@@ -833,7 +822,7 @@ function ListaEsperaAdmin() {
               <div className="mt-6 space-y-4 px-4 text-sm">
                 <Section title="Dados">
                   <Row k="Nascimento" v={formatarData(verItem.nascimento)} />
-                  <Row k="Idade" v={`${verItem.idade} anos`} />
+                  <Row k="Idade" v={`${calcIdade(verItem.nascimento)} anos`} />
                   <Row k="Modalidade" v={verItem.modalidade} />
                   <Row k="Horário de interesse" v={verItem.horario_interesse || verItem.turno} />
 

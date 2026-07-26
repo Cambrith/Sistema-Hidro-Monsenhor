@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase, buscarTodasLinhas } from "@/utilitarios/supabase";
+import { hojeBrasilia } from "@/utilitarios/data";
 import { sair } from "@/utilitarios/autenticacao";
 import { InfoCard } from "@/componentes/diagnostico-info-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/componentes/ui/card";
@@ -875,7 +876,7 @@ function BlocoBackup() {
         backup[tabela] = await buscarTabela(tabela);
       }
 
-      const hoje = new Date().toISOString().slice(0, 10);
+      const hoje = hojeBrasilia();
       baixarArquivo(
         `backup-hidro-monsenhor-${hoje}.json`,
         JSON.stringify(
@@ -909,7 +910,7 @@ function BlocoBackup() {
     try {
       setExportando(true);
       const dados = await buscarTabela(nomeTabela);
-      const hoje = new Date().toISOString().slice(0, 10);
+      const hoje = hojeBrasilia();
 
       baixarArquivo(
         `${nomeTabela}-${hoje}.json`,

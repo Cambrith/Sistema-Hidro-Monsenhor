@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase, buscarTodasLinhas } from "@/utilitarios/supabase";
+import { dataBrasiliaMaisAnos, calcIdade } from "@/utilitarios/data";
 import { getSessao } from "@/utilitarios/autenticacao";
 import { pontuarTexto } from "@/utilitarios/relevancia-busca";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/componentes/ui/card";
@@ -141,18 +142,6 @@ const tiposOcorrencia = [
   "Saúde/Limitação",
   "Administrativo",
 ];
-
-function calcIdade(nascimento: string) {
-  if (!nascimento) return 0;
-  const dataNascimento = new Date(nascimento);
-  const hoje = new Date();
-  let idade = hoje.getFullYear() - dataNascimento.getFullYear();
-  const diferencaMes = hoje.getMonth() - dataNascimento.getMonth();
-  if (diferencaMes < 0 || (diferencaMes === 0 && hoje.getDate() < dataNascimento.getDate())) {
-    idade -= 1;
-  }
-  return Math.max(0, idade);
-}
 
 function labelResponsavel(nascimento: string) {
   const idade = calcIdade(nascimento);
@@ -389,8 +378,9 @@ function AlunosAdmin() {
         const passaNivel =
           nivelFiltro === "todos" ||
           (nivelFiltro === "nao_avaliado" ? !aluno.nivel : aluno.nivel === nivelFiltro);
-        const passaIdadeMin = idadeMinNum === null || aluno.idade >= idadeMinNum;
-        const passaIdadeMax = idadeMaxNum === null || aluno.idade <= idadeMaxNum;
+        const idadeAtual = calcIdade(aluno.nascimento);
+        const passaIdadeMin = idadeMinNum === null || idadeAtual >= idadeMinNum;
+        const passaIdadeMax = idadeMaxNum === null || idadeAtual <= idadeMaxNum;
         return (
           passaModalidade &&
           passaStatus &&
@@ -637,7 +627,7 @@ function AlunosAdmin() {
                     <TableRow key={aluno.id}>
                       <TableCell>
                         <p className="font-medium">{aluno.nome_completo}</p>
-                        <p className="text-xs text-muted-foreground">{aluno.idade} anos</p>
+                        <p className="text-xs text-muted-foreground">{calcIdade(aluno.nascimento)} anos</p>
                       </TableCell>
                       <TableCell>{aluno.modalidade}</TableCell>
                       <TableCell>{aluno.turma || "—"}</TableCell>
@@ -917,7 +907,7 @@ function FichaAlunoDialog({
               <div>
                 <h3 className="text-xl font-semibold text-foreground">{aluno.nome_completo}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {aluno.idade} anos · {aluno.modalidade}
+                  {calcIdade(aluno.nascimento)} anos · {aluno.modalidade}
                 </p>
               </div>
               <Badge
@@ -942,7 +932,7 @@ function FichaAlunoDialog({
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <InfoLinha label="Nascimento" value={formatarData(aluno.nascimento)} />
-                <InfoLinha label="Idade" value={`${aluno.idade} anos`} />
+                <InfoLinha label="Idade" value={`${calcIdade(aluno.nascimento)} anos`} />
                 <InfoLinha label="Modalidade" value={aluno.modalidade} />
                 <InfoLinha label="Turma atual" value={aluno.turma || "Sem turma"} />
                 <InfoLinha label="Cadastrado em" value={formatarData(aluno.criado_em)} />
@@ -1155,9 +1145,7 @@ function NovoAlunoDialog({
   turmas: Turma[];
 }) {
   function dataDaquiUmAno(): string {
-    const data = new Date();
-    data.setFullYear(data.getFullYear() + 1);
-    return data.toISOString().slice(0, 10);
+    return dataBrasiliaMaisAnos(1);
   }
 
   const estadoInicial = {

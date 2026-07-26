@@ -8,7 +8,7 @@ import {
   type SVGProps,
 } from "react";
 import { supabase, buscarTodasLinhas } from "@/utilitarios/supabase";
-import { gerarPdfTabela } from "@/utilitarios/exportar-pdf";
+import { hojeBrasilia } from "@/utilitarios/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/componentes/ui/card";
 import { Button } from "@/componentes/ui/button";
 import { Input } from "@/componentes/ui/input";
@@ -51,7 +51,6 @@ type Aluno = {
   id: string;
   nome_completo: string;
   nascimento: string | null;
-  idade: number | null;
   modalidade: string | null;
   turma: string | null;
   responsavel: string | null;
@@ -107,13 +106,11 @@ const modalidades: Modalidade[] = ["Natação Infantil", "Natação Adulta", "Hi
 const LINHAS_INICIAIS = 10;
 
 function nomeArquivo(base: string) {
-  const hoje = new Date().toISOString().slice(0, 10);
-  return `${base}-${hoje}.csv`;
+  return `${base}-${hojeBrasilia()}.csv`;
 }
 
 function nomeArquivoPdf(base: string) {
-  const hoje = new Date().toISOString().slice(0, 10);
-  return `${base}-${hoje}.pdf`;
+  return `${base}-${hojeBrasilia()}.pdf`;
 }
 
 function downloadCSV(filename: string, rows: Array<Array<string | number | null | undefined>>) {
@@ -191,7 +188,7 @@ function Relatorios() {
     const [alunosRes, turmasRes, alunosTurmasRes, chamadasRes, presencasRes] = await Promise.all([
       buscarTodasLinhas<Aluno>(
         "alunos",
-        "id, nome_completo, nascimento, idade, modalidade, turma, responsavel, telefone, whatsapp, email, observacoes, ativo, criado_em",
+        "id, nome_completo, nascimento, modalidade, turma, responsavel, telefone, whatsapp, email, observacoes, ativo, criado_em",
         { ordenarPor: "nome_completo", ascendente: true },
       ),
       supabase
@@ -613,14 +610,15 @@ function Relatorios() {
             ...dadosPorModalidade,
           ])
         }
-        onPDF={() =>
+        onPDF={async () => {
+          const { gerarPdfTabela } = await import("@/utilitarios/exportar-pdf");
           gerarPdfTabela({
             titulo: "Distribuição por modalidade",
             colunas: ["Modalidade", "Total"],
             linhas: dadosPorModalidade,
             nomeArquivo: nomeArquivoPdf("alunos-por-modalidade"),
-          })
-        }
+          });
+        }}
       >
         {carregando ? (
           <LoadingLine />
@@ -655,7 +653,8 @@ function Relatorios() {
             ...dadosPorTurma,
           ])
         }
-        onPDF={() =>
+        onPDF={async () => {
+          const { gerarPdfTabela } = await import("@/utilitarios/exportar-pdf");
           gerarPdfTabela({
             titulo: "Alunos e capacidade por turma",
             colunas: [
@@ -670,8 +669,8 @@ function Relatorios() {
             ],
             linhas: dadosPorTurma,
             nomeArquivo: nomeArquivoPdf("alunos-por-turma"),
-          })
-        }
+          });
+        }}
       >
         <Table>
           <TableHeader>
@@ -746,14 +745,15 @@ function Relatorios() {
               ...dadosPresencaPorPeriodo,
             ])
           }
-          onPDF={() =>
+          onPDF={async () => {
+            const { gerarPdfTabela } = await import("@/utilitarios/exportar-pdf");
             gerarPdfTabela({
               titulo: "Presença por período",
               colunas: ["Turma", "Modalidade", "Data", "Total", "Presentes", "Faltas", "Justificadas"],
               linhas: dadosPresencaPorPeriodo,
               nomeArquivo: nomeArquivoPdf("presencas-por-periodo"),
-            })
-          }
+            });
+          }}
         >
           <div className="mb-3 no-print">
             <select
@@ -854,7 +854,8 @@ function Relatorios() {
               ...dadosFaltasPorAluno,
             ])
           }
-          onPDF={() =>
+          onPDF={async () => {
+            const { gerarPdfTabela } = await import("@/utilitarios/exportar-pdf");
             gerarPdfTabela({
               titulo: "Faltas por aluno",
               colunas: [
@@ -868,8 +869,8 @@ function Relatorios() {
               ],
               linhas: dadosFaltasPorAluno,
               nomeArquivo: nomeArquivoPdf("faltas-por-aluno"),
-            })
-          }
+            });
+          }}
         >
           <div className="mb-3 flex flex-col gap-2 no-print sm:flex-row">
             <div className="relative flex-1">

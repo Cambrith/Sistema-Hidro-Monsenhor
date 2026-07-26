@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabaseAluno } from "@/utilitarios/supabase";
+import { calcIdade } from "@/utilitarios/data";
 import { getSessaoAluno, sairAluno, type SessaoAluno } from "@/utilitarios/autenticacao-aluno";
 import { Card, CardContent, CardHeader, CardTitle } from "@/componentes/ui/card";
 import { Button } from "@/componentes/ui/button";
@@ -157,7 +158,9 @@ function PortalDados() {
         <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
           <InfoLinha label="Nome completo" value={aluno.nome_completo} />
           <InfoLinha label="Data de nascimento" value={formatarData(aluno.nascimento)} />
-          {aluno.idade ? <InfoLinha label="Idade" value={`${aluno.idade} anos`} /> : null}
+          {aluno.nascimento ? (
+            <InfoLinha label="Idade" value={`${calcIdade(aluno.nascimento)} anos`} />
+          ) : null}
           <InfoLinha label="CPF" value={formatarCPF(aluno.cpf)} />
           {aluno.responsavel && <InfoLinha label="Responsável" value={aluno.responsavel} />}
           {aluno.nome_pai && <InfoLinha label="Nome do pai" value={aluno.nome_pai} />}

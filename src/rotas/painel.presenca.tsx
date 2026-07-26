@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/utilitarios/supabase";
+import { hojeBrasilia, calcIdade } from "@/utilitarios/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/componentes/ui/card";
 import { Button } from "@/componentes/ui/button";
 import { Input } from "@/componentes/ui/input";
@@ -110,7 +111,7 @@ const opcoes: Array<{
 ];
 
 function dataHoje() {
-  return new Date().toISOString().slice(0, 10);
+  return hojeBrasilia();
 }
 
 function formatarData(data?: string | null) {
@@ -708,7 +709,7 @@ function PresencaAdmin() {
                   <div>
                     <p className="font-medium">{aluno.nome_completo}</p>
                     <p className="text-xs text-muted-foreground">
-                      {aluno.idade ?? "—"} anos
+                      {aluno.nascimento ? calcIdade(aluno.nascimento) : "—"} anos
                       {aluno.responsavel ? ` · Responsável: ${aluno.responsavel}` : ""}
                     </p>
                   </div>

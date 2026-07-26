@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase, buscarTodasLinhas } from "@/utilitarios/supabase";
+import { calcIdade } from "@/utilitarios/data";
 import { getSessao, permissoesPorPerfil, type Permissao, type Sessao } from "@/utilitarios/autenticacao";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/componentes/ui/card";
@@ -491,7 +492,7 @@ function Painel() {
         id: aluno.id,
         nome: aluno.nome_completo,
         dia: diaDeData(aluno.nascimento) ?? 0,
-        idade: aluno.idade ?? "—",
+        idade: aluno.nascimento ? calcIdade(aluno.nascimento) : "—",
         modalidade: aluno.modalidade ?? "—",
       }))
       .sort((a, b) => a.dia - b.dia);

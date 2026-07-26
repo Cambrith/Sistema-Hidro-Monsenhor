@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, useCallback, type ReactNode } from "react";
 import { supabase } from "@/utilitarios/supabase";
+import { hojeBrasilia } from "@/utilitarios/data";
 import { getSessao } from "@/utilitarios/autenticacao";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/componentes/ui/card";
 import { Button } from "@/componentes/ui/button";
@@ -82,7 +83,7 @@ type AvisoForm = {
 };
 
 function hojeISO() {
-  return new Date().toISOString().slice(0, 10);
+  return hojeBrasilia();
 }
 
 function pareceHtml(valor: string) {

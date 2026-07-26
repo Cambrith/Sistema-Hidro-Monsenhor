@@ -1,0 +1,11 @@
+-- A policy "documentos insercao publica" liberava INSERT em documentos_aluno
+-- pra qualquer um (with_check = true, sem checar autenticação nem dono do
+-- registro), permitindo forjar um documento "aprovado" direto pela API REST,
+-- passando por cima de portal_enviar_documento e admin_registrar_documento.
+--
+-- As duas funções legítimas de insert (portal_enviar_documento,
+-- admin_registrar_documento) são SECURITY DEFINER, de propriedade do
+-- "postgres" (rolbypassrls = true), então elas continuam funcionando
+-- normalmente mesmo sem nenhuma policy de INSERT — RLS não se aplica a elas.
+-- Sem essa policy, insert direto via REST fica bloqueado por padrão.
+DROP POLICY IF EXISTS "documentos insercao publica" ON public.documentos_aluno;

@@ -18,7 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
-import { horarioSegQua, horarioTerQui, type Modalidade } from "@/utilitarios/dados-simulados";
+import { horarioSegQua, horarioTerQui, type Modalidade } from "@/utilitarios/horarios-turmas";
 import mapaImg from "@/imagens/mapa-localizacao.png";
 
 export const Route = createFileRoute("/")({
