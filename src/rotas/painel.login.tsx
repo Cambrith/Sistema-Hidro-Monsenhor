@@ -4,7 +4,7 @@ import { Input } from "@/componentes/ui/input";
 import { Label } from "@/componentes/ui/label";
 import { Button } from "@/componentes/ui/button";
 import { useState } from "react";
-import { entrar, getSessao } from "@/utilitarios/autenticacao";
+import { entrar, sincronizarSessao } from "@/utilitarios/autenticacao";
 import { statusBloqueio, registrarTentativaFalha, limparTentativas } from "@/utilitarios/limite-requisicoes";
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -14,9 +14,9 @@ const MAX_TENTATIVAS_ADMIN = 5;
 const BLOQUEIO_ADMIN_MS = 15 * 60 * 1000; // 15 minutos
 
 export const Route = createFileRoute("/painel/login")({
-  beforeLoad: () => {
+  beforeLoad: async () => {
     if (typeof window === "undefined") return;
-    if (getSessao()) {
+    if (await sincronizarSessao()) {
       throw redirect({ to: "/painel" });
     }
   },

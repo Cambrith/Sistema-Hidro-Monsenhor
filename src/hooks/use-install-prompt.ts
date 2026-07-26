@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useDeferredInstallPrompt } from "@/utilitarios/contexto-instalacao-pwa";
 
-const DIAS_ATE_REAPARECER = 14;
+const DIAS_ATE_REAPARECER = 30;
 
 type PlataformaInstalacao = "android" | "desktop" | "ios" | null;
 

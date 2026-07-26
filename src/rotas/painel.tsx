@@ -9,22 +9,22 @@ import { useEffect } from "react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/componentes/ui/sidebar";
 import { AdminSidebar } from "@/componentes/barra-lateral-admin";
 import { PwaInstallBanner } from "@/componentes/banner-instalacao-app";
-import { getSessao, permissoesPorPerfil, type Permissao, type Sessao } from "@/utilitarios/autenticacao";
+import { getSessao, sincronizarSessao, permissoesPorPerfil, type Permissao, type Sessao } from "@/utilitarios/autenticacao";
 import { Separator } from "@/componentes/ui/separator";
 import { Badge } from "@/componentes/ui/badge";
 
 export const Route = createFileRoute("/painel")({
   head: () => ({
-    meta: [{ name: "apple-mobile-web-app-title", content: "Painel Monsenhor" }],
+    meta: [{ name: "apple-mobile-web-app-title", content: "Painel" }],
     links: [
       { rel: "manifest", href: "/manifest-admin.json" },
       { rel: "apple-touch-icon", href: "/admin-icons/apple-touch-icon.png" },
     ],
   }),
-  beforeLoad: ({ location }) => {
+  beforeLoad: async ({ location }) => {
     if (typeof window === "undefined") return;
 
-    const sessao = getSessao();
+    const sessao = await sincronizarSessao();
 
     if (!sessao) {
       // /painel/login precisa ficar acessível sem sessão — senão o redirect
@@ -209,7 +209,7 @@ function AdminLayout() {
         </div>
 
         <SidebarInset className="print:m-0 print:block print:w-full print:max-w-none">
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/85 px-4 backdrop-blur print:hidden">
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background px-4 print:hidden">
             <SidebarTrigger />
 
             <Separator orientation="vertical" className="h-6" />

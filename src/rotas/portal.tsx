@@ -36,7 +36,7 @@ export const Route = createFileRoute("/portal")({
   head: () => ({
     meta: [
       { title: "Portal do Aluno" },
-      { name: "apple-mobile-web-app-title", content: "Portal do Aluno" },
+      { name: "apple-mobile-web-app-title", content: "Monsenhor" },
     ],
     links: [
       { rel: "manifest", href: "/manifest.json" },
@@ -178,7 +178,7 @@ function PortalLayout() {
         />
 
         <SidebarInset>
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/85 px-4 backdrop-blur">
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background px-4">
             <SidebarTrigger />
             <Separator orientation="vertical" className="h-6" />
             <p className="truncate font-display text-sm font-semibold">{tituloAtual}</p>
@@ -461,10 +461,13 @@ function LoginAluno() {
                     <Input
                       value={nomeCompleto}
                       onChange={(e) => setNomeCompleto(e.target.value)}
-                      placeholder="Nome completo, como cadastrado na secretaria"
+                      placeholder="Digite o nome completo"
                       disabled={entrando}
                       autoComplete="off"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Como cadastrado na secretaria no momento da matrícula.
+                    </p>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium">Data de Nascimento</label>

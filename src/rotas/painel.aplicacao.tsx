@@ -49,6 +49,9 @@ function AplicacaoDeploy() {
   const [carregandoTempos, setCarregandoTempos] = useState(true);
 
   const commitSha = (import.meta.env.VITE_COMMIT_SHA as string | undefined) || "";
+  const siteUrlConfigurada = (import.meta.env.VITE_SITE_URL as string | undefined) || "";
+  const dominioAtual =
+    siteUrlConfigurada || (typeof window !== "undefined" ? window.location.origin : "");
 
   useEffect(() => {
     carregarServiceWorker();
@@ -129,7 +132,7 @@ function AplicacaoDeploy() {
           </CardTitle>
           <CardDescription>Identificação do build em produção.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="grid gap-3 sm:grid-cols-2">
           <InfoCard
             icon={Rocket}
             label="Commit em produção (VERCEL_GIT_COMMIT_SHA)"
@@ -138,6 +141,16 @@ function AplicacaoDeploy() {
               commitSha
                 ? commitSha
                 : "Vazio em build local — só a Vercel preenche essa variável automaticamente."
+            }
+          />
+          <InfoCard
+            icon={Rocket}
+            label="Domínio atual"
+            valor={dominioAtual || "Não disponível"}
+            sub={
+              siteUrlConfigurada
+                ? "Configurado via VITE_SITE_URL."
+                : "Detectado em runtime (window.location) — configure VITE_SITE_URL na Vercel pra fixar."
             }
           />
         </CardContent>

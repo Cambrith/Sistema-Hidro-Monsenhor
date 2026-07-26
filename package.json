@@ -73,8 +73,16 @@
     "vite-tsconfig-paths": "^6.0.2",
     "zod": "^3.24.2"
   },
+  "browserslist": [
+    "Chrome >= 109",
+    "Firefox >= 113",
+    "Safari >= 16.4",
+    "Edge >= 111"
+  ],
   "devDependencies": {
     "@eslint/js": "^9.32.0",
+    "browserslist": "^4.28.2",
+    "lightningcss": "^1.32.0",
     "@lovable.dev/vite-tanstack-config": "^1.7.0",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",

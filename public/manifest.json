@@ -1,6 +1,6 @@
 {
-  "name": "Hidro e Natação Monsenhor",
-  "short_name": "Hidro Monsenhor",
+  "name": "Portal do Aluno — Hidro Monsenhor",
+  "short_name": "Monsenhor",
   "description": "Portal do Aluno do Centro Esportivo e Cultural Profª Marta Regina de Carvalho Ferreira — acompanhe presenças, documentos e avisos.",
   "start_url": "/portal",
   "scope": "/portal",

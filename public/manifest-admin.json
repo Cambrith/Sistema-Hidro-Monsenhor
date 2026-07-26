@@ -1,6 +1,6 @@
 {
-  "name": "Painel Hidro Monsenhor",
-  "short_name": "Painel Monsenhor",
+  "name": "Painel Administrativo — Hidro Monsenhor",
+  "short_name": "Painel",
   "description": "Painel administrativo do Centro Esportivo e Cultural Profª Marta Regina de Carvalho Ferreira — turmas, presença, alunos, avisos e relatórios.",
   "start_url": "/painel",
   "scope": "/painel",

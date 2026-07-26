@@ -113,6 +113,60 @@ export function getSessao(): Sessao | null {
   }
 }
 
+/**
+ * Reconfere a sessão local (localStorage) contra a sessão real do Supabase
+ * antes de confiar nela — sem isso, as duas podiam divergir nos dois
+ * sentidos: a local dizer "ainda vale" enquanto o token do Supabase já
+ * expirou (interface aparece normal, mas toda ação falha), ou o contrário
+ * (força relogin com o token do Supabase ainda válido).
+ *
+ * Mantém `getSessao()` síncrona pros usos de leitura (render, `podeAcessar`
+ * etc.) — só os pontos de entrada de rota (`beforeLoad`) chamam esta função
+ * async, que realinha o localStorage antes de qualquer decisão de acesso.
+ */
+export async function sincronizarSessao(): Promise<Sessao | null> {
+  if (typeof window === "undefined") return null;
+
+  const { data } = await supabase.auth.getSession();
+
+  if (!data.session) {
+    localStorage.removeItem(KEY);
+    return null;
+  }
+
+  const sessaoLocal = getSessao();
+  if (sessaoLocal) return sessaoLocal;
+
+  // Sessão do Supabase existe mas a local expirou ou nunca foi gravada —
+  // reconstrói a partir do perfil no banco em vez de forçar relogin com um
+  // token ainda válido.
+  const { data: perfilData, error } = await supabase
+    .from("perfis")
+    .select("nome, perfil, ativo")
+    .eq("user_id", data.session.user.id)
+    .eq("ativo", true)
+    .maybeSingle();
+
+  if (error || !perfilData || !perfilValido(perfilData.perfil)) {
+    localStorage.removeItem(KEY);
+    await supabase.auth.signOut();
+    return null;
+  }
+
+  const email = data.session.user.email ?? "";
+  const sessao: Sessao = {
+    usuario: usuarioPorEmail(email),
+    nome: perfilData.nome,
+    email,
+    perfil: perfilData.perfil,
+    expiresAt: Date.now() + DURACAO_SESSAO_MS[perfilData.perfil],
+  };
+
+  localStorage.setItem(KEY, JSON.stringify(sessao));
+
+  return sessao;
+}
+
 export async function entrar(usuario: string, senha: string): Promise<Sessao | null> {
   if (typeof window === "undefined") return null;
 
