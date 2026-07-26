@@ -461,19 +461,14 @@ function AlunosAdmin() {
       `Tem certeza que deseja excluir "${aluno.nome_completo}"? Essa ação não poderá ser desfeita.`,
     );
     if (!confirmado) return;
-    const { error: vinculosError } = await supabase
-      .from("alunos_turmas")
-      .delete()
-      .eq("aluno_id", aluno.id);
-    if (vinculosError) {
-      console.error(vinculosError);
-      toast.error(`Erro ao remover vínculos do aluno: ${vinculosError.message}`);
-      return;
-    }
-    const { error } = await supabase.from("alunos").delete().eq("id", aluno.id);
-    if (error) {
-      console.error(error);
-      toast.error(`Erro ao excluir aluno: ${error.message}`);
+    const { data, error } = await supabase.functions.invoke<{ ok: boolean; erro?: string }>(
+      "excluir-aluno",
+      { body: { p_aluno_id: aluno.id } },
+    );
+    if (error || !data?.ok) {
+      const mensagem = data?.erro ?? error?.message ?? "Erro desconhecido";
+      console.error(mensagem);
+      toast.error(`Erro ao excluir aluno: ${mensagem}`);
       return;
     }
     setAlunos((lista) => lista.filter((item) => item.id !== aluno.id));

@@ -146,24 +146,26 @@ function DocumentosAdmin() {
   }
 
   async function excluirDocumento(doc: Documento) {
+    const avisoValidade =
+      doc.status === "aprovado"
+        ? " Como o documento está aprovado, a validade correspondente no cadastro do aluno também será apagada."
+        : "";
     const confirmar = window.confirm(
-      `Tem certeza que deseja excluir permanentemente o documento (${tipoCfg[doc.tipo] ?? doc.tipo}) de ${doc.aluno_nome}? Essa ação não pode ser desfeita e remove o arquivo do Storage também.`,
+      `Tem certeza que deseja excluir permanentemente o documento (${tipoCfg[doc.tipo] ?? doc.tipo}) de ${doc.aluno_nome}? Essa ação não pode ser desfeita e remove o arquivo do Storage também.${avisoValidade}`,
     );
     if (!confirmar) return;
 
     setExcluindo(doc.id);
 
     try {
-      const { data, error } = await supabase.rpc("admin_excluir_documento", {
-        p_documento_id: doc.id,
+      const { data, error } = await supabase.functions.invoke<{
+        ok: boolean;
+        erro?: string;
+      }>("admin-excluir-documento", {
+        body: { p_documento_id: doc.id },
       });
 
-      if (error) throw error;
-
-      const urlsArquivos = data?.[0]?.url;
-      if (urlsArquivos?.length) {
-        await supabase.storage.from("documentos-aluno").remove(urlsArquivos);
-      }
+      if (error || !data?.ok) throw new Error(data?.erro ?? error?.message);
 
       toast.success("Documento excluído.");
       await carregarDocumentos();

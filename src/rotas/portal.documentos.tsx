@@ -217,17 +217,14 @@ function PortalDocumentos() {
     setCancelando(doc.id);
 
     try {
-      const { data, error } = await supabaseAluno.rpc("portal_cancelar_documento", {
-        p_aluno_id: session.id,
-        p_documento_id: doc.id,
+      const { data, error } = await supabaseAluno.functions.invoke<{
+        ok: boolean;
+        erro?: string;
+      }>("portal-cancelar-documento", {
+        body: { p_aluno_id: session.id, p_documento_id: doc.id },
       });
 
-      if (error) throw error;
-
-      const urlsArquivos = data?.[0]?.url;
-      if (urlsArquivos?.length) {
-        await supabaseAluno.storage.from("documentos-aluno").remove(urlsArquivos);
-      }
+      if (error || !data?.ok) throw new Error(data?.erro ?? error?.message);
 
       toast.success("Envio cancelado.");
       await carregarDocumentos();
