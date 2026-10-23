@@ -34,7 +34,7 @@ Cada rota define `head()` próprio com `title` e `description` em pt-BR.
 
 ## Telas — detalhes
 
-1. **Página inicial pública**: hero com nome do centro e frase institucional, cards das modalidades (Natação Infantil, Natação Adulta, Hidroginástica), seção "Sobre", localização (Petrópolis/RJ), botões para Pré-cadastro, WhatsApp, Instagram, Facebook, Linktree, bloco de avisos importantes e botão "Área administrativa".
+1. **Página inicial pública**: hero com nome do centro e frase institucional, cards das modalidades (Natação Infantil, Natação Adulta, Hidroginástica), seção "Sobre", localização (Petrópolis/RJ), botões para Pré-cadastro, WhatsApp e Linktree, bloco de avisos importantes e botão "Área administrativa".
 2. **Pré-cadastro**: formulário com seções Dados do aluno, Dados do responsável; validação com `react-hook-form` + `zod`; toast de sucesso com a mensagem especificada; grava em localStorage para aparecer no admin.
 3. **Login administrativo**: e-mail/usuário + senha; aceita qualquer credencial demo (ex.: `admin@monsenhor / 123456`) e grava sessão simulada.
 4. **Painel administrativo**: cards de resumo (total de alunos, pré-cadastros pendentes, turmas ativas, presença do dia, avisos recentes, fila de espera) + mini gráfico (Recharts) e lista de atividades recentes.
@@ -44,7 +44,7 @@ Cada rota define `head()` próprio com `title` e `description` em pt-BR.
 8. **Presença**: selecionar turma → data → lista de alunos com radio (Presente / Falta / Falta justificada) → Salvar; histórico simples por turma.
 9. **Avisos**: CRUD de avisos (título, mensagem, data, importante, exibir no público); exemplos prontos (alteração de horário, manutenção da piscina, etc.). Vista pública lista os marcados como públicos.
 10. **Relatórios**: cards numéricos + tabelas simples (alunos por modalidade/turma, presença por período, faltas por aluno, pendentes, fila, vagas) + botões "Exportar CSV" e "Exportar PDF" (CSV real via Blob; PDF demonstrativo com toast).
-11. **Acesso Rápido / QR Codes**: grid de botões (Pré-cadastro, WhatsApp, Instagram, Facebook, Localização, Horários, Avisos, Modalidades) + área com QR Codes simulados (gerados via `qrcode.react`) para pré-cadastro, Linktree, localização e avisos.
+11. **Acesso Rápido / QR Codes**: grid de botões (Pré-cadastro, WhatsApp, Localização, Horários, Avisos, Modalidades) + área com QR Codes simulados (gerados via `qrcode.react`) para pré-cadastro, Linktree, localização e avisos.
 12. **Segurança e backup**: tela com indicadores visuais (login/senha, controle de acesso, coleta mínima, backup periódico simulado com data/hora, exportação de dados, senhas protegidas).
 13. **Usuários/Perfis**: visualização dos três perfis (Administrador, Recepção, Professor) com matriz de permissões — apenas visual.
 

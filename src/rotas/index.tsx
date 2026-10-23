@@ -13,8 +13,6 @@ import {
   ShieldCheck,
   CalendarClock,
   ExternalLink,
-  Instagram,
-  Facebook,
   X,
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
@@ -39,8 +37,6 @@ type FiltroDia = "todos" | "seg-qui" | "ter-qua";
 type FiltroTurno = "todos" | "Manhã" | "Tarde" | "Noite";
 type FiltroModalidade = "todos" | Modalidade;
 
-const instagramUrl = "https://www.instagram.com/hidro.monsenhor?igsh=MWZsOGhzYzMydmxnaA==";
-const facebookUrl = "https://www.facebook.com/hidrojoaodedeus/?locale=pt_BR";
 const whatsappUrl =
   "https://wa.me/552422232857?text=Ol%C3%A1%2C%20gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20a%20Hidro%20e%20Nata%C3%A7%C3%A3o%20Monsenhor.";
 
@@ -79,20 +75,6 @@ const redesSociais = [
     href: whatsappUrl,
     icon: FaWhatsapp,
     detalhe: "(24) 2223-2857",
-  },
-  {
-    label: "Instagram",
-    desc: "Acompanhe novidades, comunicados e registros das atividades.",
-    href: instagramUrl,
-    icon: Instagram,
-    detalhe: "@hidro.monsenhor",
-  },
-  {
-    label: "Facebook",
-    desc: "Acesse a página oficial do centro e veja atualizações.",
-    href: facebookUrl,
-    icon: Facebook,
-    detalhe: "@hidrojoaodedeus",
   },
 ];
 
@@ -546,7 +528,7 @@ function Home() {
             Acompanhe comunicados, novidades e formas de contato do centro.
           </p>
         </div>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
           {redesSociais.map((rede) => {
             const Icon = rede.icon;
             return (
