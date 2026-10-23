@@ -8,6 +8,9 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
     router: { routesDirectory: "rotas" },
+    // Modo SPA: gera um _shell.html estático em vez de renderizar no servidor,
+    // permitindo publicar no Firebase Hosting (plano gratuito).
+    spa: { enabled: true },
   },
   vite: {
     define: {
