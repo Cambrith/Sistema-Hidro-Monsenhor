@@ -1,8 +1,16 @@
 {
+  "buildCommand": "NITRO_PRESET=node-server npm run build",
+  "outputDirectory": ".output/public",
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/_shell.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/service-worker.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
     }
   ]
 }
